@@ -4,18 +4,25 @@ project(training)
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
+include_directories(datasets/)
+include_directories(models/vgg/)
+
 set(SOURCE_FILES training.cpp
-                 mydataset.h
-                 mydataset.cpp
+                 datasets/mydataset.h
+                 datasets/mydataset.cpp
                  mylogging.h
                  mylogging.cpp
-                 transform.h
-                 transform.cpp
-                 vgg.h
-                 vgg.cpp
-                 vgg_help.h
-                 vgg_help.cpp
+                 datasets/transform.h
+                 datasets/transform.cpp
+                 models/vgg/vgg.cpp
+                 models/vgg/vgg.h
+                 models/vgg/vgg_help.h
+                 models/vgg/vgg_help.cpp
                  )
+
+
+#target_include_directories(${CMAKE_PROJECT_NAME}  models/vgg/include 
+                                            #datasets/include)
 
 add_executable("${CMAKE_PROJECT_NAME}" ${SOURCE_FILES})
 target_link_libraries("${CMAKE_PROJECT_NAME}" ${TORCH_LIBRARIES})

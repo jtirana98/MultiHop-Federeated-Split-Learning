@@ -27,7 +27,8 @@ How to run program:
 
    - Requirments:
     
-        - Create conda environment with python version $\geq 3.7$
+        - Create python environment for package managment with python version $\geq 3.7$
+            - For example you can use [Python Virtual Environments](https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/26/python-virtual-env/)
         - Install pytorch from [Pytorch website](https://pytorch.org/get-started/locally/).
 
   - How to compile:
