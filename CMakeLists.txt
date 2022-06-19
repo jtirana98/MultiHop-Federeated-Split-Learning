@@ -1,31 +1,30 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-project(training)
+project(main)
 
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
 include_directories(datasets/)
+include_directories(utils/)
 include_directories(models/vgg/)
-
-set(SOURCE_FILES training.cpp
+#set (ARCHS armv7 armv7s)
+#set(VALID_ARCHS armv6 armv7 armv7s arm64)
+set(SOURCE_FILES main.cpp
                  datasets/mydataset.h
                  datasets/mydataset.cpp
-                 mylogging.h
-                 mylogging.cpp
+                 utils/mylogging.h
+                 utils/mylogging.cpp
                  datasets/transform.h
                  datasets/transform.cpp
                  models/vgg/vgg.cpp
                  models/vgg/vgg.h
                  models/vgg/vgg_help.h
                  models/vgg/vgg_help.cpp
+                 models/vgg/vgg_train.h
+                 models/vgg/vgg_train.cpp
                  )
-
-
-#target_include_directories(${CMAKE_PROJECT_NAME}  models/vgg/include 
-                                            #datasets/include)
 
 add_executable("${CMAKE_PROJECT_NAME}" ${SOURCE_FILES})
 target_link_libraries("${CMAKE_PROJECT_NAME}" ${TORCH_LIBRARIES})
-#add_executable(split split.cpp)
-#target_link_libraries(main "${TORCH_LIBRARIES}")
+
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 14)

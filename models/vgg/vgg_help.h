@@ -33,12 +33,12 @@ VGG vgg19_bn(int num_classes);
 
 // split models
 std::vector<torch::nn::Sequential> _vgg_split(std::string cfg, bool batch_norm, int num_classes);
-std::vector<torch::nn::Sequential> vgg11_split(int num_classes);
+std::vector<torch::nn::Sequential> vgg11_split(int num_classes/*, int split_points*/);
 //VGG vgg11_bn(int num_classes);
-std::vector<torch::nn::Sequential> vgg13_split(int num_classes);
+std::vector<torch::nn::Sequential> vgg13_split(int num_classes/*, int split_points*/);
 //VGG vgg13_bn(int num_classes);
-std::vector<torch::nn::Sequential> vgg16_split(int num_classes);
+std::vector<torch::nn::Sequential> vgg16_split(int num_classes/*, int split_points*/);
 //VGG vgg16_bn(int num_classes);
-std::vector<torch::nn::Sequential> vgg19_split(int num_classes);
+std::vector<torch::nn::Sequential> vgg19_split(int num_classes/*, int split_points*/);
 //VGG vgg19_bn(int num_classes);
 

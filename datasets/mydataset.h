@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _MYDATASET_H_
+#define _MYDATASET_H_
+
 #include <torch/torch.h>
 #include <torch/data/datasets/base.h>
 #include <torch/data/example.h>
@@ -11,10 +13,12 @@ const std::string MNIST_data_path = "/Users/joanatirana/Documents/coding/dataset
 const std::string CIFAR10_data_path = "/Users/joanatirana/Documents/coding/datasets/cifar/cifar-10-batches-bin/";
 const std::string CIFAR100_data_path = "/Users/joanatirana/Documents/coding/datasets/cifar/cifar-100-binary/";
 
-// MNISR
-//torch::data::datasets::MNIST getMNIST_train();
-//torch::data::datasets::MNIST getMNIST_test();
-
+enum dataset{
+    MNIST=1,
+    CIFAR_10=2,
+    CIFAR_100=3,
+    Imagenet=4
+};
 
 // CIFAR
 class CIFAR : public torch::data::datasets::Dataset<CIFAR> {
@@ -34,7 +38,4 @@ class CIFAR : public torch::data::datasets::Dataset<CIFAR> {
     int type; // 1 for CIFAR-10 else for CIFAR-100
 };
 
-//CIFAR getCIFAR_train(int type);
-//CIFAR getCIFAR_test(int type);
-
-// ImageNet
+#endif

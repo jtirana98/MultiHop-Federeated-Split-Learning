@@ -1,30 +1,32 @@
 # Profiling Environment for Deep Neural Networks using pytorch C++ Frontend
 
 This repository contains:
-- `training.cpp`: Main code that implements testing environments. It contains two modes: 
+- *`main.cpp`*: Main code that implements testing environments. It contains two modes: 
 
     *(i)* conventional trainining: in which we run the model as one,
 
     *(ii)* Split Learning: the model is split into parts and is trained in a way to simulate a split learning environmet.
-
-    This modes can be activated by commenting in/out the definintions of the following Directives in the code:
     
-    *(i)* COMMENT_model
+- directory *`datasets/`* :
+    Contains source code to load a dataset into a dataloader.
 
-    *(ii)* COMMENT_interval
+    **NOTE1**: The pytorch C++ Frontend at this point does not support an API for dataset downloda like the torchvision.dataset does. So, make sure you have downloaded the datasets locally and provide the corresponding directories before start training.
 
-    Additionally, by commenting out the respective directive user selects a dataset.
+    **NOTE2**: Inside the file `datasets\mydataset.h` we define the file path that lead to the dataset's files. Please change this path accordintly to where you aim to store the datasets on your machine.
 
-- directory *models/* : implementation of state-of-the-art neural networks in pytorch C++ Frontend.
+    we declare the enum `mydataset::dataset` to use one of the options below:
+    - 'MNIST': you can use this script to [download MNIST dataset](https://gist.github.com/goldsborough/6dd52a5e01ed73a642c1e772084bcd03)
+    - 'CIFAR-10' or 'CIFAR-100': [source files](http://www.cs.toronto.edu/~kriz/cifar.html)
+
+- directory *`models/`* : implementation of state-of-the-art neural networks in pytorch C++ Frontend.
     - VGG models (VGG11, VG13, VGG16, VGG19) following the implementation from: [PyTorch: Source Code For torchvision.models.VGG
-](https://pytorch.org/vision/stable/_modules/torchvision/models/vgg.html). Contains also a helper function `make_layers` that returns a vector of `torch::nn::Sequential` object, in which each entry is a layer from the corresponding vgg network. This helper function can be used for a split learning training.
-
-- directory *datasets/* :
-
-    NOTE: The pytorch C++ Frontend at this point does not support an API for dataset downloda like the torchvision.dataset does. So, make sure you have downloaded the datasets locally and provide the corresponding directories before start training.
-    - MNIST: you can use this script to [download MNIST dataset](https://gist.github.com/goldsborough/6dd52a5e01ed73a642c1e772084bcd03)
-    - CIFAR-10 & CIFAR-100: [source files](http://www.cs.toronto.edu/~kriz/cifar.html)
-
+](https://pytorch.org/vision/stable/_modules/torchvision/models/vgg.html).
+         - to select the VGG model for profiling, use function:
+        `train_vgg(dataset dataset_option, vgg_model model_option, bool split, vector<int> split_points)`
+            - `dataset_option`: select dataset
+            - `model_option`: value from `vgg::vgg_model` enum to select the vgg model: v11, v11_bn, v13, v13_bn, v16, v16_bn, v19, v19_bn.
+            - `split`: *true* if you want to profile upon the split mode.
+            - `split_points`: optional parameter (no impact if `split == `*`false`*). It is the vector with cut layers.
 How to run program:
 
    - Requirments:

@@ -1,11 +1,16 @@
 #include "mydataset.h"
+#include "transform.h"
+
 #include <tuple>
-// CIFAR
+
+using transform::ConstantPad;
+using transform::RandomCrop;
+using transform::RandomHorizontalFlip;
 
 namespace {
 // CIFAR10 dataset description can be found at https://www.cs.toronto.edu/~kriz/cifar.html.
 constexpr uint32_t kTrainSize_10 = 50000;
-constexpr uint32_t kTrainSize_100 = 500;
+constexpr uint32_t kTrainSize_100 = 50000;
 constexpr uint32_t kTestSize_10 = 10000;
 constexpr uint32_t kTestSize_100 = 100;
 constexpr uint32_t kSizePerBatch = 10000;
@@ -18,7 +23,7 @@ constexpr uint32_t kBytesPerBatchFile_10 = kBytesPerRow_10 * kSizePerBatch;
 constexpr uint32_t kBytesPerBatchFile_train_100 = kBytesPerRow_100 * kTrainSize_100;
 constexpr uint32_t kBytesPerBatchFile_test_100 = kBytesPerRow_100 * kTestSize_100;
 
-const std::vector<std::string> kTrainDataBatchFiles_10 = {
+std::vector<std::string> kTrainDataBatchFiles_10 = {
     "data_batch_1.bin",
     "data_batch_2.bin",
     "data_batch_3.bin",
@@ -48,20 +53,23 @@ std::string join_paths(std::string head, const std::string& tail) {
 }
 // Partially based on https://github.com/pytorch/pytorch/blob/master/torch/csrc/api/src/data/datasets/mnist.cpp.
 std::pair<torch::Tensor, torch::Tensor> read_data(const std::string& root, bool train, int type) {
-    const auto& files = train ? kTrainDataBatchFiles_10 : kTestDataBatchFiles_10;
-    const auto num_samples = train ? kTrainSize_10 : kTestSize_10;
-
-    if (type != 1) {
-        const auto& files = train ? kTrainDataBatchFiles_100 : kTestDataBatchFiles_100;
-        const auto num_samples = train ? kTrainSize_100 : kTestSize_100;
+    const auto& files1 = train ? kTrainDataBatchFiles_10 : kTestDataBatchFiles_10;
+    const auto& files2 = train ? kTrainDataBatchFiles_100 : kTestDataBatchFiles_100;
+    uint32_t num_samples, size_;
+    if (type == 1) {
+        num_samples = train ? kTrainSize_10 : kTestSize_10;
     }
-
+    else {
+        num_samples = train ? kTrainSize_100 : kTestSize_100;
+    }
+    const auto& files = (type==1) ? files1 : files2;
     std::vector<char> data_buffer;
-    
-    data_buffer.reserve(files.size() * kBytesPerBatchFile_10);
-    const auto size_ = kBytesPerBatchFile_10;
-    if (type != 1){
-        const auto size_  = train ? kBytesPerBatchFile_train_100 : kBytesPerBatchFile_test_100; 
+    if (type == 1) {
+        data_buffer.reserve(files.size() * kBytesPerBatchFile_10);
+        size_ = kBytesPerBatchFile_10;
+    }
+    else {
+        size_  = train ? kBytesPerBatchFile_train_100 : kBytesPerBatchFile_test_100; 
         data_buffer.reserve(files.size() * size_);
     }
 
