@@ -32,4 +32,4 @@ enum vgg_model{
     v19_bn
 };
 
-void train_vgg(dataset dataset_option, vgg_model model_option, bool split/*, int split_points*/);
+void train_vgg(dataset dataset_option, vgg_model model_option, bool split, const std::vector<int>& split_points = std::vector<int>());

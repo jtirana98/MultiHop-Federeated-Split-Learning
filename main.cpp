@@ -8,6 +8,7 @@
 #include "vgg_train.h"
 
 int main(int argc, char **argv) {
-    train_vgg(CIFAR_100, v11, true);
+    std::vector<int> splits{2, 4, 6, 8};
+    train_vgg(CIFAR_10, v11, true, splits);
 
 } 

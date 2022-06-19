@@ -31,19 +31,19 @@ VGG getModel(vgg_model model_option, int num_classes) {
     }
 }
 
-std::vector<torch::nn::Sequential> getSplitModel(vgg_model model_option, int num_classes/*, int split_points*/) {
+std::vector<torch::nn::Sequential> getSplitModel(vgg_model model_option, int num_classes, std::vector<int> split_points) {
     switch (model_option) {
     case v11:
-        return vgg11_split(num_classes/*split_points*/);
+        return vgg11_split(num_classes, split_points);
         break;
     case v13:
-        return vgg13_split(num_classes/*split_points*/);
+        return vgg13_split(num_classes, split_points);
         break;
     case v16:
-        return vgg16_split(num_classes/*split_points*/);
+        return vgg16_split(num_classes, split_points);
         break;
     case v19:
-        return vgg19_split(num_classes/*split_points*/);
+        return vgg19_split(num_classes, split_points);
     default:
         break;
     }
@@ -132,10 +132,11 @@ void vgg_mnist(vgg_model model_option) {
                 //}
             }
         }
+    }
 
 }
 
-void vgg_split_mnist(vgg_model model_option/*, int split_points*/) {
+void vgg_split_mnist(vgg_model model_option, const std::vector<int>& split_points = std::vector<int>()) {
     std::vector<gatherd_data> all_measures;
 
     auto train_dataset = torch::data::datasets::MNIST(MNIST_data_path)
@@ -147,7 +148,7 @@ void vgg_split_mnist(vgg_model model_option/*, int split_points*/) {
                 std::move(train_dataset), batch_size);
     
     int num_classes = 10;
-    auto layers = getSplitModel(model_option, num_classes/* split_point*/);
+    auto layers = getSplitModel(model_option, num_classes, split_points);
 
     std::vector<torch::optim::Adam> optimizers;
     
@@ -193,7 +194,7 @@ void vgg_split_mnist(vgg_model model_option/*, int split_points*/) {
 
                 auto output = layer->forward(prev_out);
 
-                if (k == layers.size()-4) {
+                if (k == avg_point) {
                     
                     //if (batch_index == 0)
                     //    std::cout << "-"<< output.sizes() << "\t";
@@ -270,6 +271,18 @@ void vgg_split_mnist(vgg_model model_option/*, int split_points*/) {
                 //}
             }
         }
+
+    }
+
+    std::cout << "activations load" << std::endl;
+    for (int i = 0; i<data_loads.activations.size(); i++) {
+        std::cout << data_loads.activations[i].data_load << "\t";
+    }
+
+    std::cout << std::endl << "gradients load" << std::endl;
+    for (int i = data_loads.gradients.size() - 1; i>0; i--) {
+        std::cout << data_loads.gradients[i].data_load << "\t";
+    }
 
 
 }
@@ -359,7 +372,7 @@ void vgg_cifar(vgg_model model_option, int type) {
 
 }
 
-void vgg_split_cifar(vgg_model model_option, int type/*, int split_points*/) {
+void vgg_split_cifar(vgg_model model_option, int type, const std::vector<int>& split_points = std::vector<int>()) {
     std::vector<gatherd_data> all_measures;
 
     auto path_selection = (type == 1)? CIFAR10_data_path : CIFAR100_data_path;
@@ -374,17 +387,27 @@ void vgg_split_cifar(vgg_model model_option, int type/*, int split_points*/) {
             std::move(train_dataset), batch_size);
     
     int num_classes = (type == 1)? 10 : 100;
-    auto layers = getSplitModel(model_option, num_classes/* split_point*/);
+    auto layers = getSplitModel(model_option, num_classes, split_points);
 
     std::vector<torch::optim::Adam> optimizers;
     
     for (int i=0; i<layers.size(); i++) {
         optimizers.push_back(torch::optim::Adam(layers[i]->parameters(), torch::optim::AdamOptions(learning_rate)));
-        //std::cout << layers[i] << std::endl;
+        std::cout << "new layer: " << layers[i] << std::endl;
     }
 
     gatherd_data data_loads;
     Total totaltimes = Total();
+
+    int avg_point;
+    int reverse_count = 0;
+    for (int i=layers.size()-1; i>=0; i--) {
+        reverse_count = reverse_count + layers[i]->size();
+        if (reverse_count > 7) {
+            avg_point = i;
+            break;
+        }
+    }
 
     for (size_t epoch = 0; epoch != num_epochs; ++epoch) {
         // Initialize running metrics
@@ -420,7 +443,7 @@ void vgg_split_cifar(vgg_model model_option, int type/*, int split_points*/) {
 
                 auto output = layer->forward(prev_out);
 
-                if (k == layers.size()-4) {
+                if (k == avg_point) {
                     
                     //if (batch_index == 0)
                     //    std::cout << "-"<< output.sizes() << "\t";
@@ -520,17 +543,17 @@ void vgg_split_cifar(vgg_model model_option, int type/*, int split_points*/) {
 
 }
 
-void train_vgg(dataset dataset_option, vgg_model model_option, bool split/*, int split_points*/) {
+void train_vgg(dataset dataset_option, vgg_model model_option, bool split, const std::vector<int>& split_points) {
     if (split) {
         switch (dataset_option) {
         case MNIST:
-            vgg_split_mnist(model_option/*, split_points*/);
+            vgg_split_mnist(model_option, split_points);
             break;
         case CIFAR_10:
-            vgg_split_cifar(model_option, 1/*, split_points*/);
+            vgg_split_cifar(model_option, 1, split_points);
             break;
         case CIFAR_100:
-            vgg_split_cifar(model_option, 0/*, split_points*/);
+            vgg_split_cifar(model_option, 0, split_points);
             break;
         default:
             break;

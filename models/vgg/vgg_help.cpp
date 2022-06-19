@@ -66,15 +66,26 @@ VGG vgg19_bn(int num_classes) {
 // split models
 
 
-std::vector<torch::nn::Sequential> _vgg_split(std::string cfg, bool batch_norm, int num_classes) {
+std::vector<torch::nn::Sequential> _vgg_split(std::string cfg, bool batch_norm, int num_classes, const std::vector<int>& split_points) {
     std::vector<torch::nn::Sequential> layers;
-
     int in_channels = 3;
     auto description = table.find(cfg)->second;
     double dropout = 0.5;
+    bool split_every_point = false, at_end=false;
 
+    if (split_points.size() == 0) { //we split at each layer
+        split_every_point = true;
+    }
+
+    int k = 0, l=0;
+    auto layer = torch::nn::Sequential();
+    bool new_split = true;
     for(int d : description) {
-        auto layer = torch::nn::Sequential();
+        if (new_split) {
+            layer = torch::nn::Sequential(); // clean
+            new_split = false;
+        }
+
         if (d  != -1){ 
             layer->push_back(torch::nn::Conv2d(torch::nn::Conv2dOptions(in_channels, d, 3).padding(1)));
             if (batch_norm)
@@ -85,35 +96,111 @@ std::vector<torch::nn::Sequential> _vgg_split(std::string cfg, bool batch_norm, 
         else{
             layer->push_back(torch::nn::MaxPool2d(torch::nn::MaxPool2dOptions(2).stride(2).padding(1)));
         }
-        layers.push_back(layer);
+        if (split_every_point || (!split_every_point && !at_end && split_points[l] == k)) {
+            layers.push_back(layer);
+            new_split = true;
+            l += 1;
+            
+            if (l == split_points.size())
+                at_end = true;
+        }
+        
+        k += 1;
     }
 
-    layers.push_back(torch::nn::Sequential(torch::nn::AdaptiveAvgPool2d(torch::nn::AdaptiveAvgPool2dOptions({7,7}))));
-    layers.push_back(torch::nn::Sequential(torch::nn::Linear(torch::nn::LinearOptions(512 * 7 * 7, 4096)),
-                                            torch::nn::ReLU(true),
-                                            torch::nn::Dropout(dropout)));
+    // avg pool
+    if (new_split) {
+        layer = torch::nn::Sequential(); // clean
+        new_split = false;
+    }
 
-    layers.push_back(torch::nn::Sequential(torch::nn::Linear(torch::nn::LinearOptions(4096, 4096)),
-                                           torch::nn::ReLU(true)));
-    layers.push_back(torch::nn::Sequential(torch::nn::Dropout(dropout),
-                                           torch::nn::Linear(torch::nn::LinearOptions(4096, num_classes))));
+    layer->push_back(torch::nn::AdaptiveAvgPool2d(torch::nn::AdaptiveAvgPool2dOptions({7,7})));
+
+    if (split_every_point || (!split_every_point && !at_end && split_points[l] == k )) {
+        layers.push_back(layer);
+        new_split = true;
+        l += 1;
+
+        if (l == split_points.size())
+            at_end = true;
+    }
+    else {
+        layers.push_back(layer);
+        new_split = true;
+    }
+
+    k += 1;
+
+    // fully connected 1
+    if (new_split) {
+        layer = torch::nn::Sequential(); // clean
+        new_split = false;
+    }
+
+    layer->push_back(torch::nn::Linear(torch::nn::LinearOptions(512 * 7 * 7, 4096)));
+    layer->push_back(torch::nn::ReLU(true));
+    layer->push_back(torch::nn::Dropout(dropout));
+
+    if (split_every_point || (!split_every_point && !at_end && split_points[l] == k)) {
+        layers.push_back(layer);
+        new_split = true;
+        l += 1;
+
+        if (l == split_points.size())
+            at_end = true;
+    }
+
+    k += 1;
+
+    // fully connected 2
+
+    if (new_split) {
+        layer = torch::nn::Sequential(); // clean
+        new_split = false;
+    }
+
+    layer->push_back(torch::nn::Linear(torch::nn::LinearOptions(4096, 4096)));
+    layer->push_back(torch::nn::ReLU(true));
+
+    if (split_every_point || (!split_every_point && !at_end && split_points[l] == k)) {
+        layers.push_back(layer);
+        new_split = true;
+        l += 1;
+        if (l == split_points.size())
+            at_end = true;
+    }
+
+    k += 1;
+
+    // fully connected 3 -- output layer
+
+    if (new_split) {
+        layer = torch::nn::Sequential(); // clean
+        new_split = false;
+    }
+
+    layer->push_back(torch::nn::Dropout(dropout));
+    layer->push_back(torch::nn::Linear(torch::nn::LinearOptions(4096, num_classes)));
+
+    layers.push_back(layer);
+
 
     return layers;
 }
 
-std::vector<torch::nn::Sequential> vgg11_split(int num_classes) {
-    return _vgg_split("A", false, num_classes);
+std::vector<torch::nn::Sequential> vgg11_split(int num_classes, const std::vector<int>& split_points) {
+    return _vgg_split("A", false, num_classes, split_points);
 }
 
 
-std::vector<torch::nn::Sequential> vgg13_split(int num_classes) {
-    return _vgg_split("B", false, num_classes);
+std::vector<torch::nn::Sequential> vgg13_split(int num_classes, const std::vector<int>& split_points) {
+    return _vgg_split("B", false, num_classes, split_points);
 }
 
-std::vector<torch::nn::Sequential> vgg16_split(int num_classes) {
-    return _vgg_split("D", false, num_classes);
+std::vector<torch::nn::Sequential> vgg16_split(int num_classes, const std::vector<int>& split_points) {
+    return _vgg_split("D", false, num_classes, split_points);
 }
 
-std::vector<torch::nn::Sequential> vgg19_split(int num_classes) {
-    return _vgg_split("E", false, num_classes);
+std::vector<torch::nn::Sequential> vgg19_split(int num_classes, const std::vector<int>& split_points) {
+    return _vgg_split("E", false, num_classes, split_points);
 }
