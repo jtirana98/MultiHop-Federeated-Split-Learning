@@ -47,6 +47,7 @@ class Total {
   public:
     Total();
     void addNew(Event part1, Event part2, Event part3);
+    void addNew(Event part1, Event part2, Event part3, Event part4);
     void addEvent(Event event);
     void computeIntervals();
     void printRes();
@@ -54,6 +55,7 @@ class Total {
   private:
     std::vector<int> forward_;
     std::vector<int> backprop_;
+    std::vector<int> optimizer_;
     std::vector<Event> forward_timestamps;
     std::vector<Event> backprop_timestamps;
     std::vector<std::vector<int>> forward_split;

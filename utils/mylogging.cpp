@@ -26,6 +26,24 @@ void Total::addNew(Event part1, Event part2, Event part3) {
     //std::cout << back_time << std::endl;
 }
 
+void Total::addNew(Event part1, Event part2, Event part3, Event part4) {
+    auto forw_time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (part2.getTimestamp() - part1.getTimestamp()).count();
+
+    forward_.push_back(forw_time);
+   
+    auto back_time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (part3.getTimestamp() - part2.getTimestamp()).count();
+
+    backprop_.push_back(back_time);
+
+    auto optim_time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (part4.getTimestamp() - part3.getTimestamp()).count();
+    
+    optimizer_.push_back(optim_time);
+}
+
+
 Total::Total() {
     
 }
@@ -35,7 +53,12 @@ void Total::printRes() {
     std::vector<std::vector<int>> atr{forward_, backprop_};
     std::vector<std::string> str_print{"FORWARD:", "BACKPROP: "};
 
-    for (int i = 0; i < 2; i++) {
+    if (optimizer_.size() != 0) {
+        atr.push_back(optimizer_);
+        str_print.push_back("OPTIMIZER: ");
+    }
+
+    for (int i = 0; i < atr.size(); i++) {
         count = 0;
         sum = 0;
         std::cout << str_print[i] << std::endl;
@@ -47,11 +70,11 @@ void Total::printRes() {
             }
             else{
                 if (interval > max) {
-                    sum += max;
+                    sum -= max;
                     max = interval;
                 }
                 else if (interval < min) {
-                    sum += min;
+                    sum -= min;
                     min = interval;
                 }
                 else {
@@ -62,7 +85,7 @@ void Total::printRes() {
             std::cout << interval << std::endl;
         }
 
-        double avg = (double)sum/count;
+        double avg = (double)sum/(count-2);
         
         std::cout << "average time: " << avg << std::endl;
     }
