@@ -1,32 +1,49 @@
-#include "resenet_train.h"
+#include "resnet_train.h"
 
-auto getModel(resenet_model model_option, int num_classes) {
+
+std::array<int64_t, 4> getLayers(resnet_model model_option) {
     switch (model_option) {
+        std::array<int64_t, 4> layers;
     case resnet18:
-        std::array<int64_t, 4> layers{2, 2, 2, 2};
-        ResNet<ResidualBlock> model(layers, num_classes);
-        break;
+        layers = std::array<int64_t, 4>({2, 2, 2, 2});
+        return layers;
     case resnet34:
-        std::array<int64_t, 4> layers{3, 4, 6, 3};
-        ResNet<ResidualBlock> model(layers, num_classes);
-        break;
+        layers = std::array<int64_t, 4>({3, 4, 6, 3});
+        return layers;
     case resnet50:
-        std::array<int64_t, 4> layers{3, 4, 6, 3};
-        ResNet<ResBottleneckBlock> model(layers, num_classes, true);
-        break;
+        layers = std::array<int64_t, 4>({3, 4, 6, 3});
+        return layers;
     case resnet101:
-        std::array<int64_t, 4> layers{3, 4, 23, 3};
-        ResNet<ResBottleneckBlock> model(layers, num_classes, true);
-        break;
+        layers = std::array<int64_t, 4>({3, 4, 23, 3});
+        return layers;
     case resenet152:
-        std::array<int64_t, 4> layers{3, 8, 36, 3};
-        ResNet<ResBottleneckBlock> model(layers, num_classes, true);
-        break;
+        layers = std::array<int64_t, 4>({3, 8, 36, 3});
+        return layers;
+
     }
 }
 
+template <typename Block>
+void printModelsParameters(ResNet<Block>& model) {
+    for (const auto& p : model.parameters()) {
+        int dims = p.dim();
+        std::cout << "=";
+        for (int i=0; i < dims; i++) {
+            //std::cout << i << ": " << p.size(i) << "    ";
+            std::cout << p.size(i);
+            if (i!=dims-1) 
+                std::cout << "*";
+        }
+
+        std::cout << "\t";
+        
+    }
+    std::cout << std::endl;
+}
+
 // CIFAR
-void resnet_cifar(vgg_model model_option, int type, int batch_size, bool test) {
+template <typename Block>
+void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test) {
     std::vector<gatherd_data> all_measures;
 
     auto path_selection = (type == 1)? CIFAR10_data_path : CIFAR100_data_path;
@@ -41,14 +58,20 @@ void resnet_cifar(vgg_model model_option, int type, int batch_size, bool test) {
             std::move(train_dataset), batch_size);
 
     int num_classes = (type == 1)? 10 : 100;
-    auto model = getModel(model_option, num_classes);
-
-    printModelsParameters(model);
+    auto layers = getLayers(model_option);
+    
+    //auto model = (model_option <=2) ? ResNet<ResidualBlock>(layers, num_classes) : 
+    //                                ResNet<ResidualBottleneckBlock>(layers, num_classes, true);
+    
+    bool usebottleneck = (model_option <=2) ? false : true;
+    ResNet<Block> model(layers, num_classes, usebottleneck);
+    
+    //printModelsParameters<Block>(model);
     
     // Initilize optimizer
     double weight_decay = 0.0001;  // regularization parameter
-    //torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(learning_rate).momentum(0.9).weight_decay(weight_decay));
-    torch::optim::SGD optimizer(model->parameters(), torch::optim::SGDOptions(0.001).momentum(0.9));
+    torch::optim::Adam optimizer(model.parameters(), torch::optim::AdamOptions(r_learning_rate));
+    //torch::optim::SGD optimizer(model->parameters(), torch::optim::SGDOptions(0.001).momentum(0.9));
 
     Total totaltimes = Total();
     int batch_index = 0;
@@ -56,7 +79,7 @@ void resnet_cifar(vgg_model model_option, int type, int batch_size, bool test) {
 
     int stop_epochs = 1;
     if (test)
-        stop_epochs = num_epochs;
+        stop_epochs = r_num_epochs;
 
 
     for (size_t epoch = 0; epoch != stop_epochs; ++epoch) {
@@ -76,29 +99,20 @@ void resnet_cifar(vgg_model model_option, int type, int batch_size, bool test) {
             if (!test)
                 start_forward = Event(forward, "", -1);
             
-            torch::Tensor output = model->forward(batch.data);
+            torch::Tensor output = model.forward(batch.data);
             
-            /*
-            if (!test ){
-                std::cout << output << std::endl;
-                std::cout << std::endl;
-                std::cout << target << std::endl;
-                std::cout << std::endl;
-                std::cout << prediction << std::endl;
-            }
-            */
+            if (!test)
+                start_backprop = Event(backprop, "", -1);
 
             torch::Tensor loss =
                    torch::nn::functional::cross_entropy(output, target);
 
-            running_loss += loss.item<double>();
+            running_loss += loss.template item<double>();
             auto prediction = output.argmax(1);
             auto corr = prediction.eq(target).sum().item<int64_t>();
             auto corr_ = static_cast<double>(corr)/data.size(0);
             num_correct += corr_;
 
-            if (!test)
-                start_backprop = Event(backprop, "", -1);
 
             loss.backward();
 
@@ -133,7 +147,7 @@ void resnet_cifar(vgg_model model_option, int type, int batch_size, bool test) {
             auto accuracy = num_correct / batch_index;
 
             
-            std::cout << "Epoch [" << (epoch + 1) << "/" << num_epochs << "], Trainset - Loss: "
+            std::cout << "Epoch [" << (epoch + 1) << "/" << r_num_epochs << "], Trainset - Loss: "
                 << sample_mean_loss << ", Accuracy: " << accuracy << " " << num_correct << std::endl;
         }    
 
@@ -142,6 +156,9 @@ void resnet_cifar(vgg_model model_option, int type, int batch_size, bool test) {
     if (test) {
         auto test_dataset =  CIFAR(path_selection, type, CIFAR::Mode::kTest)
                                     .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
+                                    .map(ConstantPad(4))
+                                    .map(RandomHorizontalFlip())
+                                    .map(RandomCrop({32, 32}))
                                     .map(torch::data::transforms::Stack<>());
         
         auto num_test_samples = test_dataset.size().value();
@@ -155,7 +172,7 @@ void resnet_cifar(vgg_model model_option, int type, int batch_size, bool test) {
         std::cout << "Testing...\n";
 
         // Test the model
-        model->eval();
+        model.eval();
         torch::NoGradGuard no_grad;
 
         double running_loss = 0.0;
@@ -165,13 +182,13 @@ void resnet_cifar(vgg_model model_option, int type, int batch_size, bool test) {
             auto data = batch.data;
             auto target = batch.target;
 
-            auto output = model->forward(data);
+            auto output = model.forward(data);
 
             auto loss = torch::nn::functional::cross_entropy(output, target);
-            running_loss += loss.item<double>() * data.size(0);
+            running_loss += loss.template item<double>() * data.size(0);
 
             auto prediction = output.argmax(1);
-            num_correct += prediction.eq(target).sum().item<int64_t>();
+            num_correct += prediction.eq(target).sum().template item<int64_t>();
         }
 
         std::cout << "Testing finished!\n";
@@ -181,28 +198,60 @@ void resnet_cifar(vgg_model model_option, int type, int batch_size, bool test) {
 
         std::cout << "Testset - Loss: " << test_sample_mean_loss << ", Accuracy: " << test_accuracy << '\n';
     }
-
+    
 }
 
-void train_resnet(dataset dataset_option, resenet_model model_option, bool split, int batch_size, const std::vector<int>& split_points, bool test) {
+template <typename Block>
+void resnet_split_cifar(resnet_model model_option, int type, int batch_size, const std::vector<int>& split_points) { 
+    auto layers_ = getLayers(model_option);
+    bool usebottleneck = (model_option <=2) ? false : true;
+    int num_classes = (type == 1)? 10 : 100;
+    auto layers =  resnet_split(layers_, num_classes, usebottleneck, split_points);
+
+    split_cifar(layers, type, batch_size, 1, r_learning_rate, r_num_epochs);
+}
+
+void train_resnet(dataset dataset_option, resnet_model model_option, bool split, int batch_size, const std::vector<int>& split_points, bool test) {
     if (split) {
         switch (dataset_option) {
-
-    }
+            case MNIST:
+            //vgg_mnist(model_option, batch_size, test);
+            break;
+            case CIFAR_10:
+                if (model_option <= 2)
+                    resnet_split_cifar<ResidualBlock>(model_option, 1, batch_size, split_points);
+                else
+                    resnet_split_cifar<ResidualBottleneckBlock>(model_option, 1, batch_size, split_points);
+                break;
+            case CIFAR_100:
+                if (model_option <= 2)
+                    resnet_cifar<ResidualBlock>(model_option, 0, batch_size, test);
+                else
+                    resnet_cifar<ResidualBottleneckBlock>(model_option, 0, batch_size, test);
+                break;
+            default:
+                break;
+            }
+        }
     else {
         switch (dataset_option) {
         case MNIST:
             //vgg_mnist(model_option, batch_size, test);
             break;
         case CIFAR_10:
-            resnet_cifar(model_option, 1, batch_size, test);
+            if (model_option <= 2)
+                resnet_cifar<ResidualBlock>(model_option, 1, batch_size, test);
+            else
+                resnet_cifar<ResidualBottleneckBlock>(model_option, 1, batch_size, test);
             break;
         case CIFAR_100:
-            resnet_cifar(model_option, 0, batch_size, test);
+            if (model_option <= 2)
+                resnet_cifar<ResidualBlock>(model_option, 0, batch_size, test);
+            else
+                resnet_cifar<ResidualBottleneckBlock>(model_option, 0, batch_size, test);
             break;
         default:
             break;
         }
-
     }
 }

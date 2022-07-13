@@ -8,6 +8,7 @@
 
 #include "mylogging.h"
 #include "mydataset.h"
+#include "split_training.h"
 #include "vgg.h"
 #include "vgg_help.h"
 #include "transform.h"

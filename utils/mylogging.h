@@ -10,6 +10,7 @@
 enum measure_type {
     forward,
     backprop,
+    optimize,
     activations_load,
     gradients_load
 };
@@ -58,8 +59,10 @@ class Total {
     std::vector<int> optimizer_;
     std::vector<Event> forward_timestamps;
     std::vector<Event> backprop_timestamps;
+    std::vector<Event> optimize_timestamps;
     std::vector<std::vector<int>> forward_split;
     std::vector<std::vector<int>> backprop_split;
+    std::vector<std::vector<int>> optimize_split;
     std::vector<dataload> activations_;
     std::vector<dataload> gradients_;
 };

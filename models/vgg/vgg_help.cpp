@@ -124,7 +124,7 @@ std::vector<torch::nn::Sequential> _vgg_split(std::string cfg, bool batch_norm, 
         if (l == split_points.size())
             at_end = true;
     }
-    else {
+    else { // TODO! split because we need to flatted input
         layers.push_back(layer);
         new_split = true;
     }
@@ -139,8 +139,7 @@ std::vector<torch::nn::Sequential> _vgg_split(std::string cfg, bool batch_norm, 
 
     layer->push_back(torch::nn::Linear(torch::nn::LinearOptions(512 * 7 * 7, 4096)));
     layer->push_back(torch::nn::ReLU(true));
-    layer->push_back(torch::nn::Dropout(dropout));
-
+    
     if (split_every_point || (!split_every_point && !at_end && split_points[l] == k)) {
         layers.push_back(layer);
         new_split = true;
@@ -159,6 +158,7 @@ std::vector<torch::nn::Sequential> _vgg_split(std::string cfg, bool batch_norm, 
         new_split = false;
     }
 
+    layer->push_back(torch::nn::Dropout(dropout));
     layer->push_back(torch::nn::Linear(torch::nn::LinearOptions(4096, 4096)));
     layer->push_back(torch::nn::ReLU(true));
 

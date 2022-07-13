@@ -61,7 +61,7 @@ void Total::printRes() {
     for (int i = 0; i < atr.size(); i++) {
         count = 0;
         sum = 0;
-        std::cout << str_print[i] << std::endl;
+        std::cout << str_print[i] << "\t";
         
         for (int interval : atr[i]) {
             if (count == 0) {
@@ -70,11 +70,11 @@ void Total::printRes() {
             }
             else{
                 if (interval > max) {
-                    sum -= max;
+                    sum += max;
                     max = interval;
                 }
                 else if (interval < min) {
-                    sum -= min;
+                    sum += min;
                     min = interval;
                 }
                 else {
@@ -82,27 +82,32 @@ void Total::printRes() {
                 }
             }
             count += 1;
-            std::cout << interval << std::endl;
+            //std::cout << interval << std::endl;
         }
 
         double avg = (double)sum/(count-2);
         
-        std::cout << "average time: " << avg << std::endl;
+        //std::cout << "average time: " << avg << std::endl;
+        std::cout << avg << std::endl;
     }
 }
 
 void Total::addEvent(Event event) {
+    //std::cout << event.getType() << std::endl;
     if (event.getType() == forward) {
-        //std::cout << "ok" << std::endl;
+        
         forward_timestamps.push_back(event);
     }
-    else {
+    else if (event.getType() == backprop){
         backprop_timestamps.push_back(event);
+    }
+    else {
+        optimize_timestamps.push_back(event);
     }
 }
 
 void Total::computeIntervals() {
-    std::vector<int> new_batch_forward, new_batch_backprop;
+    std::vector<int> new_batch_forward, new_batch_backprop, new_batch_optimizer;
 
     // forward
     for (int i=0; i< forward_timestamps.size(); i++) {
@@ -124,48 +129,57 @@ void Total::computeIntervals() {
         //std::cout << "f " << forw_time << std::endl;
         
     }
-
-    // backprop
-    for (int i= backprop_timestamps.size() - 1; i > 0; i--) {
+    //std::cout << "s" << backprop_timestamps.size() << " s" << optimize_timestamps.size() << std::endl;
+    // backprop and optimizer
+    for (int i = backprop_timestamps.size() - 1; i > 0; i--) {
         auto part1 = backprop_timestamps[i-1];
-        auto part2 = backprop_timestamps[i];
+        auto part2 = optimize_timestamps[i-1];
+        auto part3 = backprop_timestamps[i];
 
-        auto forw_time = std::chrono::duration_cast<std::chrono::milliseconds>
+        auto back_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (part2.getTimestamp() - part1.getTimestamp()).count();
-        //std::cout << "b " << forw_time << std::endl;
-        new_batch_backprop.push_back(forw_time);
+        //std::cout << "b " << back_time << std::endl;
+        new_batch_backprop.push_back(back_time);
+
+        auto opti_time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (part3.getTimestamp() - part2.getTimestamp()).count();
+        //std::cout << "o " << opti_time << std::endl;
+        new_batch_optimizer.push_back(opti_time);
     }
     
 
     forward_timestamps.clear();
     backprop_timestamps.clear();
+    optimize_timestamps.clear();
 
     forward_split.push_back(new_batch_forward);
     backprop_split.push_back(new_batch_backprop);
+    optimize_split.push_back(new_batch_optimizer);
 }
 
 void Total::printRes_intervals() {
     int count = 0, max, min, sum;
-    std::vector<std::vector<std::vector<int>>> atr{forward_split, backprop_split};
-    std::vector<std::string> str_print{"FORWARD: ", "BACKPROP: "};
+    std::vector<std::vector<std::vector<int>>> atr{forward_split, backprop_split, optimize_split};
+    std::vector<std::string> str_print{"FORWARD: ", "BACKPROP: ", "OPTIMIZER: "};
 
-    std::vector<double> forw, back;
-    std::vector<std::vector<double>> log_{forw, back};
+    std::vector<double> forw, back, opt;
+    std::vector<std::vector<double>> log_{forw, back, opt};
 
     //std::cout << "-: " << forward_split.size() << std::endl;
     //std::cout << "-: " << backprop_split.size() << std::endl;
+    //std::cout << "-: " << optimize_split.size() << std::endl;
     //std::cout << "-: " << forward_split[0].size() << std::endl;
     //std::cout << "-: " << backprop_split[0].size() << std::endl;
 
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 3; i++) {
         std::cout << str_print[i] << std::endl;
         for (int j=0; j<forward_split[0].size(); j++) { // for each layer
             count = 0;
             sum = 0;
-            std::cout << "layer: " << j << std::endl;
+            //std::cout << "layer: " << j << std::endl;
             for (int k = 0; k<forward_split.size(); k++) {  // for each batch
                 auto interval = atr[i][k][j];
-                std::cout << "int: " << interval << std::endl;
+                //std::cout << "int: " << interval << std::endl;
                 if (count == 0) {
                     max = interval;
                     min = interval;
@@ -188,19 +202,21 @@ void Total::printRes_intervals() {
             }
 
             double avg = (double)sum/(count-2);
-            std::cout << "average time: " << avg << std::endl;
+            //std::cout << "average time: " << avg << std::endl;
+            //std::cout << avg << std::endl;
             log_[i].push_back(avg);
         }
         
     }
 
     
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 3; i++) {
         //std::cout << log_[i].size() << std::endl;
         for (int j=0; j<log_[i].size(); j++) {
             std::cout << log_[i][j] << "\t";
         }
 
+        std::cout << std::endl;
         std::cout << std::endl;
     }
     
