@@ -27,6 +27,14 @@ This repository contains:
             - `model_option`: value from `vgg::vgg_model` enum to select the vgg model: v11, v11_bn, v13, v13_bn, v16, v16_bn, v19, v19_bn.
             - `split`: *true* if you want to profile upon the split mode.
             - `split_points`: optional parameter (no impact if `split == `*`false`*). It is the vector with cut layers.
+    - ResNet models (resnet18, resnet34, resnet50, resnet101, resenet152) following the implementation from: [Github: ResNet_PyTorch.ipynb
+](https://github.com/liao2000/ML-Notebook/blob/main/ResNet/ResNet_PyTorch.ipynb).
+         - to select the ResNet model for profiling, use function:
+        `train_resnet(dataset dataset_option, resnet_model model_option, bool split, int batch_size = 64, const std::vector<int>& split_points)`
+            - `dataset_option`: select dataset
+            - `model_option`: value from `resnet_model` enum to select the ResNet model: resnet18, resnet34, resnet50, resnet101, resenet152.
+            - `split`: *true* if you want to profile upon the split mode.
+            - `split_points`: optional parameter (no impact if `split == `*`false`*). It is the vector with cut layers.
 How to run program:
 
    - Requirments:
