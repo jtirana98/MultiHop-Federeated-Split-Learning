@@ -2,15 +2,17 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 project(main)
 
 find_package(Torch REQUIRED)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS} -pthread")
 
 include_directories(datasets/)
 include_directories(utils/)
+include_directories(models/)
 include_directories(models/vgg/)
 include_directories(models/resnet/)
-#set (ARCHS armv7 armv7s)
-#set(VALID_ARCHS armv6 armv7 armv7s arm64)
-set(SOURCE_FILES main.cpp
+include_directories(pipeline_simulation/)
+
+
+set(SOURCE_FILES 
                 datasets/mydataset.h
                 datasets/mydataset.cpp
                 utils/mylogging.h
@@ -19,6 +21,7 @@ set(SOURCE_FILES main.cpp
                 utils/split_training.cpp
                 datasets/transform.h
                 datasets/transform.cpp
+                models/models.h
                 models/vgg/vgg.cpp
                 models/vgg/vgg.h
                 models/vgg/vgg_help.h
@@ -34,9 +37,23 @@ set(SOURCE_FILES main.cpp
                 models/resnet/resnet_split.cpp
                 models/resnet/resnet_train.h
                 models/resnet/resnet_train.cpp
-                )
+                pipeline_simulation/network_layer.h
+                pipeline_simulation/network_layer.cpp
+                pipeline_simulation/Task.h
+                pipeline_simulation/State.h
+                pipeline_simulation/systemAPI.h
+                pipeline_simulation/systemAPI.cpp
+)
 
-add_executable("${CMAKE_PROJECT_NAME}" ${SOURCE_FILES})
+add_executable("${CMAKE_PROJECT_NAME}"  ${SOURCE_FILES} main.cpp)
+add_executable(compute_node  ${SOURCE_FILES} pipeline_simulation/compute_node.cpp)
+#add_executable(data_owner  ${SOURCE_FILES} pipeline_simulation/data_owner.cpp)
+#add_library(MyLib SHARED ${SOURCE_FILES})
+
 target_link_libraries("${CMAKE_PROJECT_NAME}" ${TORCH_LIBRARIES})
+target_link_libraries(compute_node ${TORCH_LIBRARIES})
+#target_link_libraries(data_owner ${TORCH_LIBRARIES})
 
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 14)
+set_property(TARGET compute_node PROPERTY CXX_STANDARD 14)
+#set_property(TARGET data_owner PROPERTY CXX_STANDARD 14)

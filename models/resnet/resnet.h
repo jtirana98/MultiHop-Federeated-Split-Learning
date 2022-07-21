@@ -4,6 +4,14 @@
 #include "resBlock.h"
 #include "resBottleneckBlock.h"
 
+enum resnet_model{
+    resnet18 = 1,
+    resnet34 = 2,
+    resnet50 = 3,
+    resnet101 = 4,
+    resenet152 = 5
+};
+
 template<typename Block> struct ResNet : torch::nn::Module {
     int64_t in_channels = 16;
     torch::nn::Sequential layer0;
@@ -51,7 +59,6 @@ template<typename Block> struct ResNet : torch::nn::Module {
         out = layer3->forward(out);
         out = layer4->forward(out);
         out = avg_pool->forward(out);
-        std::cout << "-"<< out.sizes() << "\t";
         out = out.view({out.size(0), -1});
         return fc->forward(out);
     }

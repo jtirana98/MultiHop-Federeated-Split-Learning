@@ -77,7 +77,7 @@ std::vector<torch::nn::Sequential> _vgg_split(std::string cfg, bool batch_norm, 
         split_every_point = true;
     }
 
-    int k = 0, l=0;
+    int k = 1, l=0;
     auto layer = torch::nn::Sequential();
     bool new_split = true;
     for(int d : description) {
@@ -203,4 +203,49 @@ std::vector<torch::nn::Sequential> vgg16_split(int num_classes, const std::vecto
 
 std::vector<torch::nn::Sequential> vgg19_split(int num_classes, const std::vector<int>& split_points) {
     return _vgg_split("E", false, num_classes, split_points);
+}
+
+
+std::vector<torch::nn::Sequential> vgg_part(vgg_model model, int num_classes, int start, int end) {
+    std::string cfg;
+    std::vector<int> split_points{start, end};
+    bool batch_norm = false;
+    std::vector<torch::nn::Sequential> layers;
+
+    switch (model) {
+    case v11:
+        cfg = "A";
+        break;
+    case v13:
+        cfg = "B";
+        break;
+    case v16:
+        cfg = "D";
+        break;
+    case v19:
+        cfg = "E";
+    default:
+        break;
+    }
+
+    auto parts = _vgg_split(cfg, false, num_classes, split_points);
+    int sum=0;
+    for (int i =0; i< parts.size(); i++) {
+        //std::cout << "new layer: "<< i+1 << " "<< parts[i] << std::endl;
+        sum = sum + parts[i]->size();
+    }
+    int first = 1;
+    if (start == 0)
+        first = 0;
+    
+    layers.push_back(parts[first]);
+
+    //std::cout << parts[parts.size()-1]->size() << std::endl;
+    if (end < sum - 7) {
+        return layers;
+    }
+    else {
+        layers.push_back(parts[first + 1]);
+    }
+    return layers;
 }

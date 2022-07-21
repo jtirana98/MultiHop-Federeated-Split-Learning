@@ -1,0 +1,4 @@
+/Users/joanatirana/Documents/git_repos/testing_environment/pipeline_simulation/CMakeFiles/main.dir
+/Users/joanatirana/Documents/git_repos/testing_environment/pipeline_simulation/CMakeFiles/compute_node.dir
+/Users/joanatirana/Documents/git_repos/testing_environment/pipeline_simulation/CMakeFiles/edit_cache.dir
+/Users/joanatirana/Documents/git_repos/testing_environment/pipeline_simulation/CMakeFiles/rebuild_cache.dir

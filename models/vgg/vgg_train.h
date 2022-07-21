@@ -22,15 +22,4 @@ const int64_t g_batch_size = 128;
 const double learning_rate = 0.01;
 const size_t num_epochs = 200;
 
-enum vgg_model{
-    v11,
-    v11_bn,
-    v13,
-    v13_bn,
-    v16,
-    v16_bn,
-    v19,
-    v19_bn
-};
-
 void train_vgg(dataset dataset_option, vgg_model model_option, bool split, int batch_size = g_batch_size, const std::vector<int>& split_points = std::vector<int>(), bool test = false);

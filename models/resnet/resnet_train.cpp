@@ -1,28 +1,5 @@
 #include "resnet_train.h"
 
-
-std::array<int64_t, 4> getLayers(resnet_model model_option) {
-    switch (model_option) {
-        std::array<int64_t, 4> layers;
-    case resnet18:
-        layers = std::array<int64_t, 4>({2, 2, 2, 2});
-        return layers;
-    case resnet34:
-        layers = std::array<int64_t, 4>({3, 4, 6, 3});
-        return layers;
-    case resnet50:
-        layers = std::array<int64_t, 4>({3, 4, 6, 3});
-        return layers;
-    case resnet101:
-        layers = std::array<int64_t, 4>({3, 4, 23, 3});
-        return layers;
-    case resenet152:
-        layers = std::array<int64_t, 4>({3, 8, 36, 3});
-        return layers;
-
-    }
-}
-
 template <typename Block>
 void printModelsParameters(ResNet<Block>& model) {
     for (const auto& p : model.parameters()) {
@@ -66,7 +43,7 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     bool usebottleneck = (model_option <=2) ? false : true;
     ResNet<Block> model(layers, num_classes, usebottleneck);
     
-    //printModelsParameters<Block>(model);
+    printModelsParameters<Block>(model);
     
     // Initilize optimizer
     double weight_decay = 0.0001;  // regularization parameter

@@ -6,8 +6,7 @@
 #include <vector>
 #include <string>
 
-#include "vgg_train.h"
-#include "resnet_train.h"
+#include "models.h"
 
 //#define VGG
 #define RESNET
@@ -49,9 +48,15 @@ int main(int argc, char **argv) {
             std::cout << to_print_resnet[i] << " " << batches[j] << std::endl;
             train_resnet(CIFAR_10, models_resnet[i], false, batches[j]);
             std::cout << std::endl;
+
+            std::cout << "SPLIT" << std::endl;
+            train_resnet(CIFAR_10, models_resnet[i], true, batches[j]);
+            std::cout << std::endl;
         }
     }
     
+    train_resnet(CIFAR_10, models_resnet[4], false, 32);
+    train_resnet(CIFAR_10, models_resnet[4], true, 32);
     #endif                              
 
 } 

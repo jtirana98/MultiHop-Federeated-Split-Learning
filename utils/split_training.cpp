@@ -21,7 +21,7 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
     
     for (int i=0; i<layers.size(); i++) {
         optimizers.push_back(torch::optim::Adam(layers[i]->parameters(), torch::optim::AdamOptions(learning_rate)));
-        //std::cout << "new layer: " << layers[i] << std::endl;
+        std::cout << "new layer: "<< i+1 << " "<< layers[i] << std::endl;
     }
 
     gatherd_data data_loads;
@@ -62,7 +62,7 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
                     totaltimes.addEvent(Event(measure_type::forward, "", k));
 
                 if (batch_index == 0) {
-                    //std::cout << prev_out.sizes() << "\t";
+                    std::cout << prev_out.sizes() << "\t";
                     std::stringstream data_load;
                     torch::save(prev_out, data_load);
                     data_loads.activations.push_back(

@@ -1,6 +1,28 @@
 #include "resnet_split.h"
 #include <typeinfo>
 
+std::array<int64_t, 4> getLayers(resnet_model model_option) {
+    switch (model_option) {
+        std::array<int64_t, 4> layers;
+    case resnet18:
+        layers = std::array<int64_t, 4>({2, 2, 2, 2});
+        return layers;
+    case resnet34:
+        layers = std::array<int64_t, 4>({3, 4, 6, 3});
+        return layers;
+    case resnet50:
+        layers = std::array<int64_t, 4>({3, 4, 6, 3});
+        return layers;
+    case resnet101:
+        layers = std::array<int64_t, 4>({3, 4, 23, 3});
+        return layers;
+    case resenet152:
+        layers = std::array<int64_t, 4>({3, 8, 36, 3});
+        return layers;
+
+    }
+}
+
 std::vector<torch::nn::Sequential> resnet_split(const std::array<int64_t, 4>& layers, int64_t num_classes, 
     bool usebottleneck, const std::vector<int>& split_points) {
 
@@ -15,7 +37,7 @@ std::vector<torch::nn::Sequential> resnet_split(const std::array<int64_t, 4>& la
         else
             filter = std::array<int64_t, 5>({64, 64, 128, 256, 512});
 
-    int k = 0, l=0;
+    int k = 1, l=0;
     auto part = torch::nn::Sequential();
     bool new_split = true;
 
@@ -126,4 +148,34 @@ std::vector<torch::nn::Sequential> resnet_split(const std::array<int64_t, 4>& la
     parts.push_back(part);                             
 
     return parts;
+}
+
+std::vector<torch::nn::Sequential> resnet_part(resnet_model model_option, int64_t num_classes, int start, int end) {
+    std::vector<int> split_points{start, end};
+    auto layers_ = getLayers(model_option);
+    bool usebottleneck = (model_option <=2) ? false : true;
+    std::vector<torch::nn::Sequential> layers;
+
+    auto parts = resnet_split(layers_, num_classes, usebottleneck, split_points);
+    
+    int sum = 0;
+    for (int i =0; i< parts.size(); i++) {
+        //std::cout << "new layer: "<< i+1 << " "<< parts[i] << std::endl;
+        sum = sum + parts[i]->size();
+    }
+    
+    int first = 1;
+    if (start == 0)
+        first = 0;
+    
+    layers.push_back(parts[first]);
+    
+    if (end <sum-1) {
+        return layers;
+    }
+    else {
+        layers.push_back(parts[first + 1]);
+    }
+    
+    return layers;
 }

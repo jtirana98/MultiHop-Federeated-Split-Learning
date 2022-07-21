@@ -9,6 +9,17 @@
 #include <string>
 #include "vgg.h"
 
+enum vgg_model{
+    v11,
+    v11_bn,
+    v13,
+    v13_bn,
+    v16,
+    v16_bn,
+    v19,
+    v19_bn
+};
+
 static std::vector<int> typeA{64, -1, 128, -1, 256, 256, -1, 512, 512, -1, 512, 512, -1};
 static std::vector<int> typeB{64, 64, -1, 128, 128, -1, 256, 256, -1, 512, 512, -1, 512, 512, -1};
 static std::vector<int> typeD{64, 64, -1, 128, 128, -1, 256, 256, 256, -1, 512, 512, 512, -1, 512, 512, 512, -1};
@@ -41,4 +52,7 @@ std::vector<torch::nn::Sequential> vgg16_split(int num_classes, const std::vecto
 //VGG vgg16_bn(int num_classes);
 std::vector<torch::nn::Sequential> vgg19_split(int num_classes, const std::vector<int>& split_points = std::vector<int>());
 //VGG vgg19_bn(int num_classes);
+
+// get parts
+std::vector<torch::nn::Sequential> vgg_part(vgg_model model, int num_classes, int start, int end);
 
