@@ -32,6 +32,7 @@ class network_layer {
         //std::cout << "hello" << std::endl;
     }
     void new_message(Task task, int sender); // produce -- new message
+    void put_internal_task(Task task);
     Task check_new_task(); //consumer - new task
 
     //threads

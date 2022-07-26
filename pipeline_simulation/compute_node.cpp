@@ -4,16 +4,13 @@
 
 int main(int argc, char **argv) {
     int new_task;
-    network_layer my_network_layer;
-    systemAPI sys_;
-    
-    //std::thread rcv(&network_layer::receiver, &my_network_layer);
-    //std::thread snd(&network_layer::receiver, &my_network_layer);
+    systemAPI sys_(false, 0);
 
     // wait for init refactoring
     sys_.clients.push_back(1);
     //sys_.init_state(vgg, vgg_model::v11, 10, 1, 3);
-    sys_.init_state(resnet, resnet_model::resnet18, 10, 9, 13);
+
+    sys_.init_state_vector(resnet, resnet_model::resnet18, 10, 9, 13);
     auto layers = sys_.clients_state.find(1)->second.layers;
 
     //std::cout << sys_.clients_state.find(1)->second.client_id << std::endl;
@@ -27,7 +24,5 @@ int main(int argc, char **argv) {
         
     }
 
-    rcv.join();
-    snd.join();
     */
 }

@@ -1,5 +1,4 @@
-#ifndef _UTILS_H_
-#define _UTILS_H_
+#pragma once
 
 #include <iostream> 
 #include <iterator> 
@@ -24,16 +23,39 @@
 
 class systemAPI  {
  public:
+    network_layer my_network_layer;
+    std::thread rcv, snd;
+
     std::vector<int> inference_path;
+    int myid;
+    bool is_data_owner;
+    // apply for compute node
     std::map<int, State> clients_state;
     std::vector<int> clients;
 
-    systemAPI() {};
-    //void refactoring();
-    //exec(task)
+    // apply for data owner
+    int batch_size=32, rounds=50;
+    std::vector<State> parts;
+    double learning_rate = 0.1;
+    
+    systemAPI(bool is_data_owner, int myid) : 
+    is_data_owner(is_data_owner),
+    myid(myid)/*,
+    rcv(&network_layer::receiver, &my_network_layer)
+    snd(&network_layer::receiver, &my_network_layer)
+    */
+    { };
 
-    //template <typename T>
-    void init_state(model_name name, int model_, int num_class, int start, int end);
+    //void refactoring();
+    Task exec(Task task, torch::Tensor& targer);
+    /*
+    void terminate() {
+        rcv.join();
+        snd.join();
+    }
+    */
+//private:    
+    void init_state_vector(model_name name, int model_, int num_class, int start, int end);
+    void init_model_sate(model_name name, int model_, int num_class, int start, int end);
 
 };
-#endif

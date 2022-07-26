@@ -11,6 +11,15 @@ void network_layer::new_message(Task task, int sender) { // produce -- new messa
 
 }
 
+void network_layer::put_internal_task(Task task) {
+     {
+    std::unique_lock<std::mutex> lock(m_mutex_new_task);
+    pending_tasks.push(task);
+    }
+
+        m_cv_new_task.notify_one();
+}
+
 Task network_layer::check_new_task() { //consumer
     Task new_task;
 
@@ -34,12 +43,7 @@ void network_layer::receiver() {
         // communtication protocol ...
 
         // new task
-        {
-        std::unique_lock<std::mutex> lock(m_mutex_new_task);
-        pending_tasks.push(task);
-        }
-
-        m_cv_new_task.notify_one();
+        put_internal_task(task);
         //std::this_thread::sleep_for(std::chrono::seconds(1));
     }
         

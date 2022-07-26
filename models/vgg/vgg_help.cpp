@@ -208,9 +208,20 @@ std::vector<torch::nn::Sequential> vgg19_split(int num_classes, const std::vecto
 
 std::vector<torch::nn::Sequential> vgg_part(vgg_model model, int num_classes, int start, int end) {
     std::string cfg;
-    std::vector<int> split_points{start, end};
     bool batch_norm = false;
     std::vector<torch::nn::Sequential> layers;
+    std::vector<int> split_points;
+
+    if (start == 0) {
+        split_points.push_back(end);
+    }
+    else if (end == -1) {
+        split_points.push_back(start);
+    }
+    else{
+        split_points.push_back(start);
+        split_points.push_back(end);
+    }
 
     switch (model) {
     case v11:
@@ -241,7 +252,7 @@ std::vector<torch::nn::Sequential> vgg_part(vgg_model model, int num_classes, in
     layers.push_back(parts[first]);
 
     //std::cout << parts[parts.size()-1]->size() << std::endl;
-    if (end < sum - 7) {
+    if (end < sum - 7 && end != -1) {
         return layers;
     }
     else {
