@@ -13,27 +13,38 @@
 #include <queue>
 
 #include "Task.h"
+#include "Message.h"
 
 class network_layer {
  public:
     // pending messages 
     std::map<int, std::pair<std::string, int>> rooting_table; // (node_id, (ip, port))
-    std::queue<Task> pending_messages;
+    std::queue<Message> pending_messages; // TODO change TYPE!
     std::mutex m_mutex_new_message;
     std::condition_variable m_cv_new_message;
 
     // pending tasks for the APP
-    int f=1234;
     std::queue<Task> pending_tasks;
     std::mutex m_mutex_new_task;
     std::condition_variable m_cv_new_task;
 
+    // pending refactor messages for the APP
+    std::queue<refactoring_data> pending_refactor_tasks;
+    std::mutex m_mutex_new_refactor_task;
+    std::condition_variable m_cv_new_refactor_task;
+
     network_layer() {
-        //std::cout << "hello" << std::endl;
+        
     }
+
     void new_message(Task task, int sender); // produce -- new message
+    void new_message(refactoring_data task, int sender); // produce -- new message
+    
     void put_internal_task(Task task);
+    void put_internal_task(refactoring_data task);
+
     Task check_new_task(); //consumer - new task
+    refactoring_data check_new_refactor_task(); //consumer - new task
 
     //threads
     void receiver(); // producer -- new task

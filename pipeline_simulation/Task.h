@@ -15,13 +15,14 @@ enum operation {
     noOp
 };
 
-struct refactoring_stuct {
-    //model_type
-    int start = -1;
-    int end = -1;
-    int data_owners = -1;
-    int prev = -1;
-    int next = -1;
+struct refactoring_data {
+    bool to_data_onwer=true;
+    int start=0, end=0; // layers
+    int prev=0, next=0; // inference path
+    std::vector<int> data_owners;
+    int dataset=0;
+    int num_class=10;
+    int model_name_=0, model_type_=0;
 };
 
 class Task {
@@ -30,7 +31,6 @@ class Task {
     int prev_node;
     int size_;
     operation type;
-    struct refactoring_stuct refactor_actions;
     torch::Tensor values;
 
     Task(int client_id, operation type, int prev_node) : 

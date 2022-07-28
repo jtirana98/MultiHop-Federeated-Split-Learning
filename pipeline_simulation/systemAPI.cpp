@@ -52,11 +52,16 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
         nextOp = forward_;
         if (is_data_owner) {
             if (task.prev_node == -1) { // first part
+                batch_index += 1;
                 values = task.values;   
                 parts[0].received_activation = values;  
                 parts[0].activations.clear();
                 parts[0].detached_activations.clear();
                 for (int i=0; i<parts[0].layers.size(); i++) {
+                    if (i >= 1) {
+                        values = values.view({task.size_, -1});
+                    }
+
                     parts[0].optimizers[i]->zero_grad();
 
                     output = parts[0].layers[i]->forward(values);
@@ -67,15 +72,12 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                 }
             }
             else {
-                //std::cout << "::" << std::endl;
                 values = task.values;
                 parts[1].received_activation = values;
                 parts[1].activations.clear();
                 parts[1].detached_activations.clear();
                 for (int i=0; i<parts[1].layers.size(); i++) {
-                    //std::cout << "ok" << std::endl;
-
-                    if (i == 1) {
+                    if (i >= 1) {
                         values = values.view({task.size_, -1});
                     }
                     
@@ -87,31 +89,39 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                     values = output.clone().detach().requires_grad_(true);
                     parts[1].detached_activations.push_back(values);
                 }
-                //std::cout << "ok" << std::endl;
-                nextOp = backward_;
 
+
+                nextOp = backward_;
                 // compute loss 
                 torch::Tensor loss =
                     torch::nn::functional::cross_entropy(output, target);
+                
+                running_loss += loss.item<double>();
+                auto prediction = output.argmax(1);
+                auto corr = prediction.eq(target).sum().item<int64_t>();
+                auto corr_ = static_cast<double>(corr)/size_;
+                num_correct += corr;
+                
                 loss.backward();
-                //std::cout << "ok--" << std::endl;
+
                 if (parts[1].activations.size() > 1) {
-                    //std::cout << "-" << parts[1].detached_activations[0].grad() << std::endl;
                     auto detached_grad = parts[1].detached_activations[0].grad().clone().detach();
-                    //std::cout << "ok-" << std::endl;
                     parts[1].activations[0].backward(detached_grad);
                 }
-                //std::cout << "ok!" << std::endl;
-                //std::cout << "ok" << std::endl;
+
+                // DRAFT 
+                if (batch_index % 15 == 0) {
+                    std::cout << /*"Epoch: " << epoch << */" | Batch: " << batch_index
+                        << " | Loss: " << loss.item<float>() << "| Acc: " << corr_ << std::endl;
+                }
+                // DRAFT 
+
                 values = parts[1].received_activation.grad().clone().detach();
-                //std::cout << "ok" << std::endl;
-                // add optimization task to list
                 Task opt(client_id, optimize_, prev_node);
                 my_network_layer.put_internal_task(opt);
             }
         }
         else {
-            //std::cout << "!!" << std::endl;
             values = task.values;
             auto client_state = clients_state.find(client_id)->second;
             client_state.received_activation = values;
@@ -119,7 +129,7 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
             client_state.detached_activations.clear();
             for (int i=0; i<client_state.layers.size(); i++) {
                 
-                if (i == 1) {
+                if (i >= 1) {
                         values = values.view({task.size_, -1});
                 }
 
@@ -142,9 +152,8 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
         if (is_data_owner) {
             values = task.values;
             for (int i=parts[0].layers.size()-1; i>0; i--) {
-                parts[0].optimizers[i]->zero_grad();
                 parts[0].activations[i].backward(values);
-
+                parts[0].optimizers[i]->step();
                 if (i != 0)
                     values = parts[0].detached_activations[i-1].grad().clone().detach();
                 //else
@@ -152,14 +161,14 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
 
             }
             nextOp = noOp; // end of batch
+            
         }
         else {
             values = task.values;
             auto client_state = clients_state.find(client_id)->second;
             for (int i=client_state.layers.size()-1; i>0; i--) {
-                client_state.optimizers[i]->zero_grad();
                 client_state.activations[i].backward(values);
-
+                
                 if (i != 0)
                     values = client_state.detached_activations[i-1].grad().clone().detach();
                 else
@@ -191,7 +200,6 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
         }
 
         nextTask = Task(client_id, nextOp, prev_node);
-        //nextTask.values = values;
     default:
         break;
     }
@@ -199,3 +207,25 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
     return nextTask;
 }
 
+void systemAPI::refactor(refactoring_data refactor_message) {
+    inference_path.clear();
+    inference_path.push_back(refactor_message.prev);
+    inference_path.push_back(refactor_message.next);
+
+    model_name name = (model_name) refactor_message.model_name_;
+    int model_ = refactor_message.model_type_;
+    int num_class = refactor_message.num_class;
+    int start = refactor_message.start;
+    int end = refactor_message.end;
+
+    if (is_data_owner) 
+        init_model_sate(name, model_, num_class, start, end);
+    else {
+        clients_state.clear();
+        clients.clear();
+        clients = refactor_message.data_owners;
+
+        init_state_vector(name, model_, num_class, start, end);
+    }
+
+}
