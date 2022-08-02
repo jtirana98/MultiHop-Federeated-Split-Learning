@@ -1,11 +1,3 @@
-#ifndef _MESSAGE_H_
-#define _MESSAGE_H_
-
-#define OPERATION 0
-#define REFACTOR_COMPUTE_NODE 1
-#define REFACTOR_DATA_OWNER 2
-
-
 #include <tuple>
 #include <map>
 #include <iostream>
@@ -387,50 +379,3 @@ Json::Value fromStr_toJson(const std::string& data) {
     
    return data_;
 }
-
-struct Message {
-    int save_connection; 
-    int type; //operation=0 or refacto=1,2
-    int dest;
-    // refactor
-    int start=-1, end=-1, prev=-1, next=-1, dataset=-1, num_classes=-1, model_name=-1, model_type=-1;
-    //data owners list
-    // operation
-    int client_id=-1, prev_node=-1, size_=-1, type_op=-1;
-    // values
-
-    constexpr static auto properties_header = std::make_tuple(
-        property(&Message::save_connection, "save_connection"),
-        property(&Message::type, "type")
-    );
-
-    constexpr static auto properties_refactor = std::make_tuple(
-        property(&Message::start, "start"),
-        property(&Message::end, "end"),
-        property(&Message::prev, "prev"),
-        property(&Message::next, "next"),
-        property(&Message::dataset, "dataset"),
-        property(&Message::num_classes, "num_classes"),
-        property(&Message::model_name, "model_name"),
-        property(&Message::model_type, "model_type")
-    );
-
-    constexpr static auto properties_operator = std::make_tuple(
-        property(&Message::client_id, "client_id"),
-        property(&Message::prev_node, "prev_node"),
-        property(&Message::size_, "size_"),
-        property(&Message::type_op, "type_op")
-    );
-};
-
-std::ostream& operator<<(std::ostream& os, const Message& dt) {
-    if (dt.type == 0) {
-        os << "start: " << dt.start << ", " << "end: " << dt.end << ", " <<  "prev: " << dt.prev << ", " << "next: " << dt.next << ", " << std::endl;
-    }
-    else {
-        os << "client id: " << dt.client_id << ", " << "prev node: " << dt.prev_node << std::endl;
-    }
-    return os;
-}
-
-#endif

@@ -8,11 +8,11 @@
 #include <torch/types.h>
 
 enum operation {
-    forward_,
-    backward_,
-    optimize_,
-    refactoring_,
-    noOp
+    forward_=1,
+    backward_=2,
+    optimize_=3,
+    refactoring_=4,
+    noOp=5
 };
 
 struct refactoring_data {

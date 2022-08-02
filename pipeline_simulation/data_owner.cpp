@@ -18,11 +18,11 @@ int main(int argc, char **argv) {
     int myID=atoi(argv[1]); // parameter
     systemAPI sys_(true, myID);
     refactoring_data client_message;
-
     // check if you are the init
     if (myID == 0) {
-        std::vector<int>data_owners{0, 1, 2, 3, 4};
-        std::vector<int>compute_nodes = {5, 6};
+        std::cout << "here1" << std::endl;
+        std::vector<int>data_owners{0};
+        std::vector<int>compute_nodes = {1};
 
         int num_parts = compute_nodes.size() + 2;
 
@@ -76,8 +76,12 @@ int main(int argc, char **argv) {
     else { // if not wait for init refactoring
         client_message = sys_.my_network_layer.check_new_refactor_task();
     }
-
+    std::cout << "here" << std::endl;
     sys_.refactor(client_message);
+    
+    while(true) {
+
+    }
     
     // load dataset
     int type = client_message.dataset;
@@ -98,7 +102,7 @@ int main(int argc, char **argv) {
     //sys_.init_model_sate(resnet, resnet_model::resnet18, num_classes, 4, 3);
     //sys_.init_model_sate(vgg, vgg_model::v11, num_classes, 4, 3);
     
-    /*
+    
     for (int i = 0; i< sys_.parts[0].layers.size(); i++) {
         std::cout << "new layer: "<< i+1 << " "<< sys_.parts[0].layers[i] << std::endl;
     }
@@ -108,8 +112,8 @@ int main(int argc, char **argv) {
     for (int i = 0; i< sys_.parts[1].layers.size(); i++) {
         std::cout << "new layer: "<< i+1 << " "<< sys_.parts[1].layers[i] << std::endl;
     }
-    */
-
+    
+    
     for (size_t round = 0; round != sys_.rounds; ++round) {
         int batch_index = 0;
         sys_.zero_metrics();
@@ -154,4 +158,5 @@ int main(int argc, char **argv) {
                 << sample_mean_loss << ", Accuracy: " << accuracy << " " << sys_.num_correct << std::endl;
         
     }
+    
 }

@@ -11,15 +11,26 @@
 #include <mutex>
 #include <atomic>
 #include <queue>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h> 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <sys/time.h>
+#include <string.h>
+#include <netdb.h>
 
 #include "Task.h"
-#include "Message.h"
+//#include "Message.h"
 
 class network_layer {
  public:
+    int myid;
     // pending messages 
     std::map<int, std::pair<std::string, int>> rooting_table; // (node_id, (ip, port))
-    std::queue<Message> pending_messages; // TODO change TYPE!
     std::mutex m_mutex_new_message;
     std::condition_variable m_cv_new_message;
 
@@ -33,12 +44,13 @@ class network_layer {
     std::mutex m_mutex_new_refactor_task;
     std::condition_variable m_cv_new_refactor_task;
 
-    network_layer() {
-        
+    network_layer(int myid) : myid(myid) {
+        rooting_table.insert({0, std::pair<std::string, int>("localhost", 8081)});
+        rooting_table.insert({1, std::pair<std::string, int>("localhost", 8082)});
     }
 
-    void new_message(Task task, int sender); // produce -- new message
-    void new_message(refactoring_data task, int sender); // produce -- new message
+    void new_message(Task task, int send_to, bool compute_to_compute=false); // produce -- new message
+    void new_message(refactoring_data task, int send_to, bool compute_to_compute=false); // produce -- new message
     
     void put_internal_task(Task task);
     void put_internal_task(refactoring_data task);

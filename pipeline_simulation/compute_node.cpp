@@ -15,6 +15,7 @@ int main(int argc, char **argv) {
 
     // wait for init refactoring
     auto refactor_message = sys_.my_network_layer.check_new_refactor_task();
+    std::cout << "here" << std::endl;
     sys_.refactor(refactor_message);
 
     // ----------- DRAFT ------------

@@ -44,10 +44,10 @@ class systemAPI  {
     
     systemAPI(bool is_data_owner, int myid) : 
     is_data_owner(is_data_owner),
-    myid(myid)/*,
-    rcv(&network_layer::receiver, &my_network_layer)
-    snd(&network_layer::receiver, &my_network_layer)
-    */
+    myid(myid),
+    my_network_layer(myid),
+    rcv(&network_layer::receiver, &my_network_layer),
+    snd(&network_layer::sender, &my_network_layer)
     { };
 
     void refactor(refactoring_data refactor_message);
@@ -59,12 +59,11 @@ class systemAPI  {
         batch_index = 0;
     }
     
-    /*
+    
     void terminate() {
         rcv.join();
         snd.join();
     }
-    */
 private:    
     void init_state_vector(model_name name, int model_, int num_class, int start, int end);
     void init_model_sate(model_name name, int model_, int num_class, int start, int end);
