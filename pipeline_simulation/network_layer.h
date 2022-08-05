@@ -1,7 +1,8 @@
 #ifndef _NETWORK_LAYER_H_
 #define _NETWORK_LAYER_H_
 
-#include <iostream> 
+#include <iostream>
+#include <tuple>
 #include <iterator>
 #include <condition_variable>
 #include <map>
@@ -22,6 +23,9 @@
 #include <sys/time.h>
 #include <string.h>
 #include <netdb.h>
+#include <sstream>
+#include <vector>
+
 
 #include "Task.h"
 //#include "Message.h"

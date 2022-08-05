@@ -8,7 +8,6 @@
 
 #include <tuple>
 #include <map>
-#include <iostream>
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -31,6 +30,7 @@ namespace Json {
         std::map<std::string, Value> subObject;
         std::string string;
         int number = 0;
+        std::vector<int> numbers;
     };
     
     struct Value {
@@ -52,11 +52,17 @@ namespace Json {
         
         Value& operator=(std::string value) {
             data.string = value;
+            //std::cout << "sss: " << data.string.size() << std::endl;
             return *this;
         }
         
         Value& operator=(double value) {
             data.number = value;
+            return *this;
+        }
+
+        Value& operator=(std::vector<int> value) {
+            data.numbers = value;
             return *this;
         }
     };
@@ -90,6 +96,16 @@ namespace Json {
         return value.data.string;
     }
 
+    template<>
+    const std::vector<int>& asAny<std::vector<int>>(const Value& value) {
+        return value.data.numbers;
+    }
+    
+    template<>
+    std::vector<int>& asAny<std::vector<int>>(Value& value) {
+        return value.data.numbers;
+    }
+
     //..
     
     template<>
@@ -114,7 +130,30 @@ namespace Json {
         return value.data.string;
     }
 
+    template<>
+    const std::string getStr<std::vector<int>>(const Value& value) {
+        std::string text = "[ ";
+
+        for(int i=0; i<value.data.numbers.size(); i++) {
+            text = text + std::to_string(value.data.numbers[i]) + " ";
+        }
+        text = text + "]";
+        return text;
+    }
+    
+    template<>
+    std::string getStr<std::vector<int>>(Value& value) {
+        std::string text = "[ ";
+
+        for(int i=0; i<value.data.numbers.size(); i++) {
+            text = text + std::to_string(value.data.numbers[i]) + " ";
+        }
+        text = text + "]";
+        return text;
+    }
+
     // ..
+
     template<>
     int getValue<int>(std::string& value) {
         auto s = stoi(value);
@@ -136,10 +175,41 @@ namespace Json {
     std::string getValue<std::string>(std::string& value) {
         return value;
     }
-    
+
+    template<>
+    const std::vector<int> getValue<std::vector<int>>(const std::string& value) {
+        std::vector<int> my_data;
+
+        const char separator = ' ';
+        std::stringstream streamData(value);
+        std::string val;
+        std::cout << val << "~~"<< std::endl;
+        while (std::getline(streamData, val, separator)) {
+            if (val != "[" && val != "]" && val != "") {
+                my_data.push_back(stoi(val));
+            }
+            
+        }
+        return my_data;
+    }
+
+    template<>
+    std::vector<int> getValue<std::vector<int>>(std::string& value) {
+        std::vector<int> my_data;
+
+        const char separator = ' ';
+        std::stringstream streamData(value);
+        std::string val;
+        std::cout << val << "~~"<< std::endl;
+        while (std::getline(streamData, val, separator)) {
+            if (val != "[" && val != "]" && val != "") {
+                my_data.push_back(stoi(val));
+            }
+            
+        }
+        return my_data;
+    }   
 }
-
-
 
 template<typename Class, typename T>
 struct PropertyImpl {
@@ -203,7 +273,6 @@ T fromJson(const Json::Value& data) {
 
             // get the type of the property
             using Type = typename decltype(property)::Type;
-
             // set the value to the member
             object.*(property.member) = Json::asAny<Type>(data[property.name]);
 
@@ -216,7 +285,7 @@ T fromJson(const Json::Value& data) {
 template<typename T>
 std::string fromJson_toStr(const Json::Value& data) {
     T object;
-    std::string data_ = "{\n";
+    std::string data_ = "{,\n";
 
     // We first get the number of properties
     constexpr auto nbProperties = std::tuple_size<decltype(T::properties_header)>::value;
@@ -261,7 +330,6 @@ std::string fromJson_toStr(const Json::Value& data) {
             data_ = data_ + property.name + " : " + Json::getStr<Type>(data[property.name]) + ",\n";
         }); 
     }
-    
     data_ = data_ + "}";
     return data_;
 }
@@ -298,7 +366,6 @@ Json::Value toJson(const T& object) {
         for_sequence(std::make_index_sequence<nbProperties>{}, [&](auto i){
             // get the property
             constexpr auto property = std::get<i>(T::properties_refactor);
-
             // set the value to the member
             data[property.name] = object.*(property.member);
         }); 
@@ -309,45 +376,49 @@ Json::Value toJson(const T& object) {
 
 template<typename T>
 Json::Value fromStr_toJson(const std::string& data) {
+    //std::cout << "t0: " << data << std::endl;
+    //std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
+    
     Json::Value data_;
-    
-    const char separator1 = ',';
-    const char separator2 = '\n';
-    const char separator3 = ':';
-
-    std::vector<std::string> outputArray1;
-
+    std::string data_c = data;
     std::map<std::string, std::string> values;
-
-    std::stringstream streamData1(data);
-    std::string val, tok;
     std::pair<std::string, std::string> property_;
+    std::string delimiter = ",\n";
+    std::string delimiter2 = " : ";
+    size_t pos = 0, pos_=0;
+    std::string token, tok;
+    bool stop = false;
+    std::string rec{"values"};
+    while (!stop) {
+        pos = data_c.find(delimiter);
 
-    while (std::getline(streamData1, val, separator1)) {
-        outputArray1.push_back(val);
-    }
-    
-    for (int i=0; i<outputArray1.size(); i++ ) {
-        std::stringstream streamData2(outputArray1[i]);
-        while (std::getline(streamData2, val, separator2)) {
-            if (val != "{" and val != "}" and val.size() != 0) {
-                std::stringstream streamData3(val);
-                bool first=true;
-                while (std::getline(streamData3, tok, separator3)) {
-                    tok.erase(remove_if(tok.begin(), tok.end(), isspace), tok.end());
-                    if(first) {
-                        property_.first = tok;
-                        first = false;
-                    }
-                    else {
-                        property_.second = tok;
-                    }
-                }
-                values.insert(property_);
-            }
+        auto s1 = data_c.substr(0, rec.size());
+        //std::cout << "@@ " << s1;
+        if(s1 == rec) {
+            stop = true;
+            token = data_c.substr(0, data_c.length()-3);
+        }
+        else if (pos == std::string::npos) {
+            stop = true;
+            token = data_c;
+            //std::cout << "t2: " << token << std::endl;
+        }
+        else{
+            token = data_c.substr(0, pos);
+            //std::cout << "t1: " << token << std::endl;
+            data_c.erase(0, pos + delimiter.length());
+        }
+        pos_ = 0;
+        if (token != "{" and token != "}" and token.size() != 0) {
+            pos_ = token.find(delimiter2);
+            property_.first = token.substr(0, pos_);
+            //std::cout << "first " << property_.first  << std::endl;
+            token.erase(0, pos_ + delimiter2.length());
+            property_.second = token;
+            //std::cout << "second " << token << std::endl;
+            values.insert(property_);
         }
     }
-
     constexpr auto nbProperties = std::tuple_size<decltype(T::properties_header)>::value;
 
     for_sequence(std::make_index_sequence<nbProperties>{}, [&](auto i){
@@ -356,7 +427,6 @@ Json::Value fromStr_toJson(const std::string& data) {
         using Type = typename decltype(property)::Type; 
         // set the value to the member
         data_[property.name] = Json::getValue<Type>(values.find(property.name)->second);
-        //std::cout << "--" << property.name << std::endl;
     });
     
     if (Json::asAny<int>(data_["type"]) == OPERATION) { // operator
@@ -371,6 +441,7 @@ Json::Value fromStr_toJson(const std::string& data) {
         }); 
     }
     else {
+        //std::cout << "t0: " << data << std::endl;
         constexpr auto nbProperties = std::tuple_size<decltype(T::properties_refactor)>::value;
     
         for_sequence(std::make_index_sequence<nbProperties>{}, [&](auto i){
@@ -379,8 +450,6 @@ Json::Value fromStr_toJson(const std::string& data) {
             using Type = typename decltype(property)::Type;
             // set the value to the member
             data_[property.name] = Json::getValue<Type>(values.find(property.name)->second);
-            //std::cout << "--" << property.name << std::endl;
-            //std::cout << "--" << values.find(property.name)->second << std::endl;
         }); 
     }
 
@@ -394,10 +463,10 @@ struct Message {
     int dest;
     // refactor
     int start=-1, end=-1, prev=-1, next=-1, dataset=-1, num_classes=-1, model_name=-1, model_type=-1;
-    //data owners list
+    std::vector<int> data_owners;
     // operation
     int client_id=-1, prev_node=-1, size_=-1, type_op=-1;
-    // values
+    std::string values;
 
     constexpr static auto properties_header = std::make_tuple(
         property(&Message::save_connection, "save_connection"),
@@ -412,19 +481,21 @@ struct Message {
         property(&Message::dataset, "dataset"),
         property(&Message::num_classes, "num_classes"),
         property(&Message::model_name, "model_name"),
-        property(&Message::model_type, "model_type")
+        property(&Message::model_type, "model_type"),
+        property(&Message::data_owners, "data_owners")
     );
 
     constexpr static auto properties_operator = std::make_tuple(
         property(&Message::client_id, "client_id"),
         property(&Message::prev_node, "prev_node"),
         property(&Message::size_, "size_"),
-        property(&Message::type_op, "type_op")
+        property(&Message::type_op, "type_op"),
+        property(&Message::values, "values")
     );
 };
 
 std::ostream& operator<<(std::ostream& os, const Message& dt) {
-    if (dt.type == 0) {
+    if (dt.type != 0) {
         os << "start: " << dt.start << ", " << "end: " << dt.end << ", " <<  "prev: " << dt.prev << ", " << "next: " << dt.next << ", " << std::endl;
     }
     else {

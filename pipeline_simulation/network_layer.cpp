@@ -1,8 +1,62 @@
 #include "network_layer.h"
-//#include "my_json.h"
 #include "Message.h"
 
 std::queue<Message> pending_messages;
+
+int my_send(int socket_fd, std::string& data) {
+    const char* data_ptr  = data.data();
+    int data_size = data.size();
+
+    std::string len = std::to_string(data_size);
+    send(socket_fd, &data_size, sizeof(int), 0);
+    //std::cout << "sending: " << len << std::endl;
+    //std::cout << "sending: " << data << std::endl;
+    int bytes_sent;
+    
+    while (data_size > 0) {
+        bytes_sent = send(socket_fd, data_ptr, data_size, 0);
+
+        data_ptr += bytes_sent;
+        data_size -= bytes_sent;
+    }
+    
+    return 1;
+}
+
+std::string my_receive(int socket_fd) {
+    int max = 2048;
+    int expected_input=0, bytes_recv = 0, n, len=max;
+    std::string json_format;
+    std::string leader_board_package= "";
+
+    read(socket_fd,&expected_input,sizeof(int));
+    std::cout << "I expect: " << expected_input << std::endl;
+    if (expected_input == 0)
+        return leader_board_package;
+
+    while(bytes_recv < expected_input) {
+
+        if(expected_input - bytes_recv <= max) {
+            len = expected_input - bytes_recv;
+        }
+        std::vector<char> leader_board_buffer(len);
+        n = read(socket_fd, leader_board_buffer.data(), len);
+        bytes_recv = bytes_recv + n;
+        if (bytes_recv == -1) {
+            std::cout << "Communication error...";
+            return leader_board_package;
+        }
+        else {
+            for (int i =0; i<leader_board_buffer.size(); i++) {
+                leader_board_package = leader_board_package + leader_board_buffer[i];
+            }
+            //leader_board_package.append(leader_board_buffer.begin(), leader_board_buffer.end());
+        }
+    }
+
+    return leader_board_package; 
+}
+
 void network_layer::new_message(Task task, int send_to, bool compute_to_compute) { // produce -- new message
     Message msg;
 
@@ -12,7 +66,10 @@ void network_layer::new_message(Task task, int send_to, bool compute_to_compute)
     msg.client_id = task.client_id;
     msg.size_ = task.size_;
     msg.type_op = task.type;
-    //TODO: msg.values
+    auto data = torch::pickle_save(task.values);
+    std::string s(data.begin(), data.end());
+    std::cout << "sss: " << s.size() << std::endl;
+    msg.values = s;
     msg.save_connection = (compute_to_compute) ? 1 : 0;
 
     msg.dest = send_to;
@@ -35,11 +92,12 @@ void network_layer::new_message(refactoring_data task, int send_to, bool compute
     msg.end = task.end;
     msg.prev = task.prev;
     msg.next = task.next;
-    // TODO list data owners
+
     msg.dataset = task.dataset;
     msg.num_classes = task.num_class;
     msg.model_name = task.model_name_;
     msg.model_type = task.model_type_;
+    msg.data_owners = task.data_owners;
     msg.save_connection = (compute_to_compute) ? 1 : 0;
 
     msg.dest = send_to;
@@ -53,7 +111,6 @@ void network_layer::new_message(refactoring_data task, int send_to, bool compute
 }
 
 void network_layer::put_internal_task(Task task) {
-    
     {
     std::unique_lock<std::mutex> lock(m_mutex_new_task);
     pending_tasks.push(task);
@@ -83,7 +140,6 @@ Task network_layer::check_new_task() { //consumer
     new_task = pending_tasks.front();
     pending_tasks.pop();
 
-    //std::cout << "Consumer Thread, queue element: " << new_task << " size: " << pending_tasks.size() << std::endl;
     return new_task;
 }
 
@@ -98,25 +154,22 @@ refactoring_data network_layer::check_new_refactor_task() {
     new_task = pending_refactor_tasks.front();
     pending_refactor_tasks.pop();
 
-    //std::cout << "Consumer Thread, queue element: " << new_task << " size: " << pending_tasks.size() << std::endl;
     return new_task;
 }
 
 
 void network_layer::receiver() {
-    Task task;
-    refactoring_data refactor_obj;
     Message new_msg;
     std::map<int, int> open_connections; //client_id --> socket_fd
     struct sockaddr_in serv_addr, cli_addr;
     socklen_t clientlen;
-    char buffer[256];
-    int my_socket, my_port, maxfd, len=0, num, n;
+    char buffer[1024];
+    int my_socket, my_port, maxfd, num, n;
     fd_set readset;
 
     std::pair<std::string, int> my_addr = rooting_table.find(myid)->second;
     my_port = my_addr.second;
-    std::cout << "@ " << my_port << std::endl;
+    //std::cout << "@ " << my_port << std::endl;
     my_socket =  socket(AF_INET, SOCK_STREAM, 0);
     if (my_socket < 0) 
         perror("ERROR opening socket");
@@ -124,7 +177,6 @@ void network_layer::receiver() {
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;  
     serv_addr.sin_addr.s_addr = INADDR_ANY;  //my_addr.first
-    //std::cout << "server ip: " << inet_ntoa(serv_addr.sin_addr) << std::endl;
     serv_addr.sin_port = htons(my_port);
 
     if (bind(my_socket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
@@ -147,35 +199,45 @@ void network_layer::receiver() {
 
         if (((num = select(maxfd+1, &readset, NULL, NULL, NULL)) == -1) && (errno == EINTR))
             continue;
-        std::cout << "!" << std::endl;
 
         std::vector<int> to_remove;
         for (auto it = open_connections.begin(); it != open_connections.end(); it++) {
             if (FD_ISSET(it->second, &readset)) {
-                bzero(buffer,256);
-                n = read(it->second,buffer,255);
-                
-                // CHANGEEE
-                if (n==0) { // remove socket
+                auto json_format_str = my_receive(it->second);
+                if(json_format_str == "")
+                    continue;
+                if (json_format_str.size()==0) { // remove socket
                     to_remove.push_back(it->first);
                     close(it->second);
                 }
-                
-                if (n < 0) perror("ERROR reading from socket");
-                
-                printf("Here is the message: %s\n",buffer);
-                 // CHANGEEE
 
+                auto json_format = fromStr_toJson<Message>(json_format_str);
+                new_msg = fromJson<Message>(json_format);
+                //std::cout << "ok2" << std::endl;
                 if (new_msg.type == OPERATION) { // create new Task object
                     // from message to task object
+                    Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
+                    task.size_ = new_msg.size_;
+                    std::vector<char> v(new_msg.values.begin(), new_msg.values.end());
+                    task.values = torch::pickle_load(v).toTensor();
                     put_internal_task(task);
                 }
                 else {
                     // from message to refactor object
+                    refactoring_data refactor_obj;
+                    refactor_obj.to_data_onwer = (new_msg.type == REFACTOR_DATA_OWNER) ? true : false;
+                    refactor_obj.start = new_msg.start;
+                    refactor_obj.end = new_msg.end;
+                    refactor_obj.prev = new_msg.prev;
+                    refactor_obj.next = new_msg.next;
+                    refactor_obj.data_owners = new_msg.data_owners;
+                    refactor_obj.dataset = new_msg.dataset;
+                    refactor_obj.num_class = new_msg.num_classes;
+                    refactor_obj.model_name_ = new_msg.model_name;
+                    refactor_obj.model_type_ = new_msg.model_type;
+
                     put_internal_task(refactor_obj);
                 }
-
-
             }
 
         }
@@ -184,7 +246,6 @@ void network_layer::receiver() {
             open_connections.erase(to_remove[i]);
         }
         
-
         if (FD_ISSET(my_socket, &readset)) {
             int newsockfd = accept(my_socket, (struct sockaddr *) &cli_addr, &clientlen);
             if (newsockfd < 0) {
@@ -195,24 +256,47 @@ void network_layer::receiver() {
             printf("server: got connection from %s port %d\n",
                 inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 
-            // receive 
-
+            
+            auto json_format_str = my_receive(newsockfd);
+            if(json_format_str == "")
+                    continue;
+            
+            auto json_format = fromStr_toJson<Message>(json_format_str);
+            new_msg = fromJson<Message>(json_format);
+            std::cout << new_msg << std::endl;
             if (new_msg.type == OPERATION) { // create new Task object
                 // from message to task object
+                Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
+                task.size_ = new_msg.size_;
+                std::vector<char> v(new_msg.values.begin(), new_msg.values.end());
+                task.values = torch::pickle_load(v).toTensor();
+                
                 put_internal_task(task);
+                
             }
             else {
                 // from message to refactor object
+                refactoring_data refactor_obj;
+                refactor_obj.to_data_onwer = (new_msg.type == REFACTOR_DATA_OWNER) ? true : false;
+                refactor_obj.start = new_msg.start;
+                refactor_obj.end = new_msg.end;
+                refactor_obj.prev = new_msg.prev;
+                refactor_obj.next = new_msg.next;
+                refactor_obj.data_owners = new_msg.data_owners;
+                refactor_obj.dataset = new_msg.dataset;
+                refactor_obj.num_class = new_msg.num_classes;
+                refactor_obj.model_name_ = new_msg.model_name;
+                refactor_obj.model_type_ = new_msg.model_type;
+
                 put_internal_task(refactor_obj);
             }
 
-            //check an prepei na mpei lista i prepei na antikatastisei allo.
-            //open_connections.insert({});  
-            len += 1;
+            if (new_msg.save_connection == 1) {
+                open_connections.insert(std::pair<int,int>{new_msg.prev_node, newsockfd});
+            }  
         }
         //std::this_thread::sleep_for(std::chrono::seconds(1));
     }
-        
 }
 
 
@@ -224,9 +308,9 @@ void network_layer::sender() { // consumer -- new message
     int sockfd, portno, n;
     struct sockaddr_in serv_addr;
     struct hostent *receiver;
-    //char buffer[256];
+    char buffer[1024];
     bool store;
-    int len=0;
+    int len=0, len_;
 
     while(true) {
         store = false;
@@ -240,23 +324,19 @@ void network_layer::sender() { // consumer -- new message
         new_msg = pending_messages.front();
         pending_messages.pop();
 
-        // message to json to string
+        // message to json
         Json::Value jsonMsg = toJson(new_msg);
         // json to string
         std::string data = fromJson_toStr<Message>(jsonMsg);
-        len = data.size() + 1;
-        char buffer[len];
-        strcpy(buffer, data.c_str());
-        std::cout << "!! " << new_msg.dest << std::endl;
+
         it = open_connections.find(new_msg.dest);
         if (it != open_connections.end()) {
             int client_sock = it->second;
-            send(client_sock, buffer, len, 0);
             // TODO check mipws to connection exei kleisei
+            n = my_send(client_sock, data);
         }
         else{
             auto client_addr = rooting_table.find(new_msg.dest)->second;
-
             portno = client_addr.second;
             sockfd = socket(AF_INET, SOCK_STREAM, 0);
             if (sockfd < 0) 
@@ -282,11 +362,7 @@ void network_layer::sender() { // consumer -- new message
             if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
                 std::cerr << "ERROR connecting";
             
-            //bzero(buffer,256);
-            n = send(sockfd, buffer, strlen(buffer), 0);
-            if (n < 0) 
-                std::cerr << "ERROR writing to socket";
-
+            n = my_send(sockfd, data);
             if (store) {
                 open_connections.insert({new_msg.dest, sockfd});
             }

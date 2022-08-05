@@ -30,7 +30,6 @@ void systemAPI::init_model_sate(model_name name, int model_, int num_class, int 
     State part_first(myid, first_.layers, optimizers_first);
     //part_first.init_layers(first_.layers);
     parts.push_back(part_first);
-    std::cout << "21 " << parts[0].optimizers.size() << std::endl;
     State part_last(myid, last_.layers, optimizers_last);
     //part_last.init_layers(last_.layers);
     parts.push_back(part_last);
@@ -46,11 +45,11 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
     client_id = task.client_id;
     prev_node = myid;
     int size_ = task.size_;
-
     switch (task.type) {
     case forward_:
         nextOp = forward_;
         if (is_data_owner) {
+            std::cout << ">" << task.prev_node << std::endl;
             if (task.prev_node == -1) { // first part
                 batch_index += 1;
                 values = task.values;   
@@ -80,22 +79,21 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                     if (i >= 1) {
                         values = values.view({task.size_, -1});
                     }
-                    
                     parts[1].optimizers[i]->zero_grad();
-                    
                     output = parts[1].layers[i]->forward(values);
                     parts[1].activations.push_back(output);
-                    
                     values = output.clone().detach().requires_grad_(true);
                     parts[1].detached_activations.push_back(values);
                 }
 
-
+                std::cout << output << std::endl;
+                std::cout << "<<<<<<<<<<<<<<<<<<<<" << std::endl;
+                std::cout << target << std::endl;
                 nextOp = backward_;
                 // compute loss 
                 torch::Tensor loss =
                     torch::nn::functional::cross_entropy(output, target);
-                
+                std::cout << "ok7 " << std::endl;
                 running_loss += loss.item<double>();
                 auto prediction = output.argmax(1);
                 auto corr = prediction.eq(target).sum().item<int64_t>();
@@ -128,7 +126,6 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
             client_state.activations.clear();
             client_state.detached_activations.clear();
             for (int i=0; i<client_state.layers.size(); i++) {
-                
                 if (i >= 1) {
                         values = values.view({task.size_, -1});
                 }
@@ -142,7 +139,6 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                 client_state.detached_activations.push_back(values);
             }
         }
-
         nextTask = Task(client_id, nextOp, prev_node);
         nextTask.values = values;
         nextTask.size_ = size_;
@@ -209,9 +205,8 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
 
 void systemAPI::refactor(refactoring_data refactor_message) {
     inference_path.clear();
-    inference_path.push_back(refactor_message.prev);
     inference_path.push_back(refactor_message.next);
-
+    inference_path.push_back(refactor_message.prev);
     model_name name = (model_name) refactor_message.model_name_;
     int model_ = refactor_message.model_type_;
     int num_class = refactor_message.num_class;
