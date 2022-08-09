@@ -20,13 +20,13 @@ int main(int argc, char **argv) {
     refactoring_data client_message;
     // check if you are the init
     if (myID == 0) {
-        std::vector<int>data_owners{0, 2, 3};
-        std::vector<int>compute_nodes = {1};
+        std::vector<int>data_owners{0, 2};
+        std::vector<int>compute_nodes = {1, 3};
 
         int num_parts = compute_nodes.size() + 2;
 
         // offline decission -- from profiling (?)
-        std::vector<int>cut_layers{5, 8};
+        std::vector<int>cut_layers{5, 7, 10};
 
         int data_onwer_end = 2;
         int data_owner_beg = 8;
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
         client_message.num_class = 10;
 
         for (int i=1; i<data_owners.size(); i++) {
-           // sys_.my_network_layer.new_message(client_message, data_owners[i]);
+           sys_.my_network_layer.new_message(client_message, data_owners[i]);
         }
         sys_.refactor(client_message);
         //refactoring_data compute_node_message;
@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
             if (i == 0) 
                 client_message.prev = -1;
             else
-                client_message.next = compute_nodes[i-1];
+                client_message.prev = compute_nodes[i-1];
 
            sys_.my_network_layer.new_message(client_message, compute_nodes[i]);
         }
@@ -76,19 +76,10 @@ int main(int argc, char **argv) {
         client_message = sys_.my_network_layer.check_new_refactor_task();
         sys_.refactor(client_message);
     }
-    
-    
-    
-    auto layers = sys_.parts[1].layers;
-    std::cout << sys_.clients_state.find(0)->second.client_id << std::endl;
-    for (int i = 0; i< layers.size(); i++) {
-        std::cout << "new layer: "<< i+1 << " "<< layers[i] << std::endl;
-    }
-    
-    
+      
     // load dataset
     int type = client_message.dataset;
-    auto path_selection = (type == 1)? CIFAR10_data_path : CIFAR100_data_path;
+    auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
     
     auto train_dataset = CIFAR(path_selection, type)
                                     .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
@@ -101,7 +92,7 @@ int main(int argc, char **argv) {
     auto train_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
             std::move(train_dataset), sys_.batch_size);
 
-    int num_classes = (type == 1)? 10 : 100;
+    int num_classes = (type == CIFAR_10)? 10 : 100;
     
     /*
     for (int i = 0; i< sys_.parts[0].layers.size(); i++) {
@@ -135,17 +126,13 @@ int main(int argc, char **argv) {
 
             // check if is refactor ...
             // else: 
-            std::cout << task.values << std::endl;
-            std::cout<< "1" << std::endl;
             task = sys_.exec(task, batch.target);
             // send task - backward
             sys_.my_network_layer.new_message(task, sys_.inference_path[1]);
-            std::cout<< "2" << std::endl;
             //optimize task
             auto task1 = sys_.my_network_layer.check_new_task();
-            std::cout<< "3" << std::endl;
             task1 = sys_.exec(task1, batch.target);
-            std::cout<< "4" << std::endl;
+            
 
             // wait for next backward task
             task = sys_.my_network_layer.check_new_task();

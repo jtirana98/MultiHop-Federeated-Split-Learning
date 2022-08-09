@@ -49,7 +49,6 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
     case forward_:
         nextOp = forward_;
         if (is_data_owner) {
-            std::cout << ">" << task.prev_node << std::endl;
             if (task.prev_node == -1) { // first part
                 batch_index += 1;
                 values = task.values;   
@@ -76,24 +75,23 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                 parts[1].activations.clear();
                 parts[1].detached_activations.clear();
                 for (int i=0; i<parts[1].layers.size(); i++) {
-                    if (i >= 1) {
-                        values = values.view({task.size_, -1});
-                    }
                     parts[1].optimizers[i]->zero_grad();
                     output = parts[1].layers[i]->forward(values);
-                    parts[1].activations.push_back(output);
-                    values = output.clone().detach().requires_grad_(true);
-                    parts[1].detached_activations.push_back(values);
+
+                    if (i != parts[1].layers.size() - 1) {
+                        output = output.view({task.size_, -1});
+                        parts[1].activations.push_back(output);
+                        values = output.clone().detach().requires_grad_(true);
+                        parts[1].detached_activations.push_back(values);
+                    }
+                        
                 }
 
-                std::cout << output << std::endl;
-                std::cout << "<<<<<<<<<<<<<<<<<<<<" << std::endl;
-                std::cout << target << std::endl;
                 nextOp = backward_;
                 // compute loss 
                 torch::Tensor loss =
-                    torch::nn::functional::cross_entropy(output, target);
-                std::cout << "ok7 " << std::endl;
+                   torch::nn::functional::cross_entropy(output, target);
+
                 running_loss += loss.item<double>();
                 auto prediction = output.argmax(1);
                 auto corr = prediction.eq(target).sum().item<int64_t>();
@@ -102,7 +100,7 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                 
                 loss.backward();
 
-                if (parts[1].activations.size() > 1) {
+                if (parts[1].activations.size() >= 1) {
                     auto detached_grad = parts[1].detached_activations[0].grad().clone().detach();
                     parts[1].activations[0].backward(detached_grad);
                 }
@@ -127,7 +125,7 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
             client_state.detached_activations.clear();
             for (int i=0; i<client_state.layers.size(); i++) {
                 if (i >= 1) {
-                        values = values.view({task.size_, -1});
+                    values = values.view({task.size_, -1});
                 }
 
                 client_state.optimizers[i]->zero_grad();

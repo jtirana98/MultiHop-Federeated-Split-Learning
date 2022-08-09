@@ -68,7 +68,7 @@ void network_layer::new_message(Task task, int send_to, bool compute_to_compute)
     msg.type_op = task.type;
     auto data = torch::pickle_save(task.values);
     std::string s(data.begin(), data.end());
-    std::cout << "sss: " << s.size() << std::endl;
+    //std::cout << "sss: " << s.size() << std::endl;
     msg.values = s;
     msg.save_connection = (compute_to_compute) ? 1 : 0;
 
@@ -204,11 +204,10 @@ void network_layer::receiver() {
         for (auto it = open_connections.begin(); it != open_connections.end(); it++) {
             if (FD_ISSET(it->second, &readset)) {
                 auto json_format_str = my_receive(it->second);
-                if(json_format_str == "")
-                    continue;
-                if (json_format_str.size()==0) { // remove socket
+                if (json_format_str.size()==0 || json_format_str == "") { // remove socket
                     to_remove.push_back(it->first);
                     close(it->second);
+                    continue;
                 }
 
                 auto json_format = fromStr_toJson<Message>(json_format_str);
@@ -309,17 +308,15 @@ void network_layer::sender() { // consumer -- new message
     struct sockaddr_in serv_addr;
     struct hostent *receiver;
     char buffer[1024];
-    bool store;
     int len=0, len_;
 
     while(true) {
-        store = false;
         std::unique_lock<std::mutex> lock(m_mutex_new_message);
         while (pending_messages.empty()) {
             m_cv_new_message.wait(lock, [&](){ return !pending_messages.empty(); });
         }
         
-        std::cout << "new message" << std::endl;
+        //std::cout << "new message" << std::endl;
 
         new_msg = pending_messages.front();
         pending_messages.pop();
@@ -363,7 +360,7 @@ void network_layer::sender() { // consumer -- new message
                 std::cerr << "ERROR connecting";
             
             n = my_send(sockfd, data);
-            if (store) {
+            if (new_msg.save_connection) {
                 open_connections.insert({new_msg.dest, sockfd});
             }
             else {

@@ -56,15 +56,15 @@ std::pair<torch::Tensor, torch::Tensor> read_data(const std::string& root, bool 
     const auto& files1 = train ? kTrainDataBatchFiles_10 : kTestDataBatchFiles_10;
     const auto& files2 = train ? kTrainDataBatchFiles_100 : kTestDataBatchFiles_100;
     uint32_t num_samples, size_;
-    if (type == 1) {
+    if (type == CIFAR_10) {
         num_samples = train ? kTrainSize_10 : kTestSize_10;
     }
     else {
         num_samples = train ? kTrainSize_100 : kTestSize_100;
     }
-    const auto& files = (type==1) ? files1 : files2;
+    const auto& files = (type==CIFAR_10) ? files1 : files2;
     std::vector<char> data_buffer;
-    if (type == 1) {
+    if (type == CIFAR_10) {
         data_buffer.reserve(files.size() * kBytesPerBatchFile_10);
         size_ = kBytesPerBatchFile_10;
     }
@@ -86,7 +86,7 @@ std::pair<torch::Tensor, torch::Tensor> read_data(const std::string& root, bool 
     auto targets = torch::empty(num_samples, torch::kByte);
     auto images = torch::empty({num_samples, 3, kImageRows, kImageColumns}, torch::kByte);
 
-    const auto bytes_row = (type == 1) ? kBytesPerRow_10 : kBytesPerRow_100;
+    const auto bytes_row = (type == CIFAR_10) ? kBytesPerRow_10 : kBytesPerRow_100;
 
     for (uint32_t i = 0; i != num_samples; ++i) {
         // The first byte of each row is the target class index.

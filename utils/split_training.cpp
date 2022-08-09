@@ -3,7 +3,7 @@
 void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_size, int avg_point_, double learning_rate, int num_epochs) {
     std::vector<gatherd_data> all_measures;
 
-    auto path_selection = (type == 1)? CIFAR10_data_path : CIFAR100_data_path;
+    auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
     auto train_dataset = CIFAR(path_selection, type)
                                     .map(ConstantPad(4))
                                     .map(RandomHorizontalFlip())
@@ -14,7 +14,7 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
     auto train_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
             std::move(train_dataset), batch_size);
 
-    int num_classes = (type == 1)? 10 : 100;
+    int num_classes = (type == CIFAR_10)? 10 : 100;
     
 
     std::vector<torch::optim::Adam> optimizers;
@@ -101,9 +101,13 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
                 //std::cout << std::endl;
             }
             
-        
             if (batch_index != 0)
                 totaltimes.addEvent(Event(backprop, "", layers.size()-1));
+            
+            std::cout << prev_out << std::endl;
+            std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
+            std::cout << batch.target << std::endl;
+            
             torch::Tensor loss =
                    torch::nn::functional::cross_entropy(prev_out, batch.target);
 

@@ -14,17 +14,16 @@ int main(int argc, char **argv) {
 
     // wait for init refactoring
     auto refactor_message = sys_.my_network_layer.check_new_refactor_task();
-    std::cout << "here" << std::endl;
     sys_.refactor(refactor_message);
 
     // ----------- DRAFT ------------
     //sys_.init_state(vgg, vgg_model::v11, 10, 1, 3);
     //sys_.init_state_vector(resnet, resnet_model::resnet18, 10, 9, 13);
-    auto layers = sys_.clients_state.find(0)->second.layers;
-    std::cout << sys_.clients_state.find(1)->second.client_id << std::endl;
-    for (int i = 0; i< layers.size(); i++) {
-        std::cout << "new layer: "<< i+1 << " "<< layers[i] << std::endl;
-    }
+    //auto layers = sys_.clients_state.find(0)->second.layers;
+    //std::cout << sys_.clients_state.find(1)->second.client_id << std::endl;
+    //for (int i = 0; i< layers.size(); i++) {
+    //    std::cout << "new layer: "<< i+1 << " "<< layers[i] << std::endl;
+    //}
     // -------- DRAFT ------------
     
     while (true) {
@@ -32,7 +31,7 @@ int main(int argc, char **argv) {
 
         // check if it is a refactoring task
         // else ...
-        std::cout << "new task" << std::endl;
+        //std::cout << "new task" << std::endl;
         auto task = sys_.exec(next_task, tmp);
         if (task.type != noOp) {
             bool keep_connection = true;

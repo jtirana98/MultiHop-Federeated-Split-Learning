@@ -51,6 +51,8 @@ class network_layer {
     network_layer(int myid) : myid(myid) {
         rooting_table.insert({0, std::pair<std::string, int>("localhost", 8081)});
         rooting_table.insert({1, std::pair<std::string, int>("localhost", 8082)});
+        rooting_table.insert({2, std::pair<std::string, int>("localhost", 8083)});
+        rooting_table.insert({3, std::pair<std::string, int>("localhost", 8084)});
     }
 
     void new_message(Task task, int send_to, bool compute_to_compute=false); // produce -- new message
