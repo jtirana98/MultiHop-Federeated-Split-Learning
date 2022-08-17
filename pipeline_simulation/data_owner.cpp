@@ -20,6 +20,8 @@ int main(int argc, char **argv) {
     refactoring_data client_message;
     // check if you are the init
     if (myID == 0) {
+        
+        // POINT 5
         std::vector<int>data_owners{0, 2};
         std::vector<int>compute_nodes = {1, 3};
 
@@ -42,13 +44,16 @@ int main(int argc, char **argv) {
         client_message.next = compute_nodes[0];
         client_message.prev = compute_nodes[compute_nodes.size() -1];
         client_message.num_class = 10;
-
+        
+        // POINT 6
         for (int i=1; i<data_owners.size(); i++) {
            sys_.my_network_layer.new_message(client_message, data_owners[i]);
         }
-        sys_.refactor(client_message);
-        //refactoring_data compute_node_message;
 
+        // POINT 7
+        sys_.refactor(client_message);
+        
+        // POINT 8
         client_message.to_data_onwer = false;
         client_message.data_owners = data_owners;
         
@@ -70,11 +75,14 @@ int main(int argc, char **argv) {
            sys_.my_network_layer.new_message(client_message, compute_nodes[i]);
         }
 
+        // POINT 9
         
     }
     else { // if not wait for init refactoring
+        // POINT 10
         client_message = sys_.my_network_layer.check_new_refactor_task();
         sys_.refactor(client_message);
+        // POINT 11
     }
       
     // load dataset
@@ -105,13 +113,16 @@ int main(int argc, char **argv) {
         std::cout << "new layer: "<< i+1 << " "<< sys_.parts[1].layers[i] << std::endl;
     }
     */
-    
+
+    // POINT 12
     for (size_t round = 0; round != sys_.rounds; ++round) {
         int batch_index = 0;
         sys_.zero_metrics();
         int total_num = 0;
         for (auto& batch : *train_dataloader) {
             // create task with new batch
+
+            // POINT 16
             Task task(sys_.myid, forward_, -1);
             task.size_ = batch.data.size(0);
             task.values = batch.data;
@@ -121,26 +132,29 @@ int main(int argc, char **argv) {
             // send task to next node
             sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
             
-            // wait for next forward task
+            // POINT 17 - wait for next forward task
             task = sys_.my_network_layer.check_new_task();
 
             // check if is refactor ...
-            // else: 
+            // else:
+
+            // POINT 18
             task = sys_.exec(task, batch.target);
             // send task - backward
             sys_.my_network_layer.new_message(task, sys_.inference_path[1]);
             //optimize task
             auto task1 = sys_.my_network_layer.check_new_task();
             task1 = sys_.exec(task1, batch.target);
-            
+            // POINT 19
 
             // wait for next backward task
             task = sys_.my_network_layer.check_new_task();
+            // POINT 20 
             task = sys_.exec(task, batch.target);
             
             // end of batch
             batch_index++;
-            
+            // POINT 21
         }
         
         auto sample_mean_loss = sys_.running_loss / batch_index;

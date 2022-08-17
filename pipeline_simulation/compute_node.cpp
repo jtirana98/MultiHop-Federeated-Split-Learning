@@ -12,9 +12,10 @@ int main(int argc, char **argv) {
     Task next_task;
     torch::Tensor tmp;
 
-    // wait for init refactoring
+    // POINT 10 -  wait for init refactoring
     auto refactor_message = sys_.my_network_layer.check_new_refactor_task();
     sys_.refactor(refactor_message);
+    // POINT 11
 
     // ----------- DRAFT ------------
     //sys_.init_state(vgg, vgg_model::v11, 10, 1, 3);
@@ -27,12 +28,17 @@ int main(int argc, char **argv) {
     // -------- DRAFT ------------
     
     while (true) {
+        // POINT 13
         next_task = sys_.my_network_layer.check_new_task();
-
+        
         // check if it is a refactoring task
         // else ...
         //std::cout << "new task" << std::endl;
+
+        // POINT 14
         auto task = sys_.exec(next_task, tmp);
+        // POINT 15
+        
         if (task.type != noOp) {
             bool keep_connection = true;
             next_node = (next_task.type == forward_) ? sys_.inference_path[0] : sys_.inference_path[1];

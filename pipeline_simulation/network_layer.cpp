@@ -219,6 +219,7 @@ void network_layer::receiver() {
                     task.size_ = new_msg.size_;
                     std::vector<char> v(new_msg.values.begin(), new_msg.values.end());
                     task.values = torch::pickle_load(v).toTensor();
+                    // POINT 1
                     put_internal_task(task);
                 }
                 else {
@@ -234,7 +235,7 @@ void network_layer::receiver() {
                     refactor_obj.num_class = new_msg.num_classes;
                     refactor_obj.model_name_ = new_msg.model_name;
                     refactor_obj.model_type_ = new_msg.model_type;
-
+                    // POINT 1
                     put_internal_task(refactor_obj);
                 }
             }
@@ -269,7 +270,7 @@ void network_layer::receiver() {
                 task.size_ = new_msg.size_;
                 std::vector<char> v(new_msg.values.begin(), new_msg.values.end());
                 task.values = torch::pickle_load(v).toTensor();
-                
+                // POINT 1
                 put_internal_task(task);
                 
             }
@@ -286,7 +287,7 @@ void network_layer::receiver() {
                 refactor_obj.num_class = new_msg.num_classes;
                 refactor_obj.model_name_ = new_msg.model_name;
                 refactor_obj.model_type_ = new_msg.model_type;
-
+                // POINT 1 
                 put_internal_task(refactor_obj);
             }
 
@@ -320,7 +321,7 @@ void network_layer::sender() { // consumer -- new message
 
         new_msg = pending_messages.front();
         pending_messages.pop();
-
+        // POINT 2
         // message to json
         Json::Value jsonMsg = toJson(new_msg);
         // json to string
@@ -330,7 +331,9 @@ void network_layer::sender() { // consumer -- new message
         if (it != open_connections.end()) {
             int client_sock = it->second;
             // TODO check mipws to connection exei kleisei
+            // POINT 3
             n = my_send(client_sock, data);
+            // POINT 4
         }
         else{
             auto client_addr = rooting_table.find(new_msg.dest)->second;
@@ -358,8 +361,9 @@ void network_layer::sender() { // consumer -- new message
 
             if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
                 std::cerr << "ERROR connecting";
-            
+            // POINT 3
             n = my_send(sockfd, data);
+            // POINT 4
             if (new_msg.save_connection) {
                 open_connections.insert({new_msg.dest, sockfd});
             }
