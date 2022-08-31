@@ -11,7 +11,7 @@ include_directories(models/vgg/)
 include_directories(models/resnet/)
 include_directories(models/lenet5/)
 include_directories(pipeline_simulation/)
-
+include_directories(third_party/argparse/include/)
 
 
 set(SOURCE_FILES 
@@ -19,6 +19,8 @@ set(SOURCE_FILES
                 datasets/mydataset.cpp
                 utils/mylogging.h
                 utils/mylogging.cpp
+                utils/pipeline_logging.h
+                utils/pipeline_logging.cpp
                 utils/split_training.h
                 utils/split_training.cpp
                 datasets/transform.h
@@ -62,6 +64,6 @@ target_link_libraries("${CMAKE_PROJECT_NAME}" ${TORCH_LIBRARIES})
 target_link_libraries(compute_node ${TORCH_LIBRARIES})
 target_link_libraries(data_owner ${TORCH_LIBRARIES})
 
-set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 14)
-set_property(TARGET compute_node PROPERTY CXX_STANDARD 14)
-set_property(TARGET data_owner PROPERTY CXX_STANDARD 14)
+set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+set_property(TARGET compute_node PROPERTY CXX_STANDARD 17)
+set_property(TARGET data_owner PROPERTY CXX_STANDARD 17)

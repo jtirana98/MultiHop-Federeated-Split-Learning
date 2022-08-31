@@ -461,6 +461,7 @@ struct Message {
     int save_connection; 
     int type; //operation=0 or refacto=1,2
     int dest;
+    //int msg_id;
     // refactor
     int start=-1, end=-1, prev=-1, next=-1, dataset=-1, num_classes=-1, model_name=-1, model_type=-1;
     std::vector<int> data_owners;
@@ -471,6 +472,7 @@ struct Message {
     constexpr static auto properties_header = std::make_tuple(
         property(&Message::save_connection, "save_connection"),
         property(&Message::type, "type")
+        //property(&Message::msg_id, "msg_id")
     );
 
     constexpr static auto properties_refactor = std::make_tuple(

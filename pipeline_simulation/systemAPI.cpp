@@ -2,8 +2,8 @@
 
 //template <typename T>
 void systemAPI::init_state_vector(model_name name, int model_, int num_class, int start, int end) {
-    ModelPart part(name, model_, start, end, num_class);
     for (int i=0; i<clients.size() ; i++) {
+        ModelPart part(name, model_, start, end, num_class);
         std::vector<torch::optim::Adam *> optimizers(part.layers.size(), nullptr);
         for (int i = 0; i < part.layers.size(); i++) {
             optimizers[i] = new torch::optim::Adam(part.layers[i]->parameters(), torch::optim::AdamOptions(learning_rate));
@@ -119,22 +119,22 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
         }
         else {
             values = task.values;
-            auto client_state = clients_state.find(client_id)->second;
-            client_state.received_activation = values;
-            client_state.activations.clear();
-            client_state.detached_activations.clear();
-            for (int i=0; i<client_state.layers.size(); i++) {
+            auto client_state = &(clients_state.find(client_id)->second);
+            client_state->received_activation = values;
+            client_state->activations.clear();
+            client_state->detached_activations.clear();
+            for (int i=0; i<client_state->layers.size(); i++) {
                 if (i >= 1) {
                     values = values.view({task.size_, -1});
                 }
 
-                client_state.optimizers[i]->zero_grad();
+                client_state->optimizers[i]->zero_grad();
                 
-                output = client_state.layers[i]->forward(values);
-                client_state.activations.push_back(output);
-
+                output = client_state->layers[i]->forward(values);
+                client_state->activations.push_back(output);
+                //std::cout << "for " << client_id << " " << output.sizes() << std::endl;
                 values = output.clone().detach().requires_grad_(true);
-                client_state.detached_activations.push_back(values);
+                client_state->detached_activations.push_back(values);
             }
         }
         nextTask = Task(client_id, nextOp, prev_node);
@@ -145,7 +145,7 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
         nextOp = backward_;
         if (is_data_owner) {
             values = task.values;
-            for (int i=parts[0].layers.size()-1; i>0; i--) {
+            for (int i=parts[0].layers.size()-1; i>=0; i--) {
                 parts[0].activations[i].backward(values);
                 parts[0].optimizers[i]->step();
                 if (i != 0)
@@ -159,17 +159,22 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
         }
         else {
             values = task.values;
-            auto client_state = clients_state.find(client_id)->second;
-            for (int i=client_state.layers.size()-1; i>0; i--) {
-                client_state.activations[i].backward(values);
+            auto client_state = &clients_state.find(client_id)->second;
+            /*
+            std::cout << "BACK" << std::endl;
+            std::cout << "size: " << client_state->layers.size() << std::endl;
+            std::cout << "size i: " << values.sizes() << std::endl;
+            */
+            for (int i=client_state->layers.size()-1; i>=0; i--) {
+                client_state->activations[i].backward(values);
                 
                 if (i != 0)
-                    values = client_state.detached_activations[i-1].grad().clone().detach();
+                    values = client_state->detached_activations[i-1].grad().clone().detach();
                 else
-                    values = client_state.received_activation.grad().clone().detach();
+                    values = client_state->received_activation.grad().clone().detach();
 
             }
-
+            //std::cout << "size o: " << values.sizes() << std::endl;
             // add optimization task to list
             Task opt(client_id, optimize_, prev_node);
             my_network_layer.put_internal_task(opt);
@@ -187,9 +192,9 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
             }
         }
         else {
-            auto client_state = clients_state.find(client_id)->second;
-            for (int i=0; i<client_state.layers.size(); i++) {
-                client_state.optimizers[i]->step();
+            auto client_state = &clients_state.find(client_id)->second;
+            for (int i=0; i<client_state->layers.size(); i++) {
+                client_state->optimizers[i]->step();
             }
         }
 

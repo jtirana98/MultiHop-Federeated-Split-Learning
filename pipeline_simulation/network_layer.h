@@ -28,11 +28,13 @@
 
 
 #include "Task.h"
+#include "pipeline_logging.h"
 //#include "Message.h"
 
 class network_layer {
  public:
     int myid;
+    //int counter;
     // pending messages 
     std::map<int, std::pair<std::string, int>> rooting_table; // (node_id, (ip, port))
     std::mutex m_mutex_new_message;
@@ -48,7 +50,14 @@ class network_layer {
     std::mutex m_mutex_new_refactor_task;
     std::condition_variable m_cv_new_refactor_task;
 
-    network_layer(int myid) : myid(myid) {
+    logger mylogger;
+    std::thread logger_thread;
+
+    network_layer(int myid, std::string log_dir) : myid(myid), 
+    mylogger(myid, log_dir),
+    logger_thread(&logger::logger_, &mylogger) 
+    {
+        //counter = 0;
         rooting_table.insert({0, std::pair<std::string, int>("localhost", 8081)});
         rooting_table.insert({1, std::pair<std::string, int>("localhost", 8082)});
         rooting_table.insert({2, std::pair<std::string, int>("localhost", 8083)});
@@ -67,6 +76,18 @@ class network_layer {
     //threads
     void receiver(); // producer -- new task
     void sender(); // consumer -- new message
+
+    Point newPoint(int point_code) {
+        //std::cout << "POINT: " <<  this->mylogger.points.size() << "--> " << &(this->mylogger.points) << std::endl;
+        Point point(myid, point_code);
+        this->mylogger.add_point(point);
+
+        return point;
+    }
+    
+    void terminate() {
+        logger_thread.join();
+    }
 
 };
 

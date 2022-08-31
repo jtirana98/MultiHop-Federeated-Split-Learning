@@ -21,10 +21,11 @@
 #include "State.h"
 #include "network_layer.h"
 
+
 class systemAPI  {
  public:
     network_layer my_network_layer;
-    std::thread rcv, snd;
+    std::thread rcv_thread, snd_thread;
 
     std::vector<int> inference_path;
     int myid;
@@ -34,21 +35,20 @@ class systemAPI  {
     std::map<int, State> clients_state;
     std::vector<int> clients;
 
-    // apply for data owner
-    int batch_size=128, rounds=50;
+    // apply for data owner 
+    int batch_size=32, rounds=50;
     std::vector<State> parts;
     double learning_rate = 0.1;
     double running_loss = 0.0;
     double num_correct = 0;
     int batch_index = 0;
     
-    systemAPI(bool is_data_owner, int myid) : 
+    systemAPI(bool is_data_owner, int myid, std::string log_dir) : 
     is_data_owner(is_data_owner),
     myid(myid),
-    my_network_layer(myid),
-    rcv(&network_layer::receiver, &my_network_layer),
-    snd(&network_layer::sender, &my_network_layer)
-    { };
+    my_network_layer(myid, log_dir),
+    rcv_thread(&network_layer::receiver, &my_network_layer),
+    snd_thread(&network_layer::sender, &my_network_layer) { };
 
     void refactor(refactoring_data refactor_message);
     Task exec(Task task, torch::Tensor& targer);
@@ -61,8 +61,9 @@ class systemAPI  {
     
     
     void terminate() {
-        rcv.join();
-        snd.join();
+        rcv_thread.join();
+        snd_thread.join();
+        my_network_layer.terminate();
     }
 private:    
     void init_state_vector(model_name name, int model_, int num_class, int start, int end);
