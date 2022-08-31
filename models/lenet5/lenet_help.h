@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <utility>
 #include "lenet.h"
 
 std::vector<torch::nn::Sequential> lenet_split( int64_t num_classes, 

@@ -9,7 +9,9 @@ include_directories(utils/)
 include_directories(models/)
 include_directories(models/vgg/)
 include_directories(models/resnet/)
+include_directories(models/lenet5/)
 include_directories(pipeline_simulation/)
+
 
 
 set(SOURCE_FILES 
@@ -37,6 +39,12 @@ set(SOURCE_FILES
                 models/resnet/resnet_split.cpp
                 models/resnet/resnet_train.h
                 models/resnet/resnet_train.cpp
+                models/lenet5/lenet.cpp
+                models/lenet5/lenet.h
+                models/lenet5/lenet_help.h
+                models/lenet5/lenet_help.cpp
+                models/lenet5/lenet_train.h
+                models/lenet5/lenet_train.cpp
                 pipeline_simulation/network_layer.h
                 pipeline_simulation/network_layer.cpp
                 pipeline_simulation/Task.h

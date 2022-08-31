@@ -1,7 +1,7 @@
 #include "lenet_train.h"
 
 void printModelsParameters(LeNet5& model) {
-    for (const auto& p : model.parameters()) {
+    for (const auto& p : model->parameters()) {
         int dims = p.dim();
         std::cout << "=";
         for (int i=0; i < dims; i++) {
@@ -16,10 +16,10 @@ void printModelsParameters(LeNet5& model) {
     std::cout << std::endl;
 }
 
-void lenet_cifar() {
+void lenet_cifar(int type, int batch_size, bool test) {
     std::vector<gatherd_data> all_measures;
 
-    auto path_selection = (type == 1)? CIFAR10_data_path : CIFAR100_data_path;
+    auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
 
     auto train_dataset = CIFAR(path_selection, type)
                                     .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
@@ -30,7 +30,7 @@ void lenet_cifar() {
     auto train_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
             std::move(train_dataset), batch_size);
 
-    int num_classes = (type == 1)? 10 : 100;
+    int num_classes = (type == CIFAR_10)? 10 : 100;
  
     LeNet5 model(num_classes);
     
@@ -38,7 +38,7 @@ void lenet_cifar() {
     
     // Initilize optimizer
     double weight_decay = 0.0001;  // regularization parameter
-    torch::optim::Adam optimizer(model.parameters(), torch::optim::AdamOptions(l_learning_rate));
+    torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(l_learning_rate));
     //torch::optim::SGD optimizer(model->parameters(), torch::optim::SGDOptions(0.001).momentum(0.9));
 
     Total totaltimes = Total();
@@ -67,7 +67,7 @@ void lenet_cifar() {
             if (!test)
                 start_forward = Event(forward, "", -1);
             
-            torch::Tensor output = model.forward(batch.data);
+            torch::Tensor output = model->forward(batch.data);
             
             if (!test)
                 start_backprop = Event(backprop, "", -1);
@@ -140,7 +140,7 @@ void lenet_cifar() {
         std::cout << "Testing...\n";
 
         // Test the model
-        model.eval();
+        model->eval();
         torch::NoGradGuard no_grad;
 
         double running_loss = 0.0;
@@ -150,7 +150,7 @@ void lenet_cifar() {
             auto data = batch.data;
             auto target = batch.target;
 
-            auto output = model.forward(data);
+            auto output = model->forward(data);
 
             auto loss = torch::nn::functional::cross_entropy(output, target);
             running_loss += loss.template item<double>() * data.size(0);
@@ -169,8 +169,8 @@ void lenet_cifar() {
     
 }
 
-void lenet_split_cifar(int type, int batch_size, bool test) {
-    int num_classes = (type == 1)? 10 : 100;
+void lenet_split_cifar(int type, int batch_size, const std::vector<int>& split_points) {
+    int num_classes = (type == CIFAR_10)? 10 : 100;
     auto layers =  lenet_split(num_classes, split_points);
 
     split_cifar(layers, type, batch_size, 2, l_learning_rate, l_num_epochs);
@@ -178,9 +178,9 @@ void lenet_split_cifar(int type, int batch_size, bool test) {
 }
 
 void train_lenet(dataset dataset_option, 
-                bool split, int batch_size = g_batch_size, 
-                const std::vector<int>& split_points = std::vector<int>(), 
-                bool test = false) {
+                bool split, int batch_size, 
+                const std::vector<int>& split_points    , 
+                bool test) {
 
     if (split) {
         switch (dataset_option) {
@@ -203,10 +203,10 @@ void train_lenet(dataset dataset_option,
             //vgg_mnist(model_option, batch_size, test);
             break;
         case CIFAR_10:
-            lenet_cifar(1, batch_size, test);
+            lenet_cifar(CIFAR_10, batch_size, test);
             break;
         case CIFAR_100:
-            lenet_cifar(0, batch_size, test);
+            lenet_cifar(CIFAR_10, batch_size, test);
             break;
         default:
             break;

@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
     std::vector<std::string> to_print_lenet{"LeNet-5"};
 
     for(int j = 0; j < batches.size(); j++) {
-        std::cout << to_print_lenet[i] << " " << batches[j] << std::endl;
+        std::cout << to_print_lenet[0] << " " << batches[j] << std::endl;
         train_lenet(CIFAR_10, false, batches[j]);
         std::cout << std::endl;
 

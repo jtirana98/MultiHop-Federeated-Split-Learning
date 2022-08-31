@@ -22,7 +22,7 @@ template <typename Block>
 void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test) {
     std::vector<gatherd_data> all_measures;
 
-    auto path_selection = (type == 1)? CIFAR10_data_path : CIFAR100_data_path;
+    auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
 
     auto train_dataset = CIFAR(path_selection, type)
                                     .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
@@ -33,7 +33,7 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     auto train_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
             std::move(train_dataset), batch_size);
 
-    int num_classes = (type == 1)? 10 : 100;
+    int num_classes = (type == CIFAR_10)? 10 : 100;
     auto layers = getLayers(model_option);
     
       
@@ -179,7 +179,7 @@ template <typename Block>
 void resnet_split_cifar(resnet_model model_option, int type, int batch_size, const std::vector<int>& split_points) { 
     auto layers_ = getLayers(model_option);
     bool usebottleneck = (model_option <=2) ? false : true;
-    int num_classes = (type == 1)? 10 : 100;
+    int num_classes = (type == CIFAR_10)? 10 : 100;
     auto layers =  resnet_split(layers_, num_classes, usebottleneck, split_points);
 
     split_cifar(layers, type, batch_size, 1, r_learning_rate, r_num_epochs);
@@ -214,15 +214,15 @@ void train_resnet(dataset dataset_option, resnet_model model_option, bool split,
             break;
         case CIFAR_10:
             if (model_option <= 2)
-                resnet_cifar<ResidualBlock>(model_option, 1, batch_size, test);
+                resnet_cifar<ResidualBlock>(model_option, CIFAR_10, batch_size, test);
             else
-                resnet_cifar<ResidualBottleneckBlock>(model_option, 1, batch_size, test);
+                resnet_cifar<ResidualBottleneckBlock>(model_option, CIFAR_10, batch_size, test);
             break;
         case CIFAR_100:
             if (model_option <= 2)
-                resnet_cifar<ResidualBlock>(model_option, 0, batch_size, test);
+                resnet_cifar<ResidualBlock>(model_option, CIFAR_100, batch_size, test);
             else
-                resnet_cifar<ResidualBottleneckBlock>(model_option, 0, batch_size, test);
+                resnet_cifar<ResidualBottleneckBlock>(model_option, CIFAR_100, batch_size, test);
             break;
         default:
             break;

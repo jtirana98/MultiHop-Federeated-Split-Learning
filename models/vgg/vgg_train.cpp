@@ -305,7 +305,7 @@ void vgg_split_mnist(vgg_model model_option, int batch_size, const std::vector<i
 void vgg_cifar(vgg_model model_option, int type, int batch_size, bool test) {
     std::vector<gatherd_data> all_measures;
 
-    auto path_selection = (type == 1)? CIFAR10_data_path : CIFAR100_data_path;
+    auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
 
     auto train_dataset = CIFAR(path_selection, type)
                                     .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
@@ -316,7 +316,7 @@ void vgg_cifar(vgg_model model_option, int type, int batch_size, bool test) {
     auto train_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
             std::move(train_dataset), batch_size);
 
-    int num_classes = (type == 1)? 10 : 100;
+    int num_classes = (type == CIFAR_10)? 10 : 100;
     auto model = getModel(model_option, num_classes);
 
     printModelsParameters(model);
@@ -453,7 +453,7 @@ void vgg_cifar(vgg_model model_option, int type, int batch_size, bool test) {
 }
 
 void vgg_split_cifar(vgg_model model_option, int type, int batch_size, const std::vector<int>& split_points = std::vector<int>()) {
-    int num_classes = (type == 1)? 10 : 100;
+    int num_classes = (type == CIFAR_10)? 10 : 100;
     auto layers = getSplitModel(model_option, num_classes, split_points);
 
     split_cifar(layers, type, batch_size, 7, learning_rate, num_epochs);
@@ -466,10 +466,10 @@ void train_vgg(dataset dataset_option, vgg_model model_option, bool split, int b
             vgg_split_mnist(model_option, batch_size, split_points);
             break;
         case CIFAR_10:
-            vgg_split_cifar(model_option, 1, batch_size, split_points);
+            vgg_split_cifar(model_option, CIFAR_10, batch_size, split_points);
             break;
         case CIFAR_100:
-            vgg_split_cifar(model_option, 0, batch_size, split_points);
+            vgg_split_cifar(model_option, CIFAR_100, batch_size, split_points);
             break;
         default:
             break;

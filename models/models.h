@@ -4,7 +4,7 @@
 
 #include "vgg_train.h"
 #include "resnet_train.h"
-
+#include "lenet_train.h"
 
 
 enum model_name {

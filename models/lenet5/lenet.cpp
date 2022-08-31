@@ -1,4 +1,4 @@
-#include "lenet5.h"
+#include "lenet.h"
 
 static std::vector<int64_t> k_size = {2, 2};
 static std::vector<int64_t> p_size = {0, 0};
@@ -6,7 +6,7 @@ static c10::optional<int64_t> divisor_override;
 
 LeNet5Impl::LeNet5Impl(int num_classes) {
   conv_ = torch::nn::Sequential(
-      torch::nn::Conv2d(torch::nn::Conv2dOptions(1, 6, 5)), // layer 1
+      torch::nn::Conv2d(torch::nn::Conv2dOptions(3, 6, 5)), // layer 1
       torch::nn::Functional(torch::tanh), 
       torch::nn::Functional(torch::avg_pool2d,              // layer 2
                             /*kernel_size*/ torch::IntArrayRef(k_size),
