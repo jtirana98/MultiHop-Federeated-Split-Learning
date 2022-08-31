@@ -129,7 +129,7 @@ std::vector<torch::nn::Sequential> resnet_split(const std::array<int64_t, 4>& la
         if (l == split_points.size())
             at_end = true;
     }
-    else { // TODO! split because we need to flatted input
+    else { // split because we need to flatted input
         parts.push_back(part);
         new_split = true;
     }

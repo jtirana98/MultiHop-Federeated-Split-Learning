@@ -9,7 +9,8 @@
 #include "models.h"
 
 //#define VGG
-#define RESNET
+//#define RESNET
+#define LENET
 
 int main(int argc, char **argv) {
     std::vector<int> batches{32, 64, 128};
@@ -55,8 +56,21 @@ int main(int argc, char **argv) {
         }
     }
     
-    train_resnet(CIFAR_10, models_resnet[4], false, 32);
-    train_resnet(CIFAR_10, models_resnet[4], true, 32);
-    #endif                              
+    #endif
+
+    // LeNet
+    #ifdef LENET
+    std::vector<std::string> to_print_lenet{"LeNet-5"};
+
+    for(int j = 0; j < batches.size(); j++) {
+        std::cout << to_print_lenet[i] << " " << batches[j] << std::endl;
+        train_lenet(CIFAR_10, false, batches[j]);
+        std::cout << std::endl;
+
+        std::cout << "SPLIT" << std::endl;
+        train_lenet(CIFAR_10, true, batches[j]);
+        std::cout << std::endl;
+    }
+    #endif                               
 
 } 

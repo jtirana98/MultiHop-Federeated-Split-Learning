@@ -1,7 +1,6 @@
-#include "resnet_train.h"
+#include "lenet_train.h"
 
-template <typename Block>
-void printModelsParameters(ResNet<Block>& model) {
+void printModelsParameters(LeNet5& model) {
     for (const auto& p : model.parameters()) {
         int dims = p.dim();
         std::cout << "=";
@@ -17,9 +16,7 @@ void printModelsParameters(ResNet<Block>& model) {
     std::cout << std::endl;
 }
 
-// CIFAR
-template <typename Block>
-void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test) {
+void lenet_cifar() {
     std::vector<gatherd_data> all_measures;
 
     auto path_selection = (type == 1)? CIFAR10_data_path : CIFAR100_data_path;
@@ -34,17 +31,14 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
             std::move(train_dataset), batch_size);
 
     int num_classes = (type == 1)? 10 : 100;
-    auto layers = getLayers(model_option);
+ 
+    LeNet5 model(num_classes);
     
-      
-    bool usebottleneck = (model_option <=2) ? false : true;
-    ResNet<Block> model(layers, num_classes, usebottleneck);
-    
-    printModelsParameters<Block>(model);
+    printModelsParameters(model);
     
     // Initilize optimizer
     double weight_decay = 0.0001;  // regularization parameter
-    torch::optim::Adam optimizer(model.parameters(), torch::optim::AdamOptions(r_learning_rate));
+    torch::optim::Adam optimizer(model.parameters(), torch::optim::AdamOptions(l_learning_rate));
     //torch::optim::SGD optimizer(model->parameters(), torch::optim::SGDOptions(0.001).momentum(0.9));
 
     Total totaltimes = Total();
@@ -53,7 +47,7 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
 
     int stop_epochs = 1;
     if (test)
-        stop_epochs = r_num_epochs;
+        stop_epochs = l_num_epochs;
 
 
     for (size_t epoch = 0; epoch != stop_epochs; ++epoch) {
@@ -121,7 +115,7 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
             auto accuracy = num_correct / batch_index;
 
             
-            std::cout << "Epoch [" << (epoch + 1) << "/" << r_num_epochs << "], Trainset - Loss: "
+            std::cout << "Epoch [" << (epoch + 1) << "/" << l_num_epochs << "], Trainset - Loss: "
                 << sample_mean_loss << ", Accuracy: " << accuracy << " " << num_correct << std::endl;
         }    
 
@@ -175,33 +169,29 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     
 }
 
-template <typename Block>
-void resnet_split_cifar(resnet_model model_option, int type, int batch_size, const std::vector<int>& split_points) { 
-    auto layers_ = getLayers(model_option);
-    bool usebottleneck = (model_option <=2) ? false : true;
+void lenet_split_cifar(int type, int batch_size, bool test) {
     int num_classes = (type == 1)? 10 : 100;
-    auto layers =  resnet_split(layers_, num_classes, usebottleneck, split_points);
+    auto layers =  lenet_split(num_classes, split_points);
 
-    split_cifar(layers, type, batch_size, 1, r_learning_rate, r_num_epochs);
+    split_cifar(layers, type, batch_size, 2, l_learning_rate, l_num_epochs);
+
 }
 
-void train_resnet(dataset dataset_option, resnet_model model_option, bool split, int batch_size, const std::vector<int>& split_points, bool test) {
+void train_lenet(dataset dataset_option, 
+                bool split, int batch_size = g_batch_size, 
+                const std::vector<int>& split_points = std::vector<int>(), 
+                bool test = false) {
+
     if (split) {
         switch (dataset_option) {
             case MNIST:
             //vgg_mnist(model_option, batch_size, test);
             break;
             case CIFAR_10:
-                if (model_option <= 2)
-                    resnet_split_cifar<ResidualBlock>(model_option, 1, batch_size, split_points);
-                else
-                    resnet_split_cifar<ResidualBottleneckBlock>(model_option, 1, batch_size, split_points);
+                lenet_split_cifar(1, batch_size, split_points);
                 break;
             case CIFAR_100:
-                if (model_option <= 2)
-                    resnet_split_cifar<ResidualBlock>(model_option, 0, batch_size, split_points);
-                else
-                    resnet_split_cifar<ResidualBottleneckBlock>(model_option, 0, batch_size, split_points);
+                lenet_split_cifar(0, batch_size, split_points);
                 break;
             default:
                 break;
@@ -213,19 +203,14 @@ void train_resnet(dataset dataset_option, resnet_model model_option, bool split,
             //vgg_mnist(model_option, batch_size, test);
             break;
         case CIFAR_10:
-            if (model_option <= 2)
-                resnet_cifar<ResidualBlock>(model_option, 1, batch_size, test);
-            else
-                resnet_cifar<ResidualBottleneckBlock>(model_option, 1, batch_size, test);
+            lenet_cifar(1, batch_size, test);
             break;
         case CIFAR_100:
-            if (model_option <= 2)
-                resnet_cifar<ResidualBlock>(model_option, 0, batch_size, test);
-            else
-                resnet_cifar<ResidualBottleneckBlock>(model_option, 0, batch_size, test);
+            lenet_cifar(0, batch_size, test);
             break;
         default:
             break;
         }
     }
+
 }

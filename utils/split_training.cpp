@@ -104,10 +104,6 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
             if (batch_index != 0)
                 totaltimes.addEvent(Event(backprop, "", layers.size()-1));
             
-            std::cout << prev_out << std::endl;
-            std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-            std::cout << batch.target << std::endl;
-            
             torch::Tensor loss =
                    torch::nn::functional::cross_entropy(prev_out, batch.target);
 
