@@ -482,10 +482,10 @@ void train_vgg(dataset dataset_option, vgg_model model_option, bool split, int b
             vgg_mnist(model_option, batch_size, test);
             break;
         case CIFAR_10:
-            vgg_cifar(model_option, 1, batch_size, test);
+            vgg_cifar(model_option, CIFAR_10, batch_size, test);
             break;
         case CIFAR_100:
-            vgg_cifar(model_option, 0, batch_size, test);
+            vgg_cifar(model_option, CIFAR_100, batch_size, test);
             break;
         default:
             break;

@@ -36,7 +36,7 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
             break;
         }
     }
-
+    //std::cout << avg_point << " " <<  avg_point_ << " !!" << std::endl;
     for (size_t epoch = 0; epoch != 1; ++epoch) {
         // Initialize running metrics
         double running_loss = 0.0;
@@ -58,6 +58,7 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
             int k = 0;
             
             for (torch::nn::Sequential layer : layers) {
+                //std::cout << "at:" << k << std::endl;
                 if (batch_index != 0)
                     totaltimes.addEvent(Event(measure_type::forward, "", k));
 
@@ -75,6 +76,7 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
                     
                     //if (batch_index == 0)
                     //    std::cout << "-"<< output.sizes() << "\t";
+                    //std::cout << "apply -1" << k << std::endl;
                     output = output.view({data.size(0), -1});
                 }
 

@@ -151,11 +151,13 @@ void lenet_cifar(int type, int batch_size, bool test) {
             auto target = batch.target;
 
             auto output = model->forward(data);
-
+            //std::cout << "here1" << std::endl;
             auto loss = torch::nn::functional::cross_entropy(output, target);
+            //std::cout << "here2" << std::endl;
             running_loss += loss.template item<double>() * data.size(0);
-
+            //std::cout << "here3" << std::endl;
             auto prediction = output.argmax(1);
+            //std::cout << "here4" << std::endl;
             num_correct += prediction.eq(target).sum().template item<int64_t>();
         }
 
@@ -173,7 +175,7 @@ void lenet_split_cifar(int type, int batch_size, const std::vector<int>& split_p
     int num_classes = (type == CIFAR_10)? 10 : 100;
     auto layers =  lenet_split(num_classes, split_points);
 
-    split_cifar(layers, type, batch_size, 2, l_learning_rate, l_num_epochs);
+    split_cifar(layers, type, batch_size, 4, l_learning_rate, l_num_epochs);
 
 }
 
@@ -188,10 +190,10 @@ void train_lenet(dataset dataset_option,
             //vgg_mnist(model_option, batch_size, test);
             break;
             case CIFAR_10:
-                lenet_split_cifar(1, batch_size, split_points);
+                lenet_split_cifar(CIFAR_10, batch_size, split_points);
                 break;
             case CIFAR_100:
-                lenet_split_cifar(0, batch_size, split_points);
+                lenet_split_cifar(CIFAR_100, batch_size, split_points);
                 break;
             default:
                 break;

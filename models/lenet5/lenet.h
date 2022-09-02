@@ -5,7 +5,7 @@
 
 class LeNet5Impl : public torch::nn::Module {
  public:
-  LeNet5Impl(int num_classes);
+  LeNet5Impl(int num_classes, int in_channels=3);
 
   torch::Tensor forward(torch::Tensor x);
 

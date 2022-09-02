@@ -4,8 +4,8 @@ static std::vector<int64_t> k_size = {2, 2};
 static std::vector<int64_t> p_size = {0, 0};
 static c10::optional<int64_t> divisor_override;
 
-std::vector<torch::nn::Sequential> lenet_split( int64_t num_classes, 
-                                                const std::vector<int>& split_points) {
+std::vector<torch::nn::Sequential> lenet_split(int64_t num_classes, 
+                                                const std::vector<int>& split_points, int in_channels) {
 
     std::vector<torch::nn::Sequential> parts;
     bool split_every_point = (split_points.size() == 0), at_end = false;
@@ -16,7 +16,7 @@ std::vector<torch::nn::Sequential> lenet_split( int64_t num_classes,
 
 
     // layer 1
-    part->push_back(torch::nn::Conv2d(torch::nn::Conv2dOptions(1, 6, 5)));
+    part->push_back(torch::nn::Conv2d(torch::nn::Conv2dOptions(in_channels, 6, 5)));
     part->push_back(torch::nn::Functional(torch::tanh));
 
     if (split_every_point || (!split_every_point && !at_end && split_points[l] == k)) {
@@ -35,8 +35,7 @@ std::vector<torch::nn::Sequential> lenet_split( int64_t num_classes,
         new_split = false;
     }
 
-     part->push_back(torch::nn::AvgPool2d(torch::nn::AvgPool2dOptions(
-                                        torch::nn::AvgPool2dOptions(k_size).stride(k_size).padding(p_size).divisor_override(divisor_override))));
+     part->push_back(torch::nn::AvgPool2d(torch::nn::AvgPool2dOptions(k_size).padding(p_size)));
 
     
     if (split_every_point || (!split_every_point && !at_end && split_points[l] == k)) {
@@ -74,8 +73,7 @@ std::vector<torch::nn::Sequential> lenet_split( int64_t num_classes,
         new_split = false;
     }
 
-    part->push_back(torch::nn::AvgPool2d(torch::nn::AvgPool2dOptions(
-                                        torch::nn::AvgPool2dOptions(k_size).stride(k_size).padding(p_size).divisor_override(divisor_override))));
+    part->push_back(torch::nn::AvgPool2d(torch::nn::AvgPool2dOptions(k_size).padding(p_size)));
     
     if (split_every_point || (!split_every_point && !at_end && split_points[l] == k)) {
         parts.push_back(part);
@@ -118,7 +116,7 @@ std::vector<torch::nn::Sequential> lenet_split( int64_t num_classes,
         new_split = false;
     }
 
-    part->push_back(torch::nn::Linear(torch::nn::LinearOptions(120, 84)));
+    part->push_back(torch::nn::Linear(torch::nn::LinearOptions(120, 84/*84*/)));
     part->push_back(torch::nn::Functional(torch::tanh));
 
     
@@ -139,13 +137,14 @@ std::vector<torch::nn::Sequential> lenet_split( int64_t num_classes,
     }
 
     part->push_back(torch::nn::Linear(torch::nn::LinearOptions(84, num_classes)));
-    part->push_back(torch::nn::LogSoftmax(torch::nn::LogSoftmaxOptions(num_classes)));
+    part->push_back(torch::nn::LogSoftmax(torch::nn::LogSoftmaxOptions(-1)));
 
+    parts.push_back(part);
 
     return parts;
 }
 
-std::vector<torch::nn::Sequential> lenet_part(int64_t num_classes, int start, int end) {
+std::vector<torch::nn::Sequential> lenet_part(int64_t num_classes, int start, int end, int in_channels) {
     std::vector<torch::nn::Sequential> layers;
     std::vector<int> split_points;
 
@@ -160,7 +159,7 @@ std::vector<torch::nn::Sequential> lenet_part(int64_t num_classes, int start, in
         split_points.push_back(end);
     }
 
-    auto parts = lenet_split(num_classes, split_points);
+    auto parts = lenet_split(num_classes, split_points, in_channels);
     
     int sum = 0;
     for (int i =0; i < parts.size(); i++) {

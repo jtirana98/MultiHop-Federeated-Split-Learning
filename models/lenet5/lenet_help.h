@@ -11,6 +11,6 @@
 #include "lenet.h"
 
 std::vector<torch::nn::Sequential> lenet_split( int64_t num_classes, 
-                                                const std::vector<int>& split_points = std::vector<int>());
+                                                const std::vector<int>& split_points = std::vector<int>(), int in_channels=3);
 
-std::vector<torch::nn::Sequential> lenet_part(int64_t num_classes, int start, int end);
+std::vector<torch::nn::Sequential> lenet_part(int64_t num_classes, int start, int end, int in_channels=3);
