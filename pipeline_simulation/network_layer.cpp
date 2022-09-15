@@ -9,8 +9,6 @@ int my_send(int socket_fd, std::string& data) {
 
     std::string len = std::to_string(data_size);
     send(socket_fd, &data_size, sizeof(int), 0);
-    //std::cout << "sending: " << len << std::endl;
-    //std::cout << "sending: " << data << std::endl;
     int bytes_sent;
     
     while (data_size > 0) {
@@ -50,7 +48,6 @@ std::string my_receive(int socket_fd) {
             for (int i =0; i<leader_board_buffer.size(); i++) {
                 leader_board_package = leader_board_package + leader_board_buffer[i];
             }
-            //leader_board_package.append(leader_board_buffer.begin(), leader_board_buffer.end());
         }
     }
 
@@ -68,7 +65,6 @@ void network_layer::new_message(Task task, int send_to, bool compute_to_compute)
     msg.type_op = task.type;
     auto data = torch::pickle_save(task.values);
     std::string s(data.begin(), data.end());
-    //std::cout << "sss: " << s.size() << std::endl;
     msg.values = s;
     msg.save_connection = (compute_to_compute) ? 1 : 0;
 
@@ -76,7 +72,6 @@ void network_layer::new_message(Task task, int send_to, bool compute_to_compute)
 
     {
     std::unique_lock<std::mutex> lock(m_mutex_new_message);
-    //msg.msg_id = ++counter;
     pending_messages.push(msg);
     }
 
@@ -105,7 +100,6 @@ void network_layer::new_message(refactoring_data task, int send_to, bool compute
 
     {
     std::unique_lock<std::mutex> lock(m_mutex_new_message);
-    //msg.msg_id = ++counter;
     pending_messages.push(msg);
     }
 
@@ -136,7 +130,7 @@ Task network_layer::check_new_task() { //consumer
 
     std::unique_lock<std::mutex> lock(m_mutex_new_task);
     while (pending_tasks.empty()) {
-        m_cv_new_task.wait(lock, [&](){ return !pending_tasks.empty(); }); // predicate an while loop - protection from spurious wakeups
+        m_cv_new_task.wait(lock, [&](){ return !pending_tasks.empty(); });
     }
     
     new_task = pending_tasks.front();
@@ -150,7 +144,7 @@ refactoring_data network_layer::check_new_refactor_task() {
 
     std::unique_lock<std::mutex> lock(m_mutex_new_refactor_task);
     while (pending_refactor_tasks.empty()) {
-        m_cv_new_refactor_task.wait(lock, [&](){ return !pending_refactor_tasks.empty(); }); // predicate an while loop - protection from spurious wakeups
+        m_cv_new_refactor_task.wait(lock, [&](){ return !pending_refactor_tasks.empty(); });
     }
     
     new_task = pending_refactor_tasks.front();
@@ -171,7 +165,6 @@ void network_layer::receiver() {
 
     std::pair<std::string, int> my_addr = rooting_table.find(myid)->second;
     my_port = my_addr.second;
-    //std::cout << "@ " << my_port << std::endl;
     my_socket =  socket(AF_INET, SOCK_STREAM, 0);
     if (my_socket < 0) 
         perror("ERROR opening socket");
@@ -223,7 +216,7 @@ void network_layer::receiver() {
                     task.values = torch::pickle_load(v).toTensor();
                     
                     // POINT Network layer: received message
-                    newPoint( NT_RECEIVED_MSG);
+                    newPoint(NT_RECEIVED_MSG, task.client_id);
                     put_internal_task(task);
                 }
                 else {
@@ -241,7 +234,7 @@ void network_layer::receiver() {
                     refactor_obj.model_type_ = new_msg.model_type;
                     
                     // POINT Network layer: received message
-                    newPoint(NT_RECEIVED_MSG);
+                    newPoint(NT_RECEIVED_MSG, refactor_obj.client_id);
 
                     put_internal_task(refactor_obj);
                 }
@@ -270,7 +263,6 @@ void network_layer::receiver() {
             
             auto json_format = fromStr_toJson<Message>(json_format_str);
             new_msg = fromJson<Message>(json_format);
-            //std::cout << new_msg << std::endl;
             if (new_msg.type == OPERATION) { // create new Task object
                 // from message to task object
                 Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
@@ -279,7 +271,7 @@ void network_layer::receiver() {
                 task.values = torch::pickle_load(v).toTensor();
                 
                 // POINT Network layer: received message
-                newPoint(NT_RECEIVED_MSG);
+                newPoint(NT_RECEIVED_MSG, task.client_id);
                 
                 put_internal_task(task);
                 
@@ -299,7 +291,7 @@ void network_layer::receiver() {
                 refactor_obj.model_type_ = new_msg.model_type;
                 
                 // POINT Network layer: received message
-                newPoint(NT_RECEIVED_MSG);
+                newPoint(NT_RECEIVED_MSG, refactor_obj.client_id);
 
                 put_internal_task(refactor_obj);
             }
@@ -311,7 +303,6 @@ void network_layer::receiver() {
                 close(newsockfd);
             } 
         }
-        //std::this_    ::sleep_for(std::chrono::seconds(1));
     }
 }
 
@@ -332,15 +323,12 @@ void network_layer::sender() { // consumer -- new message
         while (pending_messages.empty()) {
             m_cv_new_message.wait(lock, [&](){ return !pending_messages.empty(); });
         }
-        
-        //std::cout << "new message" << std::endl;
 
         new_msg = pending_messages.front();
         pending_messages.pop();
 
         // POINT 2 Network layer: preparing to send
-        //std::cout << "call for new point" << std::endl;
-        newPoint(NT_PREPARE_MSG);
+        newPoint(NT_PREPARE_MSG, new_msg.dest);
 
         // message to json
         Json::Value jsonMsg = toJson(new_msg);
@@ -350,15 +338,15 @@ void network_layer::sender() { // consumer -- new message
         it = open_connections.find(new_msg.dest);
         if (it != open_connections.end()) {
             int client_sock = it->second;
-            // TODO check mipws to connection exei kleisei
+            // TODO: check mipws to connection exei kleisei
             
             // POINT 3 Network layer: starts message transmission
-            newPoint(NT_START_SENDING);
+            newPoint(NT_START_SENDING, new_msg.dest);
 
             n = my_send(client_sock, data);
             
             // POINT 4 Network layer: completes message transmission
-            newPoint(NT_STOP_SENDING);
+            newPoint(NT_STOP_SENDING, new_msg.dest);
             
         }
         else{
@@ -383,7 +371,7 @@ void network_layer::sender() { // consumer -- new message
 
             receiver = gethostbyname(addr);
             if (receiver == NULL) {
-                fprintf(stderr,"ERROR, no such host\n");
+                fprintf(stderr, "ERROR, no such host\n");
                 //exit(0);
             }
 
@@ -398,16 +386,15 @@ void network_layer::sender() { // consumer -- new message
                 std::cerr << "ERROR connecting";
             
             // POINT 3  Network layer: starts message transmission
-            newPoint(NT_START_SENDING);
+            newPoint(NT_START_SENDING, new_msg.dest);
 
             n = my_send(sockfd, data);
             
             // POINT 4 Network layer: completes message transmission
-            newPoint(NT_STOP_SENDING);
+            newPoint(NT_STOP_SENDING, new_msg.dest);
             
             if (new_msg.save_connection) {
                 open_connections.insert({new_msg.dest, sockfd});
-                std::cout << "saved connection" << std::endl;
             }
             else {
                 close(sockfd);

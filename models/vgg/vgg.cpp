@@ -15,10 +15,6 @@ VGGImpl::VGGImpl(torch::nn::Sequential features, int num_classes, double dropout
     register_module("features", features);
     register_module("avgpool", avgpool);
     register_module("classifier", classifier);
-
-    //std::cout << "features: " << features << std::endl;
-    //std::cout << "avgpool: " << avgpool << std::endl;
-    //std::cout << "classifier: " << classifier << std::endl; 
 }
 
 torch::Tensor VGGImpl::forward(torch::Tensor x) {

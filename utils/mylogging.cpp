@@ -17,13 +17,11 @@ void Total::addNew(Event part1, Event part2, Event part3) {
                         (part2.getTimestamp() - part1.getTimestamp()).count();
 
     forward_.push_back(forw_time);
-   // std::cout << forw_time << std::endl;
     auto back_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (part3.getTimestamp() - part2.getTimestamp()).count();
 
     backprop_.push_back(back_time);
-    //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(part3.getTimestamp() - part2.getTimestamp()).count() << std::endl;
-    //std::cout << back_time << std::endl;
+    
 }
 
 void Total::addNew(Event part1, Event part2, Event part3, Event part4) {
@@ -82,18 +80,14 @@ void Total::printRes() {
                 }
             }
             count += 1;
-            //std::cout << interval << std::endl;
         }
 
         double avg = (double)sum/(count-2);
-        
-        //std::cout << "average time: " << avg << std::endl;
         std::cout << avg << std::endl;
     }
 }
 
 void Total::addEvent(Event event) {
-    //std::cout << event.getType() << std::endl;
     if (event.getType() == forward) {
         
         forward_timestamps.push_back(event);
@@ -116,20 +110,15 @@ void Total::computeIntervals() {
         if (i == forward_timestamps.size()-1) {
             auto forw_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (backprop_timestamps[0].getTimestamp() - part1.getTimestamp()).count();
-            //std::cout << "f " << forw_time << std::endl;
             new_batch_forward.push_back(forw_time);
         }
         else {
             auto forw_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (forward_timestamps[i+1].getTimestamp() - part1.getTimestamp()).count();
-            //std::cout << "f " << forw_time << std::endl;
             new_batch_forward.push_back(forw_time);
         }
-        
-        //std::cout << "f " << forw_time << std::endl;
-        
+
     }
-    //std::cout << "s" << backprop_timestamps.size() << " s" << optimize_timestamps.size() << std::endl;
     // backprop and optimizer
     for (int i = backprop_timestamps.size() - 1; i > 0; i--) {
         auto part1 = backprop_timestamps[i-1];
@@ -138,12 +127,10 @@ void Total::computeIntervals() {
 
         auto back_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (part2.getTimestamp() - part1.getTimestamp()).count();
-        //std::cout << "b " << back_time << std::endl;
         new_batch_backprop.push_back(back_time);
 
         auto opti_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (part3.getTimestamp() - part2.getTimestamp()).count();
-        //std::cout << "o " << opti_time << std::endl;
         new_batch_optimizer.push_back(opti_time);
     }
     
@@ -165,21 +152,13 @@ void Total::printRes_intervals() {
     std::vector<double> forw, back, opt;
     std::vector<std::vector<double>> log_{forw, back, opt};
 
-    //std::cout << "-: " << forward_split.size() << std::endl;
-    //std::cout << "-: " << backprop_split.size() << std::endl;
-    //std::cout << "-: " << optimize_split.size() << std::endl;
-    //std::cout << "-: " << forward_split[0].size() << std::endl;
-    //std::cout << "-: " << backprop_split[0].size() << std::endl;
-
     for (int i = 0; i < 3; i++) {
         std::cout << str_print[i] << std::endl;
         for (int j=0; j<forward_split[0].size(); j++) { // for each layer
             count = 0;
             sum = 0;
-            //std::cout << "layer: " << j << std::endl;
             for (int k = 0; k<forward_split.size(); k++) {  // for each batch
                 auto interval = atr[i][k][j];
-                //std::cout << "int: " << interval << std::endl;
                 if (count == 0) {
                     max = interval;
                     min = interval;
@@ -198,12 +177,9 @@ void Total::printRes_intervals() {
                     }
                 }
                 count += 1;
-                //std::cout << interval << std::endl;
             }
 
             double avg = (double)sum/(count-2);
-            //std::cout << "average time: " << avg << std::endl;
-            //std::cout << avg << std::endl;
             log_[i].push_back(avg);
         }
         
@@ -211,7 +187,6 @@ void Total::printRes_intervals() {
 
     
     for (int i = 0; i < 3; i++) {
-        //std::cout << log_[i].size() << std::endl;
         for (int j=0; j<log_[i].size(); j++) {
             std::cout << log_[i][j] << "\t";
         }

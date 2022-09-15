@@ -2,10 +2,11 @@
 
 std::ostream& operator<<(std::ostream& os, const Point& pt) {
     os << std::to_string(pt.client_id); 
-    os << ";";
+    os << ",";
     os << pt.timeline;
-    os << ";";
-    os << point_description.find(pt.point)->second << ";" << std::to_string(pt.point);
+    os << ",";
+    os << point_description.find(pt.point)->second << "," << std::to_string(pt.point);
+    os << "," << pt.msg_id;
     return os;
 }
 
@@ -74,19 +75,12 @@ void logger::logger_() { // consumer
     bool interval = false;
     while(true) {
         if (interval) {
-            //std::cout << "wait interval!!!" << std::endl;
             auto timeout = std::chrono::system_clock::now() + std::chrono::seconds(2);
             std::unique_lock<std::mutex> lock_(interval_mutex);
             while (intervals[0].empty() && intervals[1].empty() && intervals[2].empty()) {
-                if (interval_cv.wait_until(lock_, timeout) == std::cv_status::timeout) {
-                   //std::cout << "?" << intervals[0].size() << " " << intervals[1].size() << " " << intervals[2].size() << " " << std::endl;
-                    //return !(intervals[0].empty() && intervals[1].empty() && intervals[2].empty());
-                }
-                //std::cout << "??" << intervals[0].size() << " " << intervals[1].size() << " " << intervals[2].size() << " " << std::endl;
+                if (interval_cv.wait_until(lock_, timeout) == std::cv_status::timeout) { }
                 break;
             }
-
-            //std::cout << "There is item: " << intervals[0].size() << " " << intervals[1].size() << " " << intervals[2].size() << " " << std::endl;
             
             if (intervals[0].size() > 0) {
                 to_write_int1.push_back(intervals[0].front());
@@ -127,7 +121,6 @@ void logger::logger_() { // consumer
             interval = false;
         }
         else {
-            //std::cout << "wait point!!" << std::endl;
             std::unique_lock<std::mutex> lock(m_mutex);
             while (points.empty()) {
                 m_cv.wait(lock, [&](){ return !points.empty(); });

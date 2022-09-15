@@ -13,7 +13,6 @@ enum model_name {
     letnet
 };
 
-//template <typename T>
 class ModelPart {
  public:   
     std::vector<torch::nn::Sequential> layers;

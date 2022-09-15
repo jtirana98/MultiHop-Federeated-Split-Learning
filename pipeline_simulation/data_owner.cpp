@@ -168,7 +168,6 @@ int main(int argc, char **argv) {
             total_num += task.size_; 
             
             // send task to next node
-            //std::cout << "forward" << std::endl;
             sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
             // POINT 17 Execution phase: DO produced activations from first part
             auto point17 = sys_.my_network_layer.newPoint(DO_FRWD_FIRST_PART);
@@ -183,7 +182,6 @@ int main(int argc, char **argv) {
 
             task = sys_.exec(task, batch.target); // forward and backward
             // send task - backward
-            //std::cout << "backward" << std::endl;
             sys_.my_network_layer.new_message(task, sys_.inference_path[1]);
             //optimize task
             auto task1 = sys_.my_network_layer.check_new_task();

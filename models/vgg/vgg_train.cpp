@@ -54,7 +54,6 @@ void printModelsParameters(VGG& model) {
         int dims = p.dim();
         std::cout << "=";
         for (int i=0; i < dims; i++) {
-            //std::cout << i << ": " << p.size(i) << "    ";
             std::cout << p.size(i);
             if (i!=dims-1) 
                 std::cout << "*";
@@ -154,7 +153,6 @@ void vgg_split_mnist(vgg_model model_option, int batch_size, const std::vector<i
     
     for (int i=0; i<layers.size(); i++) {
         optimizers.push_back(torch::optim::Adam(layers[i]->parameters(), torch::optim::AdamOptions(learning_rate)));
-        //std::cout << layers[i] << std::endl;
     }
 
     gatherd_data data_loads;
@@ -195,7 +193,6 @@ void vgg_split_mnist(vgg_model model_option, int batch_size, const std::vector<i
                     totaltimes.addEvent(Event(measure_type::forward, "", k));
 
                 if (batch_index == 0) {
-                    //std::cout << prev_out.sizes() << "\t";
                     std::stringstream data_load;
                     torch::save(prev_out, data_load);
                     data_loads.activations.push_back(
@@ -205,9 +202,6 @@ void vgg_split_mnist(vgg_model model_option, int batch_size, const std::vector<i
                 auto output = layer->forward(prev_out);
 
                 if (k == avg_point) {
-                    
-                    //if (batch_index == 0)
-                    //    std::cout << "-"<< output.sizes() << "\t";
                     output = output.view({data.size(0), -1});
                 }
 
@@ -225,13 +219,10 @@ void vgg_split_mnist(vgg_model model_option, int batch_size, const std::vector<i
             }
                 
             if (batch_index == 0) {
-                //std::cout << prev_out.sizes() << "\t";
                 std::stringstream data_load;
                 torch::save(prev_out, data_load);
-                //std::cout << data_load.tellp() << "\t";
                 data_loads.activations.push_back(
                     dataload{k, measure_type::activations_load, data_load.tellp()});
-                //std::cout << std::endl;
             }
             
         

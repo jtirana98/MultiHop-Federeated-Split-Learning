@@ -40,10 +40,6 @@ struct gatherd_data{
     std::vector<dataload> gradients;
 };
 
-//void export_excel(std::vector<gatherd_data> &my_measures);
-// duration_cast<milliseconds>(end - begin).count()
-
-
 class Total {
   public:
     Total();

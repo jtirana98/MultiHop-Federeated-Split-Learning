@@ -124,7 +124,7 @@ std::vector<torch::nn::Sequential> _vgg_split(std::string cfg, bool batch_norm, 
         if (l == split_points.size())
             at_end = true;
     }
-    else { // TODO! split because we need to flatted input
+    else { // TODO: split because we need to flatted input
         layers.push_back(layer);
         new_split = true;
     }
@@ -242,7 +242,6 @@ std::vector<torch::nn::Sequential> vgg_part(vgg_model model, int num_classes, in
     auto parts = _vgg_split(cfg, false, num_classes, split_points);
     int sum=0;
     for (int i =0; i< parts.size(); i++) {
-        //std::cout << "new layer: "<< i+1 << " "<< parts[i] << std::endl;
         sum = sum + parts[i]->size();
     }
     int first = 1;
@@ -250,8 +249,6 @@ std::vector<torch::nn::Sequential> vgg_part(vgg_model model, int num_classes, in
         first = 0;
     
     layers.push_back(parts[first]);
-
-    //std::cout << parts[parts.size()-1]->size() << std::endl;
     if (end < sum - 7 && end != -1) {
         return layers;
     }

@@ -170,7 +170,6 @@ std::vector<torch::nn::Sequential> resnet_part(resnet_model model_option, int64_
     
     int sum = 0;
     for (int i =0; i< parts.size(); i++) {
-        //std::cout << "new layer: "<< i+1 << " "<< parts[i] << std::endl;
         sum = sum + parts[i]->size();
     }
     

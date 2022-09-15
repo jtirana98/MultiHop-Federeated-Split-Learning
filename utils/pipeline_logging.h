@@ -78,18 +78,18 @@ class Point {
  public:
     std::chrono::steady_clock::time_point timestamp;
     int msg_id;
-    
-    int client_id; // owner of msg or task
+    std::string operation;
+    int client_id;
     int point;
-    //std::stringstream timeline;
     std::string timeline;
     
     Point() {};
-    Point(/*int msg_id, */int client_id, int point) :
-        //msg_id(msg_id),
+    Point(int client_id, int point, int msg_id=-1, std::string op="n/a") :
         client_id(client_id),
-        point(point) {
-            //std::cout << std::chrono::steady_clock::now();
+        point(point),
+        msg_id(msg_id),
+        operation(op)    
+    {
             timestamp = std::chrono::steady_clock::now();
     };
 
@@ -141,10 +141,10 @@ class logger {
             fs::create_directory(dir_name);
         }
 
-        f_name = dir_name + "_node" + std::to_string(node_id) + ".log";
-        interval1 = dir_name + "_node" + std::to_string(node_id) + "_i1" + ".log";
-        interval2 = dir_name + "_node" + std::to_string(node_id) + "_i2" + ".log";
-        interval3 = dir_name + "_node" + std::to_string(node_id) + "_i3" + ".log";
+        f_name = dir_name + "_node" + std::to_string(node_id) + ".log.csv";
+        interval1 = dir_name + "_node" + std::to_string(node_id) + "_i1" + ".log.csv";
+        interval2 = dir_name + "_node" + std::to_string(node_id) + "_i2" + ".log.csv";
+        interval3 = dir_name + "_node" + std::to_string(node_id) + "_i3" + ".log.csv";
 
     };
 

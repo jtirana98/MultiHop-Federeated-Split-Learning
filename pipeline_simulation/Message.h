@@ -52,7 +52,6 @@ namespace Json {
         
         Value& operator=(std::string value) {
             data.string = value;
-            //std::cout << "sss: " << data.string.size() << std::endl;
             return *this;
         }
         
@@ -376,9 +375,6 @@ Json::Value toJson(const T& object) {
 
 template<typename T>
 Json::Value fromStr_toJson(const std::string& data) {
-    //std::cout << "t0: " << data << std::endl;
-    //std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-    
     Json::Value data_;
     std::string data_c = data;
     std::map<std::string, std::string> values;
@@ -393,7 +389,6 @@ Json::Value fromStr_toJson(const std::string& data) {
         pos = data_c.find(delimiter);
 
         auto s1 = data_c.substr(0, rec.size());
-        //std::cout << "@@ " << s1;
         if(s1 == rec) {
             stop = true;
             token = data_c.substr(0, data_c.length()-3);
@@ -401,21 +396,17 @@ Json::Value fromStr_toJson(const std::string& data) {
         else if (pos == std::string::npos) {
             stop = true;
             token = data_c;
-            //std::cout << "t2: " << token << std::endl;
         }
         else{
             token = data_c.substr(0, pos);
-            //std::cout << "t1: " << token << std::endl;
             data_c.erase(0, pos + delimiter.length());
         }
         pos_ = 0;
         if (token != "{" and token != "}" and token.size() != 0) {
             pos_ = token.find(delimiter2);
             property_.first = token.substr(0, pos_);
-            //std::cout << "first " << property_.first  << std::endl;
             token.erase(0, pos_ + delimiter2.length());
             property_.second = token;
-            //std::cout << "second " << token << std::endl;
             values.insert(property_);
         }
     }
@@ -441,7 +432,6 @@ Json::Value fromStr_toJson(const std::string& data) {
         }); 
     }
     else {
-        //std::cout << "t0: " << data << std::endl;
         constexpr auto nbProperties = std::tuple_size<decltype(T::properties_refactor)>::value;
     
         for_sequence(std::make_index_sequence<nbProperties>{}, [&](auto i){
@@ -461,7 +451,6 @@ struct Message {
     int save_connection; 
     int type; //operation=0 or refacto=1,2
     int dest;
-    //int msg_id;
     // refactor
     int start=-1, end=-1, prev=-1, next=-1, dataset=-1, num_classes=-1, model_name=-1, model_type=-1;
     std::vector<int> data_owners;
@@ -472,7 +461,6 @@ struct Message {
     constexpr static auto properties_header = std::make_tuple(
         property(&Message::save_connection, "save_connection"),
         property(&Message::type, "type")
-        //property(&Message::msg_id, "msg_id")
     );
 
     constexpr static auto properties_refactor = std::make_tuple(

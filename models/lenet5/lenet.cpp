@@ -28,11 +28,7 @@ LeNet5Impl::LeNet5Impl(int num_classes, int in_channels) {
 
 torch::Tensor LeNet5Impl::forward(at::Tensor x) {
   auto output = conv_->forward(x);
-  //std::cout << "ok1!" << std::endl;
   output = output.view({x.size(0), -1});
-  //std::cout << "ok!" << std::endl;
   output = full_->forward(output);
-  //std::cout << "ok!!" << std::endl;
-  //output = torch::log_softmax(output, -1);
   return output;
 }

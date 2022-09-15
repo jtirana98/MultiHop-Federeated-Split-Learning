@@ -151,13 +151,9 @@ void lenet_cifar(int type, int batch_size, bool test) {
             auto target = batch.target;
 
             auto output = model->forward(data);
-            //std::cout << "here1" << std::endl;
             auto loss = torch::nn::functional::cross_entropy(output, target);
-            //std::cout << "here2" << std::endl;
             running_loss += loss.template item<double>() * data.size(0);
-            //std::cout << "here3" << std::endl;
             auto prediction = output.argmax(1);
-            //std::cout << "here4" << std::endl;
             num_correct += prediction.eq(target).sum().template item<int64_t>();
         }
 

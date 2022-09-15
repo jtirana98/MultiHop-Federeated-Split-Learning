@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
         }
 
         // POINT 15 Execution phase: CN completed a task
-        auto point2 = sys_.my_network_layer.newPoint(CN_END_EXEC);
+        auto point2 = sys_.my_network_layer.newPoint(CN_END_EXEC, new_task.);
         // 14 - 15 interval
 
         interval_type type_;
@@ -99,7 +99,6 @@ int main(int argc, char **argv) {
         default:
             break;
         }
-        //std::cout << "ok!" << std::endl;
         sys_.my_network_layer.mylogger.add_interval(point1, point2, type_);
     }
 }

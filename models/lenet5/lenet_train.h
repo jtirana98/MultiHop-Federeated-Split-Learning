@@ -19,7 +19,6 @@ using transform::ConstantPad;
 using transform::RandomCrop;
 using transform::RandomHorizontalFlip;
 
-//const int64_t num_classes = 10;
 const double l_learning_rate = 0.01;
 const size_t l_num_epochs = 200;
 

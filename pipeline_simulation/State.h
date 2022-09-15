@@ -23,17 +23,4 @@ class State {
       layers(layers),
       optimizers(optimizers) {
     }
-   /*
-    void init_layers(std::vector<torch::nn::Sequential> layers_) {
-        layers.clear();
-        optimizers.clear();
-        for (int i = 0; i < layers_.size(); i++) {
-            layers.push_back(layers_[i]);
-            optimizers.push_back(torch::optim::Adam(layers[i]->parameters(), torch::optim::AdamOptions(learning_rate)));
-        }
-
-        std::cout << " " << optimizers.size() << std::endl;
-    }
-    */
-
 };

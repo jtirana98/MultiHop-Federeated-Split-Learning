@@ -73,10 +73,6 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
                 auto output = layer->forward(prev_out);
 
                 if (k == avg_point) {
-                    
-                    //if (batch_index == 0)
-                    //    std::cout << "-"<< output.sizes() << "\t";
-                    //std::cout << "apply -1" << k << std::endl;
                     output = output.view({data.size(0), -1});
                 }
 
@@ -94,13 +90,10 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
             }
                 
             if (batch_index == 0) {
-                //std::cout << prev_out.sizes() << "\t";
                 std::stringstream data_load;
                 torch::save(prev_out, data_load);
-                //std::cout << data_load.tellp() << "\t";
                 data_loads.activations.push_back(
                     dataload{k, measure_type::activations_load, data_load.tellp()});
-                //std::cout << std::endl;
             }
             
             if (batch_index != 0)

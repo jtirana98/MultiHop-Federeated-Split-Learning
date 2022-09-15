@@ -1,6 +1,5 @@
 #include "systemAPI.h"
 
-//template <typename T>
 void systemAPI::init_state_vector(model_name name, int model_, int num_class, int start, int end) {
     for (int i=0; i<clients.size() ; i++) {
         ModelPart part(name, model_, start, end, num_class);
@@ -28,10 +27,8 @@ void systemAPI::init_model_sate(model_name name, int model_, int num_class, int 
     }
     
     State part_first(myid, first_.layers, optimizers_first);
-    //part_first.init_layers(first_.layers);
     parts.push_back(part_first);
     State part_last(myid, last_.layers, optimizers_last);
-    //part_last.init_layers(last_.layers);
     parts.push_back(part_last);
 }
 
@@ -107,7 +104,7 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
 
                 // DRAFT 
                 if (batch_index % 15 == 0) {
-                    std::cout << /*"Epoch: " << epoch << */" | Batch: " << batch_index
+                    std::cout << /*"Epoch: " << epoch << */"Batch: " << batch_index
                         << " | Loss: " << loss.item<float>() << "| Acc: " << corr_ << std::endl;
                 }
                 // DRAFT 
@@ -132,7 +129,6 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                 
                 output = client_state->layers[i]->forward(values);
                 client_state->activations.push_back(output);
-                //std::cout << "for " << client_id << " " << output.sizes() << std::endl;
                 values = output.clone().detach().requires_grad_(true);
                 client_state->detached_activations.push_back(values);
             }
@@ -150,9 +146,6 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                 parts[0].optimizers[i]->step();
                 if (i != 0)
                     values = parts[0].detached_activations[i-1].grad().clone().detach();
-                //else
-                //    values = parts[0].received_activation.grad().clone().detach()
-
             }
             nextOp = noOp; // end of batch
             
@@ -160,11 +153,6 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
         else {
             values = task.values;
             auto client_state = &clients_state.find(client_id)->second;
-            /*
-            std::cout << "BACK" << std::endl;
-            std::cout << "size: " << client_state->layers.size() << std::endl;
-            std::cout << "size i: " << values.sizes() << std::endl;
-            */
             for (int i=client_state->layers.size()-1; i>=0; i--) {
                 client_state->activations[i].backward(values);
                 
@@ -174,7 +162,6 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                     values = client_state->received_activation.grad().clone().detach();
 
             }
-            //std::cout << "size o: " << values.sizes() << std::endl;
             // add optimization task to list
             Task opt(client_id, optimize_, prev_node);
             my_network_layer.put_internal_task(opt);
