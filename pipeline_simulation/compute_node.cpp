@@ -66,8 +66,28 @@ int main(int argc, char **argv) {
         // POINT 13 Execution phase: CN waits for new task
         sys_.my_network_layer.newPoint(CN_START_WAIT);
         next_task = sys_.my_network_layer.check_new_task();
+
+        interval_type type_;
+        std::string operation;
+        switch (next_task.type) {
+        case forward_:
+            type_ = fwd_only;
+            operation = "forward";
+            break;
+        case backward_:
+            type_ = bwd_only;
+            operation = "backward";
+            break;
+        case optimize_:
+            type_ = opz_only;
+            operation = "optimization";
+            break;
+        default:
+            break;
+        }
+
         // POINT 14 Execution phase: CN starts executing task
-        auto point1 = sys_.my_network_layer.newPoint(CN_START_EXEC);
+        auto point1 = sys_.my_network_layer.newPoint(CN_START_EXEC, next_task.client_id, operation);
 
         auto task = sys_.exec(next_task, tmp); 
 
@@ -81,24 +101,10 @@ int main(int argc, char **argv) {
             sys_.my_network_layer.new_message(task, next_node, keep_connection);
         }
 
-        // POINT 15 Execution phase: CN completed a task
-        auto point2 = sys_.my_network_layer.newPoint(CN_END_EXEC, new_task.);
-        // 14 - 15 interval
 
-        interval_type type_;
-        switch (next_task.type) {
-        case forward_:
-            type_ = fwd_only;
-            break;
-        case backward_:
-            type_ = bwd_only;
-            break;
-        case optimize_:
-            type_ = opz_only;
-            break;
-        default:
-            break;
-        }
+        // POINT 15 Execution phase: CN completed a task
+        auto point2 = sys_.my_network_layer.newPoint(CN_END_EXEC, next_task.client_id, operation);
+        // 14 - 15 interval
         sys_.my_network_layer.mylogger.add_interval(point1, point2, type_);
     }
 }

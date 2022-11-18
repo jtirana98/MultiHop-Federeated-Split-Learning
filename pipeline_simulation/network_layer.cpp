@@ -234,7 +234,7 @@ void network_layer::receiver() {
                     refactor_obj.model_type_ = new_msg.model_type;
                     
                     // POINT Network layer: received message
-                    newPoint(NT_RECEIVED_MSG, refactor_obj.client_id);
+                    newPoint(NT_RECEIVED_MSG);
 
                     put_internal_task(refactor_obj);
                 }
@@ -291,7 +291,7 @@ void network_layer::receiver() {
                 refactor_obj.model_type_ = new_msg.model_type;
                 
                 // POINT Network layer: received message
-                newPoint(NT_RECEIVED_MSG, refactor_obj.client_id);
+                newPoint(NT_RECEIVED_MSG);
 
                 put_internal_task(refactor_obj);
             }

@@ -21,9 +21,10 @@ void printModelsParameters(ResNet<Block>& model) {
 template <typename Block>
 void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test) {
     std::vector<gatherd_data> all_measures;
-
+    std::cout << "Start training" << std::endl;
     auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
-
+    std::string model_path = "model.pt";
+    torch::serialize::OutputArchive output_archive;
     auto train_dataset = CIFAR(path_selection, type)
                                     .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
                                     .map(torch::data::transforms::Stack<>());
@@ -40,12 +41,13 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     bool usebottleneck = (model_option <=2) ? false : true;
     ResNet<Block> model(layers, num_classes, usebottleneck);
     
-    printModelsParameters<Block>(model);
+    if(!test)
+        printModelsParameters<Block>(model);
     
     // Initilize optimizer
-    double weight_decay = 0.0001;  // regularization parameter
-    torch::optim::Adam optimizer(model.parameters(), torch::optim::AdamOptions(r_learning_rate));
-    //torch::optim::SGD optimizer(model->parameters(), torch::optim::SGDOptions(0.001).momentum(0.9));
+    double weight_decay = 0.001;  // regularization parameter
+    //torch::optim::Adam optimizer(model.parameters(), torch::optim::AdamOptions(r_learning_rate));
+    torch::optim::SGD optimizer(model.parameters(), torch::optim::SGDOptions(weight_decay).momentum(0.9));
 
     Total totaltimes = Total();
     int batch_index = 0;
@@ -55,7 +57,7 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     if (test)
         stop_epochs = r_num_epochs;
 
-
+    double best_acc = -100;
     for (size_t epoch = 0; epoch != stop_epochs; ++epoch) {
         // Initialize running metrics
         double running_loss = 0.0;
@@ -105,7 +107,7 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
                     break;
             }
             
-            if (batch_index % 15 == 0) {
+            if (batch_index % 50 == 0) {
                std::cout << "Epoch: " << epoch << " | Batch: " << batch_index
                         << " | Loss: " << loss.item<float>() << "| Acc: " << corr_ << std::endl;
                 
@@ -113,14 +115,17 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
                     break;
                 
             }
-            
         }
 
         if (test){
             auto sample_mean_loss = running_loss / batch_index;
             auto accuracy = num_correct / batch_index;
-
-            
+            /*
+            if (accuracy > best_acc) {
+                model.save(output_archive);
+                output_archive.save_to(model_path);
+            }
+            */
             std::cout << "Epoch [" << (epoch + 1) << "/" << r_num_epochs << "], Trainset - Loss: "
                 << sample_mean_loss << ", Accuracy: " << accuracy << " " << num_correct << std::endl;
         }    

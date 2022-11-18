@@ -182,7 +182,6 @@ namespace Json {
         const char separator = ' ';
         std::stringstream streamData(value);
         std::string val;
-        std::cout << val << "~~"<< std::endl;
         while (std::getline(streamData, val, separator)) {
             if (val != "[" && val != "]" && val != "") {
                 my_data.push_back(stoi(val));
@@ -199,7 +198,6 @@ namespace Json {
         const char separator = ' ';
         std::stringstream streamData(value);
         std::string val;
-        std::cout << val << "~~"<< std::endl;
         while (std::getline(streamData, val, separator)) {
             if (val != "[" && val != "]" && val != "") {
                 my_data.push_back(stoi(val));
