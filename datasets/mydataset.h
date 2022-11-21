@@ -6,6 +6,7 @@
 #include <torch/data/example.h>
 #include <torch/types.h>
 #include <string>
+#include <vector>
 
 // root files
 
@@ -24,7 +25,7 @@ enum dataset{
 class CIFAR : public torch::data::datasets::Dataset<CIFAR> {
  public:
     enum Mode { kTrain, kTest };
-    explicit CIFAR(const std::string& root, int type=1, Mode mode = Mode::kTrain); //binary version
+    explicit CIFAR(const std::string& root, int type=1, bool val=false, std::set<int> validation = std::set<int>(), Mode mode = Mode::kTrain); //binary version
     torch::data::Example<> get(size_t index) override;
     torch::optional<size_t> size() const override;
     bool is_train() const noexcept;

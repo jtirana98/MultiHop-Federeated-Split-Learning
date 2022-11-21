@@ -12,7 +12,7 @@ enum resnet_model{
     resenet152 = 5
 };
 
-template<typename Block> struct ResNet : torch::nn::Module {
+struct ResNetImpl : torch::nn::Module {
     int64_t in_channels = 16;
     torch::nn::Sequential layer0;
     torch::nn::Sequential layer1;
@@ -24,7 +24,7 @@ template<typename Block> struct ResNet : torch::nn::Module {
     
 
     
-    ResNet(const std::array<int64_t, 4>& layers, int64_t num_classes, bool usebottleneck=false) :
+    ResNetImpl(const std::array<int64_t, 4>& layers, int64_t num_classes, bool usebottleneck=false) :
         fc(512*(usebottleneck ? 4:1), num_classes)
      {
         std::array<int64_t, 5> filter;
@@ -70,12 +70,12 @@ template<typename Block> struct ResNet : torch::nn::Module {
         if (in_channels != out_channels)
             downsample = true;
         
-        layers->push_back(Block(in_channels, out_channels, stride, downsample));
+        layers->push_back(ResidualBottleneckBlock(in_channels, out_channels, stride, downsample));
 
         in_channels = out_channels;
 
         for (int64_t i = 1; i != blocks; ++i) {
-            layers->push_back(Block(out_channels, out_channels, 1, false));
+            layers->push_back(ResidualBottleneckBlock(out_channels, out_channels, 1, false));
         }
 
         return layers;
@@ -83,3 +83,4 @@ template<typename Block> struct ResNet : torch::nn::Module {
 
 };
 
+TORCH_MODULE(ResNet);
