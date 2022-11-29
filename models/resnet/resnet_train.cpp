@@ -55,7 +55,9 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     
     
     auto train_dataset = CIFAR(path_selection, type, false, validation)
-                                    .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
+                                    .map(ConstantPad(4))
+                                    .map(RandomHorizontalFlip())
+                                    .map(RandomCrop({32, 32}))
                                     .map(torch::data::transforms::Stack<>());
 
     
@@ -81,6 +83,7 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     
       
     bool usebottleneck = (model_option <=2) ? false : true;
+    //bool usebottleneck = false;
     ResNet/*<Block>*/ model(layers, num_classes, usebottleneck);
     
     if(!test)
@@ -89,10 +92,13 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     // Initilize optimizer
     double weight_decay = 0.0001;  // regularization parameter
 
+    const size_t learning_rate_decay_frequency = 8;  // number of epochs after which to decay the learning rate
+    const double learning_rate_decay_factor = 10;/*1.0 / 3.0;*/
     //torch::optim::Adam optimizer(model.parameters(), torch::optim::AdamOptions(r_learning_rate));
     torch::optim::SGD optimizer(model->parameters(), 
                 torch::optim::SGDOptions(r_learning_rate).momentum(0.9).weight_decay(weight_decay));
-
+    //torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(r_learning_rate));
+    
     Total totaltimes = Total();
     int batch_index = 0;
     Event start_forward, start_backprop, start_optim, end_batch;
@@ -102,7 +108,9 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
         stop_epochs = r_num_epochs;
     
     double best_loss = 100;
-    for (size_t epoch = 0; epoch != 0; ++epoch) {
+    int itera = 1;
+    auto current_learning_rate = r_learning_rate;
+    for (size_t epoch = 0; epoch != r_num_epochs; ++epoch) {
         // Initialize running metrics
         double running_loss = 0.0;
         double num_correct = 0;
@@ -147,7 +155,7 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
                     totaltimes.printRes();
                     break;
             }
-            
+            /*
             if (batch_index % 50 == 0) {
                std::cout << "Epoch: " << (epoch + 1) << " | Batch: " << batch_index
                         << " | Loss: " << loss.item<float>() << "| Acc: " << corr << std::endl;
@@ -156,10 +164,23 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
                     break;
                 
             }
+            */
             //break;
+            if (itera == 32000 || itera == 48000) {
+                current_learning_rate = current_learning_rate/learning_rate_decay_factor;
+                static_cast<torch::optim::SGDOptions&>(optimizer.param_groups().front()
+                    .options()).lr(current_learning_rate);
+            }
+            itera++;
         }
         if (test){ // END OF EPOCH
-            
+            /*
+            if ((epoch + 1) % learning_rate_decay_frequency == 0) {
+                current_learning_rate *= learning_rate_decay_factor;
+                static_cast<torch::optim::AdamOptions&>(optimizer.param_groups().front()
+                    .options()).lr(current_learning_rate);
+            }
+            */
             auto sample_mean_loss = running_loss / train_samples;
             auto accuracy = num_correct / train_samples;
            
@@ -236,7 +257,6 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
 
         double running_loss = 0.0;
         size_t num_correct = 0;
-        
         for (const auto& batch : *test_loader) {
             auto data = batch.data;
             auto target = batch.target;
