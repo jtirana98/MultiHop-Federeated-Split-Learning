@@ -8,12 +8,11 @@
 
 #include "models.h"
 
+using torch::indexing::Slice;
+using torch::indexing::None;
+using torch::indexing::Ellipsis;
 
 int main(int argc, char **argv) {
-    std::vector<int> batches{32, 64, 128};
-    std::vector<int> splits{2, 4, 6, 8};
-    
+
     train_resnet(CIFAR_10, resnet101, false, 128, std::vector<int>(), true, true);
-    
-   
 } 

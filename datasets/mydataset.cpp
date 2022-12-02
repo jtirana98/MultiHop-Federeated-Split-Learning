@@ -8,6 +8,10 @@ using transform::ConstantPad;
 using transform::RandomCrop;
 using transform::RandomHorizontalFlip;
 
+using torch::indexing::Slice;
+using torch::indexing::None;
+using torch::indexing::Ellipsis;
+
 namespace {
 // CIFAR10 dataset description can be found at https://www.cs.toronto.edu/~kriz/cifar.html.
 constexpr uint32_t kTrainSize = 50000;
@@ -93,6 +97,7 @@ std::pair<torch::Tensor, torch::Tensor> read_data(const std::string& root, bool 
 }  // namespace
 
 CIFAR::CIFAR(std::pair<torch::Tensor, torch::Tensor>data, int type, Mode mode) : mode_(mode), type(type) {
+    std::cout << data.second.sizes() << std::endl;
     images_ = std::move(data.first);
     targets_ = std::move(data.second);
 }
@@ -102,7 +107,6 @@ CIFAR::CIFAR(std::pair<torch::Tensor, torch::Tensor>data, int type, Mode mode) :
 CIFAR::CIFAR(const std::string& root, int type, bool val, std::set<int> validation, Mode mode) : mode_(mode), type(type){
     auto data = read_data(root, mode == Mode::kTrain, type/*, val, validation*/);
 
-    //std::cout << data.first.size(0) << std::endl;
     images_ = std::move(data.first);
     targets_ = std::move(data.second);
 }
@@ -127,69 +131,91 @@ const torch::Tensor& CIFAR::images() const {
 
 
 std::vector<CIFAR> data_owners_data(const std::string& root, int data_owners, int type) {
-    std::cout << type << std::endl;
-
     auto data = read_data(root,/*mode=*/ true, type);
-    std::cout << data << std::endl;
     auto images_ = std::move(data.first);
     auto targets_ = std::move(data.second);
     std::vector<CIFAR> datasets;
 
     int val_samples = kTrainSize*(10.0/100);
-    int train_samples = (kTrainSize - val_samples);
+    int train_samples = (kTrainSize - val_samples)/data_owners;
     
     std::set<int> validation;
     srand((unsigned) time(NULL));
-    std::cout << val_samples << std::endl;
     int random = rand() % kTrainSize;
     validation.insert(random);
+    
     while(validation.size() < val_samples) {
         random = rand() % kTrainSize;
         validation.insert(random);
-        //std::cout << random << std::endl;
     }
+
     // for validation set:
-
     auto targets = torch::empty(val_samples, torch::kByte);
-    auto images = torch::empty({val_samples, 3, kImageRows, kImageColumns}, torch::kByte);
+    auto images = torch::empty({1, 3, kImageRows, kImageColumns}, torch::kByte);
 
-   std::set<int>::iterator it;
-   int i = 0;
+    std::set<int>::iterator it;
+    int i = 0;
     for(it = validation.begin(); it!=validation.end(); ++it){
         int ans = *it;
-        images[i] = images_[ans];
-        targets[i] = targets_[ans];
+        images = torch::cat({images, images_[ans].unsqueeze(0)});
+        targets[i] = targets_[ans].item<int64_t>();
         i++;
     }
-    std::cout << train_samples
-     << std::endl;
     
-    datasets.push_back(CIFAR(std::pair<torch::Tensor, torch::Tensor>{images, targets}, type));
-    /*
+    datasets.push_back(CIFAR(std::pair<torch::Tensor, torch::Tensor>
+                        {images.index({Slice(1, None), None, None, None})
+                        .squeeze(1).squeeze(1).squeeze(1),
+                        targets}, type));
+    
     std::vector<std::pair<torch::Tensor, torch::Tensor>>data_owners_;
     for (i = 0; i < data_owners; i++ ) {
-
         targets = torch::empty(train_samples, torch::kByte);
-        images = torch::empty({train_samples, 3, kImageRows, kImageColumns}, torch::kByte);
+        images = torch::empty({1, 3, kImageRows, kImageColumns}, torch::kByte);
 
         data_owners_.push_back(std::pair<torch::Tensor, torch::Tensor>{images, targets});
-
     }
-    */
-    targets = torch::empty(train_samples, torch::kByte);
-    images = torch::empty({train_samples, 3, kImageRows, kImageColumns}, torch::kByte);
-    int j =0;
+
+    std::vector<int> vect_seq(data_owners); //number of elements in vector
+    int stop=1000;
+    fill(vect_seq.begin(), vect_seq.end(), 0);
+    
+    int j =0, who;
+    std::cout << "---------------" << std::endl;
+
+    
     for (i = 0; i < kTrainSize; i++) {
-        if (validation.find(i) == validation.end()) {
+        if (validation.find(i) != validation.end()) {
             continue;
         }
+        who = rand() % data_owners;
+        if ((data_owners_[who].first.sizes()[0] >= train_samples) || (vect_seq[who] >= stop)) { // search for other who
+            who = (who+1)%data_owners;
 
-        images[j] = images_[i];
-        targets[j] = targets_[i];
+        }
+        for (int k = 0; k < data_owners; k++) {
+            if (k == who)
+                vect_seq[k] += 1;
+            else
+                vect_seq[k] = 0;
+        }
+
+        data_owners_[who].first = torch::cat({data_owners_[who].first, images_[i].unsqueeze(0)});
+        if (j >= train_samples) {
+            data_owners_[who].second = torch::cat({data_owners_[who].second, targets_[i].unsqueeze(0)});
+        }
+        else {
+            data_owners_[who].second[j] = targets_[i].item<int64_t>();
+        }
         j++;
     }
-
-    datasets.push_back(CIFAR(std::pair<torch::Tensor, torch::Tensor>{images, targets}, type));
-
+    
+    for (i = 0; i < data_owners; i++) {
+        std::cout << i << ": "<< data_owners_[i].first.sizes() << std::endl;
+        datasets.push_back(CIFAR(std::pair<torch::Tensor, torch::Tensor>
+                        {data_owners_[i].first.index({Slice(1, None), None, None, None})
+                        .squeeze(1).squeeze(1).squeeze(1),
+                        data_owners_[i].second.index({Slice(None, data_owners_[i].first.sizes()[0]-1)})/*.squeeze(0)*/}, type));
+    }
+    
     return(datasets);
 }
