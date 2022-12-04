@@ -448,8 +448,13 @@ void resnet_cifar_FL(resnet_model model_option, int type, int batch_size, int da
                 auto p_g = model->named_parameters()[j];
                 auto p_ = models[i]->named_parameters()[j];
                 //std::cout << p_g.value()[0][0] << " !!!!!!!!!!!!!!!! " << p_.value()[0][0] << std::endl;
-                p_g.value() = (p_g.value()+p_.value());
-                p_g.value() = torch::div(p_g.value(), data_owners);
+                if (j == 0) {
+                     p_g.value() = p_.value();
+                }
+                else {
+                    p_g.value() = (p_g.value()+p_.value());
+                }
+                p_g.value() = torch::div(p_g.value(), (kTrainSize_10/train_samples[i]));
                 
                 auto name = p_g.key();
                 auto* t = params.find(name);
