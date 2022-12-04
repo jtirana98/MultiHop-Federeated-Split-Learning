@@ -150,7 +150,7 @@ std::vector<CIFAR> data_owners_data(const std::string& root, int data_owners, in
     }
 
     // for validation set:
-    auto targets = torch::empty(val_samples, torch::kByte);
+    auto targets = torch::empty(1, torch::kByte);
     auto images = torch::empty({1, 3, kImageRows, kImageColumns}, torch::kByte);
 
     std::set<int>::iterator it;
@@ -158,18 +158,19 @@ std::vector<CIFAR> data_owners_data(const std::string& root, int data_owners, in
     for(it = validation.begin(); it!=validation.end(); ++it){
         int ans = *it;
         images = torch::cat({images, images_[ans].unsqueeze(0)});
-        targets[i] = targets_[ans].item<int64_t>();
+        //targets[i] = targets_[ans].item<int64_t>();
+        targets = torch::cat({targets, targets_[i].unsqueeze(0)});
         i++;
     }
     
     datasets.push_back(CIFAR(std::pair<torch::Tensor, torch::Tensor>
                         {images.index({Slice(1, None), None, None, None})
                         .squeeze(1).squeeze(1).squeeze(1),
-                        targets}, type));
+                        targets.index({Slice(1, None)})}, type));
     
     std::vector<std::pair<torch::Tensor, torch::Tensor>>data_owners_;
     for (i = 0; i < data_owners; i++ ) {
-        targets = torch::empty(train_samples, torch::kByte);
+        targets = torch::empty(1, torch::kByte);
         images = torch::empty({1, 3, kImageRows, kImageColumns}, torch::kByte);
 
         data_owners_.push_back(std::pair<torch::Tensor, torch::Tensor>{images, targets});
@@ -200,12 +201,20 @@ std::vector<CIFAR> data_owners_data(const std::string& root, int data_owners, in
         }
 
         data_owners_[who].first = torch::cat({data_owners_[who].first, images_[i].unsqueeze(0)});
+        data_owners_[who].second = torch::cat({data_owners_[who].second, targets_[i].unsqueeze(0)});
+        /*
         if (j >= train_samples) {
             data_owners_[who].second = torch::cat({data_owners_[who].second, targets_[i].unsqueeze(0)});
+            std::cout << "-------here----------" << std::endl;
+            std::cout << data_owners_[who].second.sizes() << std::endl;
+            std::cout << "-----------------" << std::endl;
+            std::cout << data_owners_[who].second << std::endl;
+            std::cout << targets_[i].unsqueeze(0) << std::endl;
         }
         else {
             data_owners_[who].second[j] = targets_[i].item<int64_t>();
         }
+        */
         j++;
     }
     
@@ -214,7 +223,7 @@ std::vector<CIFAR> data_owners_data(const std::string& root, int data_owners, in
         datasets.push_back(CIFAR(std::pair<torch::Tensor, torch::Tensor>
                         {data_owners_[i].first.index({Slice(1, None), None, None, None})
                         .squeeze(1).squeeze(1).squeeze(1),
-                        data_owners_[i].second.index({Slice(None, data_owners_[i].first.sizes()[0]-1)})/*.squeeze(0)*/}, type));
+                        data_owners_[i].second.index({Slice(1, None)})}, type));
     }
     
     return(datasets);

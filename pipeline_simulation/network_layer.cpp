@@ -31,7 +31,7 @@ std::string my_receive(int socket_fd) {
     //std::cout << "I expect: " << expected_input << std::endl;
     if (expected_input == 0)
         return leader_board_package;
-
+    //len = expected_input
     while(bytes_recv < expected_input) {
 
         if(expected_input - bytes_recv <= max) {

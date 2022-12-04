@@ -2,11 +2,16 @@
 #include <type_traits>
 #include <stdlib.h>
 #include <thread>
-#include <argparse/argparse.hpp> //https://github.com/p-ranav/argparse
+//#include <argparse/argparse.hpp> //https://github.com/p-ranav/argparse
 
 int main(int argc, char **argv) {
-    argparse::ArgumentParser program("compute_node");
+    char *p;
+    long conv = strtol(argv[1], &p, 10);
 
+    int myID = conv;
+    std::string log_dir = "main_experiment";
+    //argparse::ArgumentParser program("compute_node");
+    /*
     program.add_argument("-i", "--id")
         .help("The node's id")
         .required()
@@ -29,7 +34,7 @@ int main(int argc, char **argv) {
 
     auto myID = program.get<int>("-i");
     auto log_dir = program.get<std::string>("-l");
-
+    */
     systemAPI sys_(false, myID, log_dir);
     Task next_task;
     int next_node;

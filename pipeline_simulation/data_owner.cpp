@@ -1,7 +1,7 @@
 #include <type_traits>
 #include <stdlib.h>
 #include <thread>
-#include <argparse/argparse.hpp> //https://github.com/p-ranav/argparse
+//#include <argparse/argparse.hpp> //https://github.com/p-ranav/argparse
 
 #include "systemAPI.h"
 #include "mydataset.h"
@@ -12,8 +12,13 @@ using transform::RandomCrop;
 using transform::RandomHorizontalFlip;
 
 int main(int argc, char **argv) {
-    argparse::ArgumentParser program("data_owner");
+    char *p;
+    long conv = strtol(argv[1], &p, 10);
 
+    int myID = conv;
+    std::string log_dir = "main_experiment";
+    //argparse::ArgumentParser program("data_owner");
+    /*
     program.add_argument("-i", "--id")
         .help("The node's id")
         .required()
@@ -34,9 +39,10 @@ int main(int argc, char **argv) {
         std::exit(1);
     }
 
+
     auto myID = program.get<int>("-i");
     auto log_dir = program.get<std::string>("-l");
-
+    */
     systemAPI sys_(true, myID, log_dir);
     refactoring_data client_message;
     // check if you are the init
@@ -45,13 +51,13 @@ int main(int argc, char **argv) {
         // POINT 5 Initialization phase: init node starts preperation
         sys_.my_network_layer.newPoint(INIT_START_MSG_PREP);
 
-        std::vector<int>data_owners{0, 2};
-        std::vector<int>compute_nodes = {1, 3};
+        std::vector<int>data_owners{0};
+        std::vector<int>compute_nodes = {1};
 
         int num_parts = compute_nodes.size() + 2;
 
         // offline decission -- from profiling (?)
-        std::vector<int>cut_layers{5, 7, 9}/*{10, 20, 30}*/;
+        std::vector<int>cut_layers{5,9}/*{5, 7, 9}*//*{10, 20, 30}*/;
 
 
         int data_onwer_end = 2;
@@ -62,7 +68,7 @@ int main(int argc, char **argv) {
         
         client_message.dataset = CIFAR_10;
         client_message.model_name_ = model_name::resnet;
-        client_message.model_type_ = resnet_model::resnet18;
+        client_message.model_type_ = resnet_model::resnet101;
         client_message.end = cut_layers[0];
         client_message.start = cut_layers[cut_layers.size() - 1] + 1;
         client_message.next = compute_nodes[0];

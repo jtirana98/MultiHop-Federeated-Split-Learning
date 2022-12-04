@@ -377,11 +377,11 @@ void resnet_cifar_FL(resnet_model model_option, int type, int batch_size, int da
     fill(itera.begin(), itera.end(), 1);
     for (size_t epoch = 0; epoch != r_num_epochs; ++epoch) {
         // Initialize running metrics
-        fill(running_loss.begin(), running_loss.end(), 0.0);
-        fill(num_correct.begin(), num_correct.end(), 0);
-
         for(int i = 0; i < data_owners; i++) {
             for(int r=0; r < frequency; r++) {
+                
+                fill(running_loss.begin(), running_loss.end(), 0.0);
+                fill(num_correct.begin(), num_correct.end(), 0);
                 /* O PIO ILITHIOS KWDIKAS TOU AIWNA
                 auto train_dataset = datasets[i+1]
                                     .map(ConstantPad(4))
@@ -397,7 +397,6 @@ void resnet_cifar_FL(resnet_model model_option, int type, int batch_size, int da
                     // Transfer images and target labels to device
                     auto data = batch.data;
                     auto target = batch.target;
-
                     torch::Tensor output = models[i]->forward(batch.data);
 
                     torch::Tensor loss =
@@ -433,12 +432,12 @@ void resnet_cifar_FL(resnet_model model_option, int type, int batch_size, int da
         // fucking aggregation:  
         // iterating model from: https://stackoverflow.com/questions/54317378/set-neural-network-initial-weight-values-in-c-torch
         
-        /*
-        for (auto &p : model->named_parameters()) {
+        
+       /*for (auto &p : model->named_parameters()) {
             std::cout << p.value()[0][0] << std::endl;
             break;
-        }
-        */
+        }*/
+        
         for (int i = 0; i < data_owners; i++) {
             torch::autograd::GradMode::set_enabled(false); 
             auto params = model->named_parameters(true /*recurse*/);
@@ -474,6 +473,11 @@ void resnet_cifar_FL(resnet_model model_option, int type, int batch_size, int da
             torch::autograd::GradMode::set_enabled(true);;
         }
 
+
+        /*for (auto &p : model->named_parameters()) {
+            std::cout << p.value()[0][0] << std::endl;
+            break;
+        }*/
         
 
         torch::save(model, model_path_g);
@@ -587,7 +591,7 @@ void train_resnet(dataset dataset_option, resnet_model model_option, bool split,
         }
     else {
         if (fl) {
-            resnet_cifar_FL/*<ResidualBlock>*/(model_option, CIFAR_10, batch_size, 2);
+            resnet_cifar_FL/*<ResidualBlock>*/(model_option, CIFAR_10, batch_size, 3);
         }
         else {
             switch (dataset_option) {
