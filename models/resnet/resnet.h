@@ -70,12 +70,12 @@ struct ResNetImpl : torch::nn::Module {
         if (in_channels != out_channels)
             downsample = true;
         
-        layers->push_back(ResidualBottleneckBlock(in_channels, out_channels, stride, downsample));
+        layers->push_back(ResidualBlock(in_channels, out_channels, stride, downsample));
 
         in_channels = out_channels;
 
         for (int64_t i = 1; i != blocks; ++i) {
-            layers->push_back(ResidualBottleneckBlock(out_channels, out_channels, 1, false));
+            layers->push_back(ResidualBlock(out_channels, out_channels, 1, false));
         }
 
         return layers;

@@ -24,6 +24,14 @@ void Total::addNew(Event part1, Event part2, Event part3) {
     
 }
 
+void Total::addNew(Event part1, Event part2) {
+    auto batch_time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (part2.getTimestamp() - part1.getTimestamp()).count();
+
+    batch_.push_back(batch_time);
+    
+}
+
 void Total::addNew(Event part1, Event part2, Event part3, Event part4) {
     auto forw_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (part2.getTimestamp() - part1.getTimestamp()).count();
@@ -46,14 +54,27 @@ Total::Total() {
     
 }
 
-void Total::printRes() {
+void Total::printRes(int flag) {
     int count = 0, max, min, sum;
-    std::vector<std::vector<int>> atr{forward_, backprop_};
-    std::vector<std::string> str_print{"FORWARD:", "BACKPROP: "};
+    std::vector<std::vector<int>> atr;
+    std::vector<std::string> str_print;
 
-    if (optimizer_.size() != 0) {
-        atr.push_back(optimizer_);
-        str_print.push_back("OPTIMIZER: ");
+    if (flag == -1) { //batch only
+        atr.push_back(batch_);
+        str_print.push_back("BATCH: ");
+    }
+    else {
+        atr.push_back(forward_);
+        atr.push_back(backprop_);
+
+        str_print.push_back("FORWARD: ");
+        str_print.push_back("BACKPROP: ");
+        
+        if ((optimizer_.size() != 0) ) {
+            atr.push_back(optimizer_);
+            str_print.push_back("OPTIMIZER: ");
+        }
+
     }
 
     for (int i = 0; i < atr.size(); i++) {
@@ -62,6 +83,7 @@ void Total::printRes() {
         std::cout << str_print[i] << "\t";
         
         for (int interval : atr[i]) {
+            std::cout << interval << std::endl;
             if (count == 0) {
                 max = interval;
                 min = interval;
@@ -100,7 +122,7 @@ void Total::addEvent(Event event) {
     }
 }
 
-void Total::computeIntervals() {
+void Total::computeIntervals() { // for per-layer analysis
     std::vector<int> new_batch_forward, new_batch_backprop, new_batch_optimizer;
 
     // forward
