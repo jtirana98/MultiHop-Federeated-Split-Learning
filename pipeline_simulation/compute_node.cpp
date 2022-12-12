@@ -39,8 +39,8 @@ int main(int argc, char **argv) {
     sys_.my_network_layer.newPoint(INIT_WAIT_FOR_REFACTOR);
     
     // wait for init refactoring
+    sys_.my_network_layer.findInit();
     auto refactor_message = sys_.my_network_layer.check_new_refactor_task();
-    
     // POINT 11 Initialization phase: do/cn end waiting for refactor message
     sys_.my_network_layer.newPoint(INIT_END_W_REFACTOR);
 

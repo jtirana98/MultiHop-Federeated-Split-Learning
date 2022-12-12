@@ -152,6 +152,7 @@ std::vector<torch::nn::Sequential> resnet_split(const std::array<int64_t, 4>& la
 std::vector<torch::nn::Sequential> resnet_part(resnet_model model_option, int64_t num_classes, int start, int end) {
     auto layers_ = getLayers(model_option);
     bool usebottleneck = (model_option <=2) ? false : true;
+    usebottleneck = false;
     std::vector<torch::nn::Sequential> layers;
     std::vector<int> split_points;
 

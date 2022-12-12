@@ -61,8 +61,11 @@ class network_layer {
         rooting_table.insert({3, std::pair<std::string, int>("localhost", 8084)});
     }
 
+    void findPeers(int num);
+    void findInit();
+
     void new_message(Task task, int send_to, bool compute_to_compute=false); // produce -- new message
-    void new_message(refactoring_data task, int send_to, bool compute_to_compute=false); // produce -- new message
+    void new_message(refactoring_data task, int send_to, bool compute_to_compute=false, bool rooting_table_=false); // produce -- new message
     
     void put_internal_task(Task task);
     void put_internal_task(refactoring_data task);

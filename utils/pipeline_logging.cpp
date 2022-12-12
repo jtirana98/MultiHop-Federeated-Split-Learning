@@ -14,8 +14,8 @@ std::ostream& operator<<(std::ostream& os, const Point& pt) {
 void logger::add_point(Point newPoint) { // producer
     {
     std::unique_lock<std::mutex> lock(m_mutex);
-    newPoint.update_timeline(big_bang);
-    points.push_back(newPoint);
+    //newPoint.update_timeline(big_bang);
+    //points.push_back(newPoint);
     
     /*
     std::deque<Point>::iterator it;
@@ -27,7 +27,7 @@ void logger::add_point(Point newPoint) { // producer
     std::cout << "DONE\n";
     */
     }
-    m_cv.notify_one();
+    //m_cv.notify_one();
 
 }
 
@@ -43,22 +43,22 @@ void logger::add_interval(Point& start, Point& end, interval_type type) {// prod
     std::unique_lock<std::mutex> lock(interval_mutex);
     switch (type) {
     case fwd_only:  // 0
-        intervals[0].push_back(intraval_);
+        //intervals[0].push_back(intraval_);
         break;           
     case bwd_only:  // 1
     case fwd_bwd_opz:
-        intervals[1].push_back(intraval_);
+        //intervals[1].push_back(intraval_);
         break;
     case opz_only:  // 2
     case bwd_opz:
-        intervals[2].push_back(intraval_);
+        //intervals[2].push_back(intraval_);
         break;
     default:
         break;
     }
 
     }
-    interval_cv.notify_one();
+    //interval_cv.notify_one();
 }
 
 void logger::logger_() { // consumer

@@ -36,9 +36,9 @@ class systemAPI  {
     std::vector<int> clients;
 
     // apply for data owner 
-    int batch_size=32, rounds=50;
+    int batch_size=128, rounds=50;
     std::vector<State> parts;
-    double learning_rate = 0.1;
+    double learning_rate = 0.01;
     double running_loss = 0.0;
     double num_correct = 0;
     int batch_index = 0;

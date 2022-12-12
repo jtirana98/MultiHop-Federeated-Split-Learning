@@ -3,9 +3,11 @@
 void systemAPI::init_state_vector(model_name name, int model_, int num_class, int start, int end) {
     for (int i=0; i<clients.size() ; i++) {
         ModelPart part(name, model_, start, end, num_class);
-        std::vector<torch::optim::Adam *> optimizers(part.layers.size(), nullptr);
+        //std::vector<torch::optim::Adam *> optimizers(part.layers.size(), nullptr);
+        std::vector<torch::optim::SGD *> optimizers(part.layers.size(), nullptr);
+         
         for (int i = 0; i < part.layers.size(); i++) {
-            optimizers[i] = new torch::optim::Adam(part.layers[i]->parameters(), torch::optim::AdamOptions(learning_rate));
+            optimizers[i] = new torch::optim::SGD(part.layers[i]->parameters(), torch::optim::SGDOptions(learning_rate).momentum(0.9).weight_decay(0.0001));
         }
         State client(clients[i], part.layers, optimizers);
         clients_state.insert(std::pair<int, State>(clients[i], client));
@@ -15,17 +17,15 @@ void systemAPI::init_state_vector(model_name name, int model_, int num_class, in
 void systemAPI::init_model_sate(model_name name, int model_, int num_class, int start, int end) {
     ModelPart first_(name, model_, 1, end, num_class);
     ModelPart last_(name, model_, start, -1, num_class);
-    std::vector<torch::optim::Adam *> optimizers_first(first_.layers.size(), nullptr);
-    std::vector<torch::optim::Adam *> optimizers_last(last_.layers.size(), nullptr);
+    std::vector<torch::optim::SGD *> optimizers_first(first_.layers.size(), nullptr);
+    std::vector<torch::optim::SGD *> optimizers_last(last_.layers.size(), nullptr);
 
     for (int i = 0; i < first_.layers.size(); i++) {
-        optimizers_first[i] = new torch::optim::Adam(first_.layers[i]->parameters(), torch::optim::AdamOptions(learning_rate));
+        optimizers_first[i] = new torch::optim::SGD(first_.layers[i]->parameters(), torch::optim::SGDOptions(learning_rate).momentum(0.9).weight_decay(0.0001));
     }
-
     for (int i = 0; i < last_.layers.size(); i++) {
-        optimizers_last[i] = new torch::optim::Adam(last_.layers[i]->parameters(), torch::optim::AdamOptions(learning_rate));
+        optimizers_last[i] = new torch::optim::SGD(last_.layers[i]->parameters(), torch::optim::SGDOptions(learning_rate).momentum(0.9).weight_decay(0.0001));
     }
-    
     State part_first(myid, first_.layers, optimizers_first);
     parts.push_back(part_first);
     State part_last(myid, last_.layers, optimizers_last);
@@ -124,9 +124,7 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                 if (i >= 1) {
                     values = values.view({task.size_, -1});
                 }
-
                 client_state->optimizers[i]->zero_grad();
-                
                 output = client_state->layers[i]->forward(values);
                 client_state->activations.push_back(output);
                 values = output.clone().detach().requires_grad_(true);
@@ -203,13 +201,19 @@ void systemAPI::refactor(refactoring_data refactor_message) {
     int start = refactor_message.start;
     int end = refactor_message.end;
 
+    if (refactor_message.rooting_table.size() > 0) {
+        for (int i=0; i < refactor_message.rooting_table.size(); i++) {
+            std::pair<int, std::string> addr = refactor_message.rooting_table[i];
+            my_network_layer.rooting_table[addr.first].first = addr.second; 
+        }
+    }
+
     if (is_data_owner) 
         init_model_sate(name, model_, num_class, start, end);
     else {
         clients_state.clear();
         clients.clear();
         clients = refactor_message.data_owners;
-
         init_state_vector(name, model_, num_class, start, end);
     }
 

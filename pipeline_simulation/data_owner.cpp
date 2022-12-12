@@ -41,18 +41,20 @@ int main(int argc, char **argv) {
     refactoring_data client_message;
     // check if you are the init
     if (myID == 0) {
-        
         // POINT 5 Initialization phase: init node starts preperation
         sys_.my_network_layer.newPoint(INIT_START_MSG_PREP);
 
-        std::vector<int>data_owners{0, 2};
-        std::vector<int>compute_nodes = {1, 3};
+        std::vector<int>data_owners{0};
+        std::vector<int>compute_nodes = {1};
 
         int num_parts = compute_nodes.size() + 2;
 
-        // offline decission -- from profiling (?)
-        std::vector<int>cut_layers{5, 7, 9}/*{10, 20, 30}*/;
-
+        sys_.my_network_layer.findPeers(data_owners.size() 
+                                            + compute_nodes.size() - 1);
+        std::cout << "found them" << std::endl;
+        // offline decission --  from profiling (?)
+        std::vector<int>cut_layers{7, 33}/*{10, 20, 30}*/;
+        //6 , 10, 
 
         int data_onwer_end = 2;
         int data_owner_beg = 8;
@@ -62,7 +64,7 @@ int main(int argc, char **argv) {
         
         client_message.dataset = CIFAR_10;
         client_message.model_name_ = model_name::resnet;
-        client_message.model_type_ = resnet_model::resnet18;
+        client_message.model_type_ = resnet_model::resnet101;
         client_message.end = cut_layers[0];
         client_message.start = cut_layers[cut_layers.size() - 1] + 1;
         client_message.next = compute_nodes[0];
@@ -73,7 +75,7 @@ int main(int argc, char **argv) {
         sys_.my_network_layer.newPoint(INIT_END_PREP_START_DO_BCAST);
 
         for (int i=1; i<data_owners.size(); i++) {
-           sys_.my_network_layer.new_message(client_message, data_owners[i]);
+           sys_.my_network_layer.new_message(client_message, data_owners[i], false, true);
 
         }
 
@@ -101,18 +103,17 @@ int main(int argc, char **argv) {
             else
                 client_message.prev = compute_nodes[i-1];
 
-           sys_.my_network_layer.new_message(client_message, compute_nodes[i]);
+           sys_.my_network_layer.new_message(client_message, compute_nodes[i], false, true);
         }
 
         // POINT 9 Initialization phase: bcast to cn completed
-        sys_.my_network_layer.newPoint(INIT_END_BCAST_CN);
         sys_.my_network_layer.newPoint(INIT_END_BCAST_CN);
     }
     else { // if not wait for init refactoring
         // POINT 10 Initialization phase: do/cn waiting for refactor message
         sys_.my_network_layer.newPoint(INIT_WAIT_FOR_REFACTOR);
+        sys_.my_network_layer.findInit();
         client_message = sys_.my_network_layer.check_new_refactor_task();
-
         // POINT 11 Initialization phase: do/cn end waiting for refactor message
         sys_.my_network_layer.newPoint(INIT_END_W_REFACTOR);
         sys_.refactor(client_message);

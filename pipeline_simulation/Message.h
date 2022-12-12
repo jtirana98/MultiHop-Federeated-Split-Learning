@@ -31,6 +31,7 @@ namespace Json {
         std::string string;
         int number = 0;
         std::vector<int> numbers;
+        std::vector<std::pair<int, std::string>> addr;
     };
     
     struct Value {
@@ -62,6 +63,11 @@ namespace Json {
 
         Value& operator=(std::vector<int> value) {
             data.numbers = value;
+            return *this;
+        }
+
+        Value& operator=(std::vector<std::pair<int, std::string>> value) {
+            data.addr = value;
             return *this;
         }
     };
@@ -103,6 +109,16 @@ namespace Json {
     template<>
     std::vector<int>& asAny<std::vector<int>>(Value& value) {
         return value.data.numbers;
+    }
+
+    template<>
+    const std::vector<std::pair<int, std::string>>& asAny<std::vector<std::pair<int, std::string>>>(const Value& value) {
+        return value.data.addr;
+    }
+    
+    template<>
+    std::vector<std::pair<int, std::string>>& asAny<std::vector<std::pair<int, std::string>>>(Value& value) {
+        return value.data.addr;
     }
 
     //..
@@ -151,6 +167,28 @@ namespace Json {
         return text;
     }
 
+    template<>
+    const std::string getStr<std::vector<std::pair<int, std::string>>>(const Value& value) {
+        std::string text = "[ ";
+
+        for(int i=0; i<value.data.addr.size(); i++) {
+            text = text + std::to_string(value.data.addr[i].first) + "," + value.data.addr[i].second + " ";
+        }
+        text = text + "]";
+        return text;
+    }
+    
+    template<>
+    std::string getStr<std::vector<std::pair<int, std::string>>>(Value& value) {
+        std::string text = "[ ";
+
+        for(int i=0; i<value.data.addr.size(); i++) {
+            text = text + std::to_string(value.data.addr[i].first) + "," + value.data.addr[i].second + " ";
+        }
+        text = text + "]";
+        return text;
+    }
+
     // ..
 
     template<>
@@ -178,7 +216,6 @@ namespace Json {
     template<>
     const std::vector<int> getValue<std::vector<int>>(const std::string& value) {
         std::vector<int> my_data;
-
         const char separator = ' ';
         std::stringstream streamData(value);
         std::string val;
@@ -194,7 +231,6 @@ namespace Json {
     template<>
     std::vector<int> getValue<std::vector<int>>(std::string& value) {
         std::vector<int> my_data;
-
         const char separator = ' ';
         std::stringstream streamData(value);
         std::string val;
@@ -205,7 +241,52 @@ namespace Json {
             
         }
         return my_data;
-    }   
+    }
+
+    template<>
+    const std::vector<std::pair<int, std::string>> getValue<std::vector<std::pair<int, std::string>>>(const std::string& value) {
+        std::vector<std::pair<int, std::string>> my_data;
+        const char separator = ' ';
+        const char separator_ = ',';
+        std::stringstream streamData(value);
+        std::string val;
+        while (std::getline(streamData, val, separator)) {
+            if (val != "[" && val != "]" && val != "") {
+                std::stringstream streamValue(val);
+                std::string val_;
+                std::getline(streamValue, val_, separator_);
+                int id = stoi(val_);
+                std::getline(streamValue, val_, separator_);
+                std::string ip = val_;
+                my_data.push_back(std::pair<int, std::string>(id, ip));
+            }
+            
+        }
+        return my_data;
+    }
+
+    template<>
+    std::vector<std::pair<int, std::string>> getValue<std::vector<std::pair<int, std::string>>>(std::string& value) {
+        std::vector<std::pair<int, std::string>> my_data;
+        const char separator = ' ';
+        const char separator_ = ',';
+        std::stringstream streamData(value);
+        std::string val;
+        while (std::getline(streamData, val, separator)) {
+            if (val != "[" && val != "]" && val != "") {
+                std::stringstream streamValue(val);
+                std::string val_;
+                std::getline(streamValue, val_, separator_);
+                int id = stoi(val_);
+                std::getline(streamValue, val_, separator_);
+                std::string ip = val_;
+                my_data.push_back(std::pair<int, std::string>(id, ip));
+            }
+            
+        }
+        return my_data;
+    }
+    
 }
 
 template<typename Class, typename T>
@@ -452,6 +533,8 @@ struct Message {
     // refactor
     int start=-1, end=-1, prev=-1, next=-1, dataset=-1, num_classes=-1, model_name=-1, model_type=-1;
     std::vector<int> data_owners;
+    std::vector<std::pair<int, std::string>> rooting_table; // id: ip --> ignoring port num
+    int read_table=-1;
     // operation
     int client_id=-1, prev_node=-1, size_=-1, type_op=-1;
     std::string values;
@@ -470,7 +553,9 @@ struct Message {
         property(&Message::num_classes, "num_classes"),
         property(&Message::model_name, "model_name"),
         property(&Message::model_type, "model_type"),
-        property(&Message::data_owners, "data_owners")
+        property(&Message::data_owners, "data_owners"),
+        property(&Message::rooting_table, "rooting_table"),
+        property(&Message::read_table, "read_table")
     );
 
     constexpr static auto properties_operator = std::make_tuple(

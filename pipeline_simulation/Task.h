@@ -23,6 +23,7 @@ struct refactoring_data {
     int dataset=0;
     int num_class=10;
     int model_name_=0, model_type_=0;
+    std::vector<std::pair<int, std::string>> rooting_table;
 };
 
 class Task {
