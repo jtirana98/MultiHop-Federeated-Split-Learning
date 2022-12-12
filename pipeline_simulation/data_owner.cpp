@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
         // POINT 5 Initialization phase: init node starts preperation
         sys_.my_network_layer.newPoint(INIT_START_MSG_PREP);
 
-        std::vector<int>data_owners{0};
+        std::vector<int>data_owners{0, 2};
         std::vector<int>compute_nodes = {1};
 
         int num_parts = compute_nodes.size() + 2;
@@ -53,6 +53,7 @@ int main(int argc, char **argv) {
                                             + compute_nodes.size() - 1);
         std::cout << "found them" << std::endl;
         // offline decission --  from profiling (?)
+        sleep(2);
         std::vector<int>cut_layers{7, 33}/*{10, 20, 30}*/;
         //6 , 10, 
 

@@ -133,9 +133,9 @@ std::pair<torch::Tensor, torch::Tensor> read_data(const std::string& root, bool 
 }  // namespace
 
 CIFAR::CIFAR(const std::string& root, int type, bool val, std::set<int> validation, Mode mode) : mode_(mode), type(type){
+    std::cout << root << std::endl;
     auto data = read_data(root, mode == Mode::kTrain, type, val, validation);
 
-    //std::cout << data.first.size(0) << std::endl;
     images_ = std::move(data.first);
     targets_ = std::move(data.second);
 }

@@ -214,42 +214,50 @@ void network_layer::findInit() {
         serv_addr.sin_addr.s_addr = INADDR_ANY;  //my_addr.first
         serv_addr.sin_port = htons(my_port);
 
-        if (bind(my_socket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
-            perror("ERROR on binding");
+    if (bind(my_socket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
+        perror("ERROR on binding");
 
-        listen(my_socket,5);
-        clientlen = sizeof(cli_addr);
+    u_int yes = 1;
+    if (
+        setsockopt(my_socket, SOL_SOCKET, SO_REUSEADDR, (char*) &yes, sizeof(yes)) < 0
+    ) {
+       perror("Reusing ADDR failed");
+       return ;
+    }
 
-        int newsockfd = accept(my_socket, 
-                (struct sockaddr *) &cli_addr, &clientlen);
-        if (newsockfd < 0) 
-            perror("ERROR on accept");
+    listen(my_socket,5);
+    clientlen = sizeof(cli_addr);
 
-        printf("server: got connection from %s port %d\n",
-            inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
-        
-        char str[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &(cli_addr.sin_addr), str, INET_ADDRSTRLEN);
+    int newsockfd = accept(my_socket, 
+            (struct sockaddr *) &cli_addr, &clientlen);
+    if (newsockfd < 0) 
+        perror("ERROR on accept");
 
-        // update init's node ip address
-        std::map<int, std::pair<std::string, int>>::iterator itr;
-        itr = rooting_table.find(0);
-        int port_n = itr->second.second;
-        itr->second = std::pair<std::string, int>(str, port_n);
+    printf("server: got connection from %s port %d\n",
+        inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
+    
+    char str[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(cli_addr.sin_addr), str, INET_ADDRSTRLEN);
 
-        char buffer[256];
-        send(newsockfd, buffer, 10, 0);
+    // update init's node ip address
+    std::map<int, std::pair<std::string, int>>::iterator itr;
+    itr = rooting_table.find(0);
+    int port_n = itr->second.second;
+    itr->second = std::pair<std::string, int>(str, port_n);
 
-        bzero(buffer,256);
+    char buffer[256];
+    send(newsockfd, buffer, 10, 0);
 
-        int n = read(newsockfd,buffer,255);
-        if (n < 0) perror("ERROR reading from socket");
-        printf("Here is the message: %s\n",buffer);
+    bzero(buffer,256);
 
-        close(newsockfd);
-        close(my_socket);
+    int n = read(newsockfd,buffer,255);
+    if (n < 0) perror("ERROR reading from socket");
+    printf("Here is the message: %s\n",buffer);
 
-        put_internal_task(Task());
+    close(newsockfd);
+    close(my_socket);
+    std::cout << "free" << std::endl;
+    put_internal_task(Task());
 }
 
 void network_layer::new_message(Task task, int send_to, bool compute_to_compute) { // produce -- new message
@@ -373,7 +381,8 @@ void network_layer::receiver() {
     
     // lock
     auto dump = check_new_task();
-
+    std::cout << "let's go" << std::endl;
+    sleep(1);
     std::pair<std::string, int> my_addr = rooting_table.find(myid)->second;
     my_port = my_addr.second;
     my_socket =  socket(AF_INET, SOCK_STREAM, 0);

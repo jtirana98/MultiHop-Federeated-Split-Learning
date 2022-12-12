@@ -102,7 +102,7 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     Total totaltimes = Total();
     int batch_index = 0;
     Event start_forward, start_backprop, start_optim, end_batch;
-
+    Event start_batch, end_batch_;
     int stop_epochs = 1;
     if (test)
         stop_epochs = r_num_epochs;
@@ -116,7 +116,7 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
         double num_correct = 0;
         batch_index = 0;
         for (auto& batch : *train_dataloader) {
-
+            start_batch = Event(measure_type::start_batch, "", -1);
             optimizer.zero_grad();
 
             // Transfer images and target labels to device
@@ -149,10 +149,13 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
 
             if (!test)
                 totaltimes.addNew(start_forward, start_backprop, start_optim, end_batch);
-
+            
+            end_batch_ = Event(measure_type::end_batch, "", -1);
+            totaltimes.addNew(start_batch, end_batch_);
             batch_index = batch_index + 1;
             if (!test && (batch_index % 15 == 0)) {
-                    totaltimes.printRes();
+                    totaltimes.printRes(-1);
+                    totaltimes = Total();
                     break;
             }
             /*
@@ -286,8 +289,9 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
 void resnet_split_cifar(resnet_model model_option, int type, int batch_size, const std::vector<int>& split_points) { 
     auto layers_ = getLayers(model_option);
     bool usebottleneck = (model_option <=2) ? false : true;
+    usebottleneck = false;
     int num_classes = (type == CIFAR_10)? 10 : 100;
-    auto layers =  resnet_split(layers_, num_classes, usebottleneck, split_points);
+    auto layers =  resnet_split(layers_, type, usebottleneck, split_points);
 
     split_cifar(layers, type, batch_size, 1, r_learning_rate, r_num_epochs);
 }
@@ -300,15 +304,15 @@ void train_resnet(dataset dataset_option, resnet_model model_option, bool split,
             break;
             case CIFAR_10:
                 if (model_option <= 2)
-                    resnet_split_cifar/*<ResidualBlock>*/(model_option, 1, batch_size, split_points);
+                    resnet_split_cifar/*<ResidualBlock>*/(model_option, CIFAR_10, batch_size, split_points);
                 else
-                    resnet_split_cifar/*<ResidualBottleneckBlock>*/(model_option, 1, batch_size, split_points);
+                    resnet_split_cifar/*<ResidualBottleneckBlock>*/(model_option, CIFAR_10, batch_size, split_points);
                 break;
             case CIFAR_100:
                 if (model_option <= 2)
-                    resnet_split_cifar/*<ResidualBlock>*/(model_option, 0, batch_size, split_points);
+                    resnet_split_cifar/*<ResidualBlock>*/(model_option, CIFAR_100, batch_size, split_points);
                 else
-                    resnet_split_cifar/*<ResidualBottleneckBlock>*/(model_option, 0, batch_size, split_points);
+                    resnet_split_cifar/*<ResidualBottleneckBlock>*/(model_option, CIFAR_100, batch_size, split_points);
                 break;
             default:
                 break;
