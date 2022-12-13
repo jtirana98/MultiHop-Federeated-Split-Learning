@@ -35,6 +35,7 @@ int main(int argc, char **argv) {
     }
 
     auto myID = program.get<int>("-i");
+    std::cout << "myid " << myID << std::endl;
     auto log_dir = program.get<std::string>("-l");
 
     systemAPI sys_(true, myID, log_dir);
@@ -124,8 +125,8 @@ int main(int argc, char **argv) {
     // load dataset
     int type = client_message.dataset;
     auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
-    
-    auto train_dataset = CIFAR(path_selection, type)
+    auto datasets = data_owners_data(path_selection, 1, type, false);
+    auto train_dataset = datasets[0]
                                     .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
                                     .map(ConstantPad(4))
                                     .map(RandomHorizontalFlip())

@@ -15,5 +15,5 @@ int main(int argc, char **argv) {
     
     //train_resnet(CIFAR_10, resnet101, false, 128, std::vector<int>(), true);
     
-    train_resnet(CIFAR_10, resnet101, true, 128);
+   train_resnet(CIFAR_10, resnet101, true, 128);
 } 

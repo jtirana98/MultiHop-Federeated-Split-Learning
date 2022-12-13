@@ -203,7 +203,10 @@ void systemAPI::refactor(refactoring_data refactor_message) {
 
     if (refactor_message.rooting_table.size() > 0) {
         for (int i=0; i < refactor_message.rooting_table.size(); i++) {
-            std::pair<int, std::string> addr = refactor_message.rooting_table[i];
+            std::pair<int, std::string> addr = refactor_message.rooting_table[i];\
+            if(addr.first == 0) {
+                continue;
+            }
             my_network_layer.rooting_table[addr.first].first = addr.second; 
         }
     }

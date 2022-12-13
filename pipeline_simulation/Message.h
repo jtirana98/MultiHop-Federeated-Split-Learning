@@ -28,7 +28,7 @@ namespace Json {
     
     struct ValueData {
         std::map<std::string, Value> subObject;
-        std::string string;
+        std::string string_;
         int number = 0;
         std::vector<int> numbers;
         std::vector<std::pair<int, std::string>> addr;
@@ -52,7 +52,7 @@ namespace Json {
         }
         
         Value& operator=(std::string value) {
-            data.string = value;
+            data.string_ = value;
             return *this;
         }
         
@@ -93,12 +93,12 @@ namespace Json {
     
     template<>
     const std::string& asAny<std::string>(const Value& value) {
-        return value.data.string;
+        return value.data.string_;
     }
     
     template<>
     std::string& asAny<std::string>(Value& value) {
-        return value.data.string;
+        return value.data.string_;
     }
 
     template<>
@@ -137,12 +137,12 @@ namespace Json {
     
     template<>
     const std::string getStr<std::string>(const Value& value) {
-        return value.data.string;
+        return value.data.string_;
     }
     
     template<>
     std::string getStr<std::string>(Value& value) {
-        return value.data.string;
+        return value.data.string_;
     }
 
     template<>

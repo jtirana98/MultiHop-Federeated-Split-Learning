@@ -70,6 +70,7 @@ void network_layer::findPeers(int num) {
     strcpy(group_, s.c_str());
     char *group = group_;
     int port = 4321;
+    std::set<int> registered;
 
     // open a multicast socket
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -111,13 +112,16 @@ void network_layer::findPeers(int num) {
 
     while (num > 0) {
         socklen_t addrlen = sizeof(addr);
+        fflush(stdout);
         int id=0;
-        int nbytes = recvfrom(fd,&id,sizeof(int)/*msgbuf,MSGBUFSIZE*/,0,(struct sockaddr *) &addr, &addrlen);
+        int nbytes = recvfrom(fd,&id,sizeof(int), MSG_WAITALL,(struct sockaddr *) &addr, &addrlen);
         if (nbytes < 0) {
             perror("recvfrom");
             return ;
         }
-        
+        if (registered.find(id) != registered.end())\
+            continue;
+        registered.insert(id);
         std::cout << "NODE: " << id << " just registered" << std::endl;
 
         
@@ -170,7 +174,6 @@ void network_layer::findPeers(int num) {
         close(sockfd);
         num--;
     }
-
     put_internal_task(Task());
 
 }
@@ -184,7 +187,6 @@ void network_layer::findInit() {
     int port = 4321;
 
     int id=myid;
-
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd < 0) {
         perror("socket");
@@ -269,9 +271,14 @@ void network_layer::new_message(Task task, int send_to, bool compute_to_compute)
     msg.client_id = task.client_id;
     msg.size_ = task.size_;
     msg.type_op = task.type;
-    auto data = torch::pickle_save(task.values);
-    std::string s(data.begin(), data.end());
-    msg.values = s;
+    //auto data = torch::pickle_save(task.values);
+    //std::string s(data.begin(), data.end());
+    //msg.values = s;
+    
+    std::stringstream s;
+    torch::save(task.values, s);
+    msg.values = s.str();
+    
     msg.save_connection = (compute_to_compute) ? 1 : 0;
 
     msg.dest = send_to;
@@ -301,7 +308,7 @@ void network_layer::new_message(refactoring_data task, int send_to, bool compute
     msg.model_type = task.model_type_;
     msg.data_owners = task.data_owners;
     msg.save_connection = (compute_to_compute) ? 1 : 0;
-
+    
     if (rooting_table_) {
         std::vector<std::pair<int, std::string>> temp_root;
         for(auto itr = rooting_table.begin(); itr != rooting_table.end(); itr++) {
@@ -311,7 +318,7 @@ void network_layer::new_message(refactoring_data task, int send_to, bool compute
         msg.rooting_table =  temp_root;
         msg.read_table = 1;
     }
-
+    
     msg.dest = send_to;
 
     {
@@ -393,7 +400,6 @@ void network_layer::receiver() {
     serv_addr.sin_family = AF_INET;  
     serv_addr.sin_addr.s_addr = INADDR_ANY;  //my_addr.first
     serv_addr.sin_port = htons(my_port);
-    std::cout << my_port << std::endl;
     if (bind(my_socket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
         perror("ERROR on binding");
 
@@ -433,8 +439,9 @@ void network_layer::receiver() {
                     Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
                     task.size_ = new_msg.size_;
                     std::vector<char> v(new_msg.values.begin(), new_msg.values.end());
-                    task.values = torch::pickle_load(v).toTensor();
-                    
+                    std::stringstream ss(std::string(v.begin(), v.end()));
+                    torch::load(task.values, ss);
+                    //task.values = torch::pickle_load(v).toTensor();
                     // POINT Network layer: received message
                     newPoint(NT_RECEIVED_MSG, task.client_id);
                     put_internal_task(task);
@@ -491,9 +498,10 @@ void network_layer::receiver() {
                 // from message to task object
                 Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
                 task.size_ = new_msg.size_;
-                std::vector<char> v(new_msg.values.begin(), new_msg.values.end());
-                task.values = torch::pickle_load(v).toTensor();
-                
+                //std::vector<char> v(new_msg.values.begin(), new_msg.values.end());
+                std::istringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
+                torch::load(task.values, ss);
+                //task.values = torch::pickle_load(v).toTensor();                
                 // POINT Network layer: received message
                 newPoint(NT_RECEIVED_MSG, task.client_id);
                 

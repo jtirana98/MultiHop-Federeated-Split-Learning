@@ -26,56 +26,40 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     std::vector<gatherd_data> all_measures;
     std::cout << "Start training" << std::endl;
     auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
-    std::string model_path = "model.pt";
+    std::string model_path = "model_g.pt";
+    std::string model_path_g = "model_gg.pt";
     torch::serialize::OutputArchive output_archive;
-    
-    int num_samples, val_samples, train_samples;
-    std::set<int> validation;
-    srand((unsigned) time(NULL));
-    int sum = 0;
     int kTrainSize_10 = 50000;
     int kTrainSize_100 = 50000;
+    int sum = 0, num_samples = kTrainSize_100, val_samples;
+
     if (type == CIFAR_10) {
         num_samples = kTrainSize_10;
     }
-    else {
-        num_samples = kTrainSize_100;
-    }
 
     val_samples = num_samples*(10.0/100);
-    train_samples = num_samples - val_samples;
+    //#ifdef COMMENT
+    auto datasets = data_owners_data(path_selection, 1, type, false);
+
+    auto validation_dataset = datasets[0]
+                                .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
+                                .map(torch::data::transforms::Stack<>());
+    auto validation_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
+            std::move(validation_dataset), batch_size);
+
     
-    int random = rand() % num_samples;
-    validation.insert(random);
-    while(validation.size() < val_samples) {
-        random = rand() % num_samples;
-        validation.insert(random);
-        //std::cout << random << std::endl;
-    }
     
-    
-    auto train_dataset = CIFAR(path_selection, type, false, validation)
+   
+    auto train_dataset = datasets[0]
                                     .map(ConstantPad(4))
                                     .map(RandomHorizontalFlip())
                                     .map(RandomCrop({32, 32}))
                                     .map(torch::data::transforms::Stack<>());
+    auto train_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(std::move(train_dataset), batch_size);
+        
+        // = &train_dataloader;
 
-    
-    auto validation_dataset = CIFAR(path_selection, type, true, validation)
-                                    .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
-                                    .map(torch::data::transforms::Stack<>());
-     
-
-    auto train_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
-            std::move(train_dataset), batch_size);
-    
-    auto validation_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
-            std::move(validation_dataset), batch_size);
-
-    auto num_train_samples = train_dataset.size().value();
-    auto num_valid_samples = validation_dataset.size().value();
-
-    //std::cout << "train: " << num_train_samples /*<< " val: " << num_valid_samples*/ << std::endl;
+    int train_samples = train_dataset.size().value();
     
     //#ifdef COMMENT
     int num_classes = (type == CIFAR_10)? 10 : 100;
@@ -230,57 +214,41 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
         std::cout << "Training finished!\n\n";
         std::cout << "Testing...\n";
 
-        auto test_dataset =  CIFAR(path_selection, type, false, validation, CIFAR::Mode::kTest)
+        auto test_dataset =  CIFAR(path_selection, type, false, std::set<int>(), CIFAR::Mode::kTest)
                                     .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
                                     .map(torch::data::transforms::Stack<>());
         auto num_test_samples = 10000;
-        std::cout << test_dataset.size().value() <<std::endl;
-        //test_dataset.size().value();
         auto test_loader = torch::data::make_data_loader<torch::data::samplers::SequentialSampler>(
                             std::move(test_dataset), batch_size);
 
 
 
         std::cout << "Loaded\n";
-
-        // Test the model
-
-        
-        //try {
-            // Deserialize the ScriptModule from a file using torch::jit::load().
         torch::load(model, model_path);
-       /* }
-        catch (const c10::Error& e) {
-            std::cerr << "error loading the model\n";
-            return ;
-        }
-        */
         torch::NoGradGuard no_grad;
         model->eval();
 
-        double running_loss = 0.0;
-        size_t num_correct = 0;
+        double running_loss_ = 0.0;
+        double num_correct_ = 0;
         for (const auto& batch : *test_loader) {
             auto data = batch.data;
             auto target = batch.target;
-
             auto output = model->forward(data);
 
             auto loss = torch::nn::functional::cross_entropy(output, target);
-            running_loss += loss.template item<double>() * data.size(0);
+            running_loss_ += loss.template item<double>() * data.size(0);
 
             auto prediction = output.argmax(1);
-            num_correct += prediction.eq(target).sum().template item<int64_t>();
+            num_correct_ += prediction.eq(target).sum().template item<int64_t>();
         }
         
         std::cout << "Testing finished!\n";
 
-        auto test_accuracy = static_cast<double>(num_correct) / num_test_samples;
-        auto test_sample_mean_loss = running_loss / num_test_samples;
+        auto test_accuracy = static_cast<double>(num_correct_) / num_test_samples;
+        auto test_sample_mean_loss = running_loss_ / num_test_samples;
 
         std::cout << "Testset - Loss: " << test_sample_mean_loss << ", Accuracy: " << test_accuracy << '\n';
     }
-
     //#endif 
     
 }
@@ -291,8 +259,7 @@ void resnet_split_cifar(resnet_model model_option, int type, int batch_size, con
     bool usebottleneck = (model_option <=2) ? false : true;
     usebottleneck = false;
     int num_classes = (type == CIFAR_10)? 10 : 100;
-    auto layers =  resnet_split(layers_, type, usebottleneck, split_points);
-
+    auto layers =  resnet_split(layers_, num_classes, usebottleneck, split_points);
     split_cifar(layers, type, batch_size, 1, r_learning_rate, r_num_epochs);
 }
 

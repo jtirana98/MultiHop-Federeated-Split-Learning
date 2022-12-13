@@ -28,6 +28,7 @@ int main(int argc, char **argv) {
     }
 
     auto myID = program.get<int>("-i");
+    std::cout << "myid " << myID << std::endl;
     auto log_dir = program.get<std::string>("-l");
 
     systemAPI sys_(false, myID, log_dir);

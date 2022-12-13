@@ -25,7 +25,8 @@ enum dataset{
 class CIFAR : public torch::data::datasets::Dataset<CIFAR> {
  public:
     enum Mode { kTrain, kTest };
-    explicit CIFAR(const std::string& root, int type=1, bool val=false, std::set<int> validation = std::set<int>(), Mode mode = Mode::kTrain); //binary version
+    CIFAR(const std::string& root, int type=1, bool val=false, std::set<int> validation = std::set<int>(), Mode mode = Mode::kTrain); //binary version
+    explicit CIFAR(std::pair<torch::Tensor, torch::Tensor>data, int type=1, Mode mode = Mode::kTrain);
     torch::data::Example<> get(size_t index) override;
     torch::optional<size_t> size() const override;
     bool is_train() const noexcept;
@@ -38,5 +39,8 @@ class CIFAR : public torch::data::datasets::Dataset<CIFAR> {
     Mode mode_;
     int type; // 1 for CIFAR-10 else for CIFAR-100
 };
+
+
+std::vector<CIFAR> data_owners_data(const std::string& root, int data_owners, int type=1, bool val=true);
 
 #endif

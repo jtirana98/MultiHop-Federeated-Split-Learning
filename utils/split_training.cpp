@@ -1,20 +1,21 @@
 #include "split_training.h"
 
 void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_size, int avg_point_, double learning_rate, int num_epochs) {
-    std::vector<gatherd_data> all_measures;
     auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
-    auto train_dataset = CIFAR(path_selection, type)
+    auto datasets = data_owners_data(path_selection, 1, type, false);
+    
+    auto train_dataset = datasets[0]
+                                    .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
                                     .map(ConstantPad(4))
                                     .map(RandomHorizontalFlip())
                                     .map(RandomCrop({32, 32}))
                                     .map(torch::data::transforms::Stack<>());
     auto num_train_samples = train_dataset.size().value();
-
+    
     auto train_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
             std::move(train_dataset), batch_size);
-
-    int num_classes = (type == CIFAR_10)? 10 : 100;
     
+    int num_classes = (type == CIFAR_10)? 10 : 100;
 
     std::vector<torch::optim::SGD> optimizers;
     
