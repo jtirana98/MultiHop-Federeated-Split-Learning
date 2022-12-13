@@ -3,10 +3,10 @@
 
 std::queue<Message> pending_messages;
 
-int my_send(int socket_fd, std::string& data) {
+int my_send(int socket_fd, std::string& data, int dest) {
     const char* data_ptr  = data.data();
     int data_size = data.size();
-    std::cout << "sending: " << data_size << std::endl;
+    std::cout << "sending: " << data_size << " to: " << dest << std::endl;
     auto timestamp1 = std::chrono::steady_clock::now();
     std::string len = std::to_string(data_size);
     send(socket_fd, &data_size, sizeof(int), 0);
@@ -23,7 +23,7 @@ int my_send(int socket_fd, std::string& data) {
     auto optim_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2 - timestamp1).count();
 
-    std::cout << "time " << optim_time << std::endl;
+    std::cout << "time sending " << optim_time << std::endl;
     return 1;
 }
 
@@ -59,7 +59,7 @@ std::string my_receive(int socket_fd) {
     auto timestamp2 = std::chrono::steady_clock::now();
     auto optim_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2 - timestamp1).count();
-    std::cout << "time " << optim_time << std::endl;
+    std::cout << "time receive " << optim_time /*<< std::endl*/;
     return leader_board_package; 
 }
 
@@ -434,7 +434,10 @@ void network_layer::receiver() {
 
                 auto json_format = fromStr_toJson<Message>(json_format_str);
                 new_msg = fromJson<Message>(json_format);
-
+                if (new_msg.prev_node == -1)
+                    std::cout << " msg from: " << new_msg.client_id << std::endl;
+                else
+                    std::cout << " msg from: " << new_msg.prev_node << std::endl;
                 if (new_msg.type == OPERATION) { // create new Task object
                     // from message to task object
                     Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
@@ -494,6 +497,12 @@ void network_layer::receiver() {
             
             auto json_format = fromStr_toJson<Message>(json_format_str);
             new_msg = fromJson<Message>(json_format);
+
+            if (new_msg.prev_node == -1)
+                std::cout << " msg from: " << new_msg.client_id << std::endl;
+            else
+                std::cout << " msg from: " << new_msg.prev_node << std::endl;
+
             if (new_msg.type == OPERATION) { // create new Task object
                 // from message to task object
                 Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
@@ -575,7 +584,7 @@ void network_layer::sender() { // consumer -- new message
             // POINT 3 Network layer: starts message transmission
             newPoint(NT_START_SENDING, new_msg.dest);
 
-            n = my_send(client_sock, data);
+            n = my_send(client_sock, data, new_msg.dest);
             
             // POINT 4 Network layer: completes message transmission
             newPoint(NT_STOP_SENDING, new_msg.dest);
@@ -606,21 +615,27 @@ void network_layer::sender() { // consumer -- new message
                 fprintf(stderr, "ERROR, no such host\n");
                 //exit(0);
             }
+            int res=0;
+            do {
+                bzero((char *) &serv_addr, sizeof(serv_addr));
+                serv_addr.sin_family = AF_INET;
+                bcopy((char *)receiver->h_addr, 
+                    (char *)&serv_addr.sin_addr.s_addr,
+                    receiver->h_length);
+                serv_addr.sin_port = htons(portno);
 
-            bzero((char *) &serv_addr, sizeof(serv_addr));
-            serv_addr.sin_family = AF_INET;
-            bcopy((char *)receiver->h_addr, 
-                (char *)&serv_addr.sin_addr.s_addr,
-                receiver->h_length);
-            serv_addr.sin_port = htons(portno);
+                res = connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+                //std::cerr << "ERROR connecting";
+                if (res < 0) {
+                    std::cout << "server not found" << std::endl;
+                    sleep(2);
+                }
+            } while (res<0);
 
-            if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
-                std::cerr << "ERROR connecting";
-            
             // POINT 3  Network layer: starts message transmission
             newPoint(NT_START_SENDING, new_msg.dest);
 
-            n = my_send(sockfd, data);
+            n = my_send(sockfd, data, new_msg.dest);
             
             // POINT 4 Network layer: completes message transmission
             newPoint(NT_STOP_SENDING, new_msg.dest);
