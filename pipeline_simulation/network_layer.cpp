@@ -39,9 +39,10 @@ std::string my_receive(int socket_fd) {
     if (expected_input == 0)
         return leader_board_package;
     while(bytes_recv < expected_input) {
-        if(expected_input - bytes_recv <= max) {
+        /*if(expected_input - bytes_recv <= max) {
             len = expected_input - bytes_recv;
-        }
+        }*/
+        len = expected_input - bytes_recv;
         std::vector<char> leader_board_buffer(len);
         n = read(socket_fd, leader_board_buffer.data(), len);
         bytes_recv = bytes_recv + n;
@@ -50,7 +51,7 @@ std::string my_receive(int socket_fd) {
             return leader_board_package;
         }
         else {
-            for (int i =0; i<leader_board_buffer.size(); i++) {
+            for (int i =0; i<n; i++) {
                 leader_board_package = leader_board_package + leader_board_buffer[i];
             }
         }
@@ -438,8 +439,7 @@ void network_layer::receiver() {
                     // from message to task object
                     Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
                     task.size_ = new_msg.size_;
-                    std::vector<char> v(new_msg.values.begin(), new_msg.values.end());
-                    std::stringstream ss(std::string(v.begin(), v.end()));
+                    std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
                     torch::load(task.values, ss);
                     //task.values = torch::pickle_load(v).toTensor();
                     // POINT Network layer: received message
@@ -499,7 +499,7 @@ void network_layer::receiver() {
                 Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
                 task.size_ = new_msg.size_;
                 //std::vector<char> v(new_msg.values.begin(), new_msg.values.end());
-                std::istringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
+                std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
                 torch::load(task.values, ss);
                 //task.values = torch::pickle_load(v).toTensor();                
                 // POINT Network layer: received message
