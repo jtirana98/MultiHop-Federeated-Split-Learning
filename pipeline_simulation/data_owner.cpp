@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
         std::cout << "found them" << std::endl;
         // offline decission --  from profiling (?)
         sleep(2);
-        std::vector<int>cut_layers{1, 35}/*{10, 20, 30}*/;
+        std::vector<int>cut_layers{10, 35}/*{10, 20, 30}*/;
         //6 , 10, 
 
         int data_onwer_end = 2;
@@ -165,8 +165,7 @@ int main(int argc, char **argv) {
             // POINT 16 Execution phase: DO starts new batch
             auto point16 = sys_.my_network_layer.newPoint(DO_START_BATCH);
 
-            auto timestamp1 = std::chrono::steady_clock::now();
-
+            auto init_batch = std::chrono::steady_clock::now();
             Task task(sys_.myid, forward_, -1);
             task.size_ = batch.data.size(0);
             task.values = batch.data;
@@ -179,8 +178,8 @@ int main(int argc, char **argv) {
             auto timestamp2 = std::chrono::steady_clock::now();
 
             auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (timestamp2 - timestamp1).count();
-            std::cout << "Forward Model Part 1: " << _time << std::endl;
+                        (timestamp2 - init_batch).count();
+            //std::cout << "Forward Model Part 1: " << _time << std::endl;
             // POINT 17 Execution phase: DO produced activations from first part
             auto point17 = sys_.my_network_layer.newPoint(DO_FRWD_FIRST_PART);
            
@@ -192,7 +191,7 @@ int main(int argc, char **argv) {
             // POINT 18 Execution phase: DO received activations from CN
             auto point18 = sys_.my_network_layer.newPoint(DO_END_WAIT);
 
-            timestamp1 = std::chrono::steady_clock::now();
+            auto timestamp1 = std::chrono::steady_clock::now();
             task = sys_.exec(task, batch.target); // forward and backward
             // send task - backward
             sys_.my_network_layer.new_message(task, sys_.inference_path[1]);
@@ -206,7 +205,7 @@ int main(int argc, char **argv) {
             timestamp2 = std::chrono::steady_clock::now();
             _time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2 - timestamp1).count();
-            std::cout << "Forward and BackProp Model Part 2: " << _time << std::endl;
+            //std::cout << "Forward and BackProp Model Part 2: " << _time << std::endl;
             sys_.my_network_layer.mylogger.add_interval(point18, point19, fwd_bwd_opz);
 
             // wait for next backward task
@@ -219,7 +218,11 @@ int main(int argc, char **argv) {
             timestamp2 = std::chrono::steady_clock::now();
             _time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2 - timestamp1).count();
-            std::cout << "BackProp Model Part 1: " << _time << std::endl;
+            //std::cout << "BackProp Model Part 1: " << _time << std::endl;
+
+            _time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (timestamp2 - init_batch).count();
+            std::cout << "One batch " << _time << std::endl;
             // end of batch
             batch_index++;
             // POINT 21 Execution phase: DO completed training for first part

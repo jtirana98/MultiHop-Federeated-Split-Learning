@@ -71,11 +71,11 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
                 }
 
                 auto output = layer->forward(prev_out);
-
+                if (batch_index != 0)
+                    totaltimes.addEvent(Event(measure_type::forward, "", k));
                 if (k == avg_point) {
                     output = output.view({data.size(0), -1});
                 }
-
                 if (k != layers.size()-1) {
                     auto output_detached = output.clone().detach().requires_grad_(true);
                     detached_outputs.push_back(output_detached);
@@ -88,7 +88,7 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
 
                 k += 1;
             }
-                
+            //totaltimes.addEvent(Event(measure_type::forward, "", -1));
             if (batch_index == 0) {
                 std::stringstream data_load;
                 torch::save(prev_out, data_load);
@@ -101,23 +101,26 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
             
             torch::Tensor loss =
                    torch::nn::functional::cross_entropy(prev_out, batch.target);
+            loss.backward();
+            if (batch_index != 0)
+                totaltimes.addEvent(Event(backprop, "", layers.size()-1));
 
             running_loss += loss.item<double>() * data.size(0);
 
             auto prediction = prev_out.argmax(1);
             num_correct += prediction.eq(target).sum().item<int64_t>();
-            loss.backward();
+            
             if (batch_index != 0)
                 totaltimes.addEvent(Event(optimize, "", layers.size()-1));
             optimizers[optimizers.size()-1].step();
-            
+            if (batch_index != 0)
+                totaltimes.addEvent(Event(optimize, "", layers.size()-1));
             
             for (int i = 0; i< detached_outputs.size(); i++) {
-                if (batch_index != 0)
-                    totaltimes.addEvent(Event(backprop, "", i));
                 auto prev_grad = detached_outputs[detached_outputs.size()-1-i].grad().clone().detach();
                 
-                
+                if (batch_index != 0)
+                    totaltimes.addEvent(Event(backprop, "", layers.size()-i-2));
                 if (batch_index == 0) {
                     std::stringstream data_load;
                     torch::save(prev_grad, data_load);
@@ -125,12 +128,18 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
                         dataload{k, measure_type::gradients_load, data_load.tellp()});
                 }
             
-                
+
                 outputs[outputs.size() - 1 - i].backward(prev_grad);
                 if (batch_index != 0)
-                    totaltimes.addEvent(Event(optimize, "", i));
+                    totaltimes.addEvent(Event(backprop, "", layers.size()-i-2));
+
+                if (batch_index != 0)
+                    totaltimes.addEvent(Event(optimize, "", layers.size()-i-2));
 
                 optimizers[optimizers.size() - 2 - i].step();
+
+                if (batch_index != 0)
+                    totaltimes.addEvent(Event(optimize, "", layers.size()-i-2));
             }
 
             if (batch_index != 0) {

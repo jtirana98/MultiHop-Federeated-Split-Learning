@@ -6,7 +6,7 @@ std::queue<Message> pending_messages;
 int my_send(int socket_fd, std::string& data, int dest) {
     const char* data_ptr  = data.data();
     int data_size = data.size();
-    std::cout << "sending: " << data_size << " to: " << dest << std::endl;
+    std::cout << "sending: " << data_size << " to: " << dest /*<< std::endl*/;
     auto timestamp1 = std::chrono::steady_clock::now();
     std::string len = std::to_string(data_size);
     send(socket_fd, &data_size, sizeof(int), 0);
@@ -23,7 +23,7 @@ int my_send(int socket_fd, std::string& data, int dest) {
     auto optim_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2 - timestamp1).count();
 
-    std::cout << "time sending " << optim_time << std::endl;
+    std::cout << " time sending " << optim_time << std::endl;
     return 1;
 }
 
@@ -38,28 +38,40 @@ std::string my_receive(int socket_fd) {
     auto timestamp1 = std::chrono::steady_clock::now();
     if (expected_input == 0)
         return leader_board_package;
+    
+    char* buffer = new char[expected_input];
+    if (buffer == NULL) {
+        std::cout << "bad..." << std::endl;
+    }
+    auto buffer_ptr = buffer;
     while(bytes_recv < expected_input) {
         /*if(expected_input - bytes_recv <= max) {
             len = expected_input - bytes_recv;
         }*/
         len = expected_input - bytes_recv;
-        std::vector<char> leader_board_buffer(len);
-        n = read(socket_fd, leader_board_buffer.data(), len);
+        //std::vector<char> leader_board_buffer(len);
+        n = read(socket_fd, buffer_ptr, len);
         bytes_recv = bytes_recv + n;
+        buffer_ptr = buffer_ptr + n;
         if (bytes_recv == -1) {
             std::cout << "Communication error...";
-            return leader_board_package;
+            return "";
         }
-        else {
+        /*else {
             for (int i =0; i<n; i++) {
                 leader_board_package = leader_board_package + leader_board_buffer[i];
             }
-        }
+        */  
     }
+    leader_board_package.assign(buffer, expected_input);
     auto timestamp2 = std::chrono::steady_clock::now();
     auto optim_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2 - timestamp1).count();
     std::cout << "time receive " << optim_time /*<< std::endl*/;
+
+    delete[] buffer;
+    
+    
     return leader_board_package; 
 }
 
@@ -331,12 +343,21 @@ void network_layer::new_message(refactoring_data task, int send_to, bool compute
 }
 
 void network_layer::put_internal_task(Task task) {
-    {
-    std::unique_lock<std::mutex> lock(m_mutex_new_task);
-    pending_tasks.push(task);
-    }
-
-    m_cv_new_task.notify_one();
+   //f (is_data_owner || (!is_data_owner && task.type == operation::forward_)) {
+        {
+        std::unique_lock<std::mutex> lock(m_mutex_new_task);
+        pending_tasks.push(task);
+        }
+        m_cv_new_task.notify_one();
+   /* }
+    else {
+        {
+        std::unique_lock<std::mutex> lock(m_mutex_new_task_);
+        pending_tasks_.push(task);
+        }
+        m_cv_new_task_.notify_one();
+    }*/
+    
 }
 
 void network_layer::put_internal_task(refactoring_data task) {

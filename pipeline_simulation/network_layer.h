@@ -34,6 +34,7 @@
 class network_layer {
  public:
     int myid;
+    bool is_data_owner;
     std::map<int, std::pair<std::string, int>> rooting_table; // (node_id, (ip, port))
     std::mutex m_mutex_new_message;
     std::condition_variable m_cv_new_message;
@@ -43,6 +44,11 @@ class network_layer {
     std::mutex m_mutex_new_task;
     std::condition_variable m_cv_new_task;
 
+    // pending tasks for the APP - compute node 
+    std::queue<Task> pending_tasks_;
+    std::mutex m_mutex_new_task_;
+    std::condition_variable m_cv_new_task_;
+
     // pending refactor messages for the APP
     std::queue<refactoring_data> pending_refactor_tasks;
     std::mutex m_mutex_new_refactor_task;
@@ -51,7 +57,8 @@ class network_layer {
     logger mylogger;
     std::thread logger_thread;
 
-    network_layer(int myid, std::string log_dir) : myid(myid), 
+    network_layer(int myid, std::string log_dir, bool is_data_owner) : myid(myid), 
+    is_data_owner(is_data_owner),
     mylogger(myid, log_dir),
     logger_thread(&logger::logger_, &mylogger) 
     {
@@ -70,6 +77,7 @@ class network_layer {
     void put_internal_task(Task task);
     void put_internal_task(refactoring_data task);
 
+    //Task check_new_task(); //consumer - new task
     Task check_new_task(); //consumer - new task
     refactoring_data check_new_refactor_task(); //consumer - new task
 

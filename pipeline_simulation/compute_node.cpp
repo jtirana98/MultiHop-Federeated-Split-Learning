@@ -51,13 +51,13 @@ int main(int argc, char **argv) {
     // ----------- TEST ------------
     //sys_.init_state(vgg, vgg_model::v11, 10, 1, 3);
     //sys_.init_state_vector(resnet, resnet_model::resnet18, 10, 9, 13);
-    /*
+    
     auto layers = sys_.clients_state.find(0)->second.layers;
     std::cout << sys_.clients_state.find(1)->second.client_id << std::endl;
     for (int i = 0; i< layers.size(); i++) {
         std::cout << "new layer: "<< i+1 << " "<< layers[i] << std::endl;
     }
-    */
+    
     // -------- TEST ------------
 
     // POINT 12 Initialization phase: completed
@@ -66,7 +66,12 @@ int main(int argc, char **argv) {
     while (true) {
         // POINT 13 Execution phase: CN waits for new task
         sys_.my_network_layer.newPoint(CN_START_WAIT);
+        auto timestamp1_ = std::chrono::steady_clock::now();
         next_task = sys_.my_network_layer.check_new_task();
+        auto timestamp2_ = std::chrono::steady_clock::now();
+        auto __time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (timestamp2_ - timestamp1_).count();
+            std::cout << "Waiting... " << __time << std::endl;
 
         interval_type type_;
         std::string operation;
@@ -89,7 +94,7 @@ int main(int argc, char **argv) {
 
         // POINT 14 Execution phase: CN starts executing task
         auto point1 = sys_.my_network_layer.newPoint(CN_START_EXEC, next_task.client_id, operation);
-
+        auto timestamp1 = std::chrono::steady_clock::now();
         auto task = sys_.exec(next_task, tmp); 
 
         if (task.type != noOp) {
@@ -101,8 +106,10 @@ int main(int argc, char **argv) {
             }
             sys_.my_network_layer.new_message(task, next_node, keep_connection);
         }
-
-
+        auto timestamp2 = std::chrono::steady_clock::now();
+        auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (timestamp2 - timestamp1).count();
+            std::cout << "Computing: " << operation << ": " << _time << std::endl;
         // POINT 15 Execution phase: CN completed a task
         auto point2 = sys_.my_network_layer.newPoint(CN_END_EXEC, next_task.client_id, operation);
         // 14 - 15 interval

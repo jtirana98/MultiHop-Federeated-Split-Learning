@@ -46,7 +46,7 @@ class systemAPI  {
     systemAPI(bool is_data_owner, int myid, std::string log_dir) : 
     is_data_owner(is_data_owner),
     myid(myid),
-    my_network_layer(myid, log_dir),
+    my_network_layer(myid, log_dir, is_data_owner),
     rcv_thread(&network_layer::receiver, &my_network_layer),
     snd_thread(&network_layer::sender, &my_network_layer) { };
 
