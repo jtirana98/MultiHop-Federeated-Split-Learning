@@ -126,42 +126,37 @@ void Total::computeIntervals() { // for per-layer analysis
     std::vector<int> new_batch_forward, new_batch_backprop, new_batch_optimizer;
 
     // forward
-    for (int i=0; i < forward_timestamps.size(); i=i+2) {
+    for (int i=0; i< forward_timestamps.size(); i++) {
         auto part1 = forward_timestamps[i];
-        auto part2 = forward_timestamps[i+1];
 
-        /*if (i == forward_timestamps.size()-1) {
+        if (i == forward_timestamps.size()-1) {
             auto forw_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (backprop_timestamps[0].getTimestamp() - part1.getTimestamp()).count();
             new_batch_forward.push_back(forw_time);
-        //}*/
-        //else {
-        auto forw_time = std::chrono::duration_cast<std::chrono::milliseconds>
-                    (part2.getTimestamp()- part1.getTimestamp()).count();
-        //std::cout << forw_time << std::endl;
-        new_batch_forward.push_back(forw_time);
-        //}
+        }
+        else {
+            auto forw_time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (forward_timestamps[i+1].getTimestamp() - part1.getTimestamp()).count();
+            new_batch_forward.push_back(forw_time);
+        }
 
     }
-    //std::cout << "----" << std::endl;
     // backprop and optimizer
-    for (int i = backprop_timestamps.size() - 1; i > 0; i = i -2) {
-        auto part1 = backprop_timestamps[i];
-        auto part2 = backprop_timestamps[i-1];
-        
-        auto part1_ = optimize_timestamps[i];
-        auto part2_ = optimize_timestamps[i-1];
-        
+    for (int i = backprop_timestamps.size() - 1; i > 0; i--) {
+        auto part1 = backprop_timestamps[i-1];
+        auto part2 = optimize_timestamps[i-1];
+        auto part3 = backprop_timestamps[i];
 
         auto back_time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (part1.getTimestamp() - part2.getTimestamp()).count();
+                        (part2.getTimestamp() - part1.getTimestamp()).count();
         new_batch_backprop.push_back(back_time);
 
         auto opti_time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (part1_.getTimestamp() - part2_.getTimestamp()).count();
+                        (part3.getTimestamp() - part2.getTimestamp()).count();
         new_batch_optimizer.push_back(opti_time);
     }
     
+
     forward_timestamps.clear();
     backprop_timestamps.clear();
     optimize_timestamps.clear();
@@ -180,6 +175,7 @@ void Total::printRes_intervals() {
     std::vector<std::vector<double>> log_{forw, back, opt};
 
     for (int i = 0; i < 3; i++) {
+        std::cout << str_print[i] << std::endl;
         for (int j=0; j<forward_split[0].size(); j++) { // for each layer
             count = 0;
             sum = 0;
@@ -213,7 +209,6 @@ void Total::printRes_intervals() {
 
     
     for (int i = 0; i < 3; i++) {
-        std::cout << str_print[i] << std::endl;
         for (int j=0; j<log_[i].size(); j++) {
             std::cout << log_[i][j] << "\t";
         }
