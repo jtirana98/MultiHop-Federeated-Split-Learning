@@ -25,6 +25,21 @@ int main(int argc, char **argv) {
         .default_value(std::string("main_experiment"))
         .nargs(1);
 
+    program.add_argument("-s", "--splits")
+        .help("The splits")
+        .default_value(std::string("10,35"))
+        .nargs(1);
+
+    program.add_argument("-d", "--data_owners")
+        .help("The list of data owners")
+        .default_value(std::string("0,2"))
+        .nargs(1);
+
+    program.add_argument("-c", "--compute_nodes")
+        .help("The list of compute nodes")
+        .default_value(std::string("1"))
+        .nargs(1);
+
     try {
         program.parse_args(argc, argv);
     }
@@ -45,8 +60,34 @@ int main(int argc, char **argv) {
         // POINT 5 Initialization phase: init node starts preperation
         sys_.my_network_layer.newPoint(INIT_START_MSG_PREP);
 
-        std::vector<int>data_owners{0};
-        std::vector<int>compute_nodes = {1};
+        auto cut_layers_ = program.get<std::string>("-s");
+        auto data_owners_ = program.get<std::string>("-d");
+        auto compute_nodes_ = program.get<std::string>("-c");
+
+        const char separator = ',';
+        std::string val;
+        std::vector<int>data_owners, compute_nodes, cut_layers;
+
+        std::stringstream streamData(cut_layers_);
+        while (std::getline(streamData, val, separator)) {
+            if (val != "") {
+                cut_layers.push_back(stoi(val));
+            }
+        }
+
+        streamData = std::stringstream(data_owners_);
+        while (std::getline(streamData, val, separator)) {
+            if (val != "") {
+                data_owners.push_back(stoi(val));
+            }
+        }
+
+        streamData  = std::stringstream(compute_nodes_);
+        while (std::getline(streamData, val, separator)) {
+            if (val != "") {
+                compute_nodes.push_back(stoi(val));
+            }
+        } 
 
         int num_parts = compute_nodes.size() + 2;
 
@@ -55,7 +96,7 @@ int main(int argc, char **argv) {
         std::cout << "found them" << std::endl;
         // offline decission --  from profiling (?)
         sleep(2);
-        std::vector<int>cut_layers{10, 35}/*{10, 20, 30}*/;
+        //std::vector<int>cut_layers{10, 35}/*{10, 20, 30}*/;
         //6 , 10, 
 
         int data_onwer_end = 2;
