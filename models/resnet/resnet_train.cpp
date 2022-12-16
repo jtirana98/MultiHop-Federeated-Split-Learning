@@ -38,28 +38,25 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     }
 
     val_samples = num_samples*(10.0/100);
-    //#ifdef COMMENT
-    auto datasets = data_owners_data(path_selection, 1, type, false);
 
-    auto validation_dataset = datasets[0]
+    auto datasets = data_owners_data(path_selection, 1, type, false);
+    
+    /*auto validation_dataset = datasets[0]
                                 .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
                                 .map(torch::data::transforms::Stack<>());
     auto validation_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
             std::move(validation_dataset), batch_size);
-
-    
-    
-   
+    */
     auto train_dataset = datasets[0]
+                                    .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
                                     .map(ConstantPad(4))
                                     .map(RandomHorizontalFlip())
                                     .map(RandomCrop({32, 32}))
                                     .map(torch::data::transforms::Stack<>());
-    auto train_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(std::move(train_dataset), batch_size);
-        
-        // = &train_dataloader;
-
-    int train_samples = train_dataset.size().value();
+    auto train_samples = train_dataset.size().value();
+    
+    auto train_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
+            std::move(train_dataset), batch_size);
     
     //#ifdef COMMENT
     int num_classes = (type == CIFAR_10)? 10 : 100;
@@ -67,7 +64,7 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     
       
     bool usebottleneck = (model_option <=2) ? false : true;
-    //bool usebottleneck = false;
+    usebottleneck = false;
     ResNet/*<Block>*/ model(layers, num_classes, usebottleneck);
     
     if(!test)
@@ -137,7 +134,7 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
             end_batch_ = Event(measure_type::end_batch, "", -1);
             totaltimes.addNew(start_batch, end_batch_);
             batch_index = batch_index + 1;
-            if (!test && (batch_index % 15 == 0)) {
+            if (batch_index % 15 == 0) {
                     totaltimes.printRes(-1);
                     totaltimes = Total();
                     break;
@@ -175,7 +172,7 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
                 << sample_mean_loss << ", Accuracy: " << accuracy << " " << num_correct << std::endl;
 
             
-            { // validation set
+            /*{ // validation set
             running_loss = 0.0;
             num_correct = 0;
             torch::NoGradGuard no_grad;
@@ -202,11 +199,10 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
             
             if (test_sample_mean_loss < best_loss) {
                 torch::save(model, model_path);
-                //model->save(output_archive);
-                //output_archive.save_to(model_path);
+                best_loss = test_sample_mean_loss;
             }
-
             }
+            */
         }
     }
 

@@ -6,7 +6,11 @@ std::queue<Message> pending_messages;
 int my_send(int socket_fd, std::string& data, int dest) {
     const char* data_ptr  = data.data();
     int data_size = data.size();
-    std::cout << "sending: " << data_size << " to: " << dest /*<< std::endl*/;
+    
+    if (data_size < 300)
+        std::cout << data << std::endl;
+    
+    //std::cout << "sending: " << data_size << " to: " << dest /*<< std::endl*/;
     auto timestamp1 = std::chrono::steady_clock::now();
     std::string len = std::to_string(data_size);
     send(socket_fd, &data_size, sizeof(int), 0);
@@ -23,7 +27,7 @@ int my_send(int socket_fd, std::string& data, int dest) {
     auto optim_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2 - timestamp1).count();
 
-    std::cout << " time sending " << optim_time << std::endl;
+    //std::cout << " time sending " << optim_time << std::endl;
     return 1;
 }
 
@@ -34,7 +38,7 @@ std::string my_receive(int socket_fd) {
     std::string leader_board_package= "";
 
     read(socket_fd,&expected_input,sizeof(int));
-    std::cout << "I expect: " << expected_input << std::endl;
+    //std::cout << "I expect: " << expected_input << std::endl;
     auto timestamp1 = std::chrono::steady_clock::now();
     if (expected_input == 0)
         return leader_board_package;
@@ -67,7 +71,7 @@ std::string my_receive(int socket_fd) {
     auto timestamp2 = std::chrono::steady_clock::now();
     auto optim_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2 - timestamp1).count();
-    std::cout << "time receive " << optim_time /*<< std::endl*/;
+    //std::cout << "time receive " << optim_time /*<< std::endl*/;
 
     delete[] buffer;
     
@@ -455,10 +459,10 @@ void network_layer::receiver() {
 
                 auto json_format = fromStr_toJson<Message>(json_format_str);
                 new_msg = fromJson<Message>(json_format);
-                if (new_msg.prev_node == -1)
+                /*if (new_msg.prev_node == -1)
                     std::cout << " msg from: " << new_msg.client_id << std::endl;
                 else
-                    std::cout << " msg from: " << new_msg.prev_node << std::endl;
+                    std::cout << " msg from: " << new_msg.prev_node << std::endl;*/
                 if (new_msg.type == OPERATION) { // create new Task object
                     // from message to task object
                     Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
@@ -486,7 +490,7 @@ void network_layer::receiver() {
                     
                     if(new_msg.read_table == 1) {
                         refactor_obj.rooting_table = new_msg.rooting_table;
-                    }
+                     }
                     
                     // POINT Network layer: received message
                     newPoint(NT_RECEIVED_MSG);
@@ -518,12 +522,12 @@ void network_layer::receiver() {
             
             auto json_format = fromStr_toJson<Message>(json_format_str);
             new_msg = fromJson<Message>(json_format);
-
+            /*
             if (new_msg.prev_node == -1)
                 std::cout << " msg from: " << new_msg.client_id << std::endl;
             else
                 std::cout << " msg from: " << new_msg.prev_node << std::endl;
-
+            */
             if (new_msg.type == OPERATION) { // create new Task object
                 // from message to task object
                 Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
@@ -551,6 +555,10 @@ void network_layer::receiver() {
                 refactor_obj.num_class = new_msg.num_classes;
                 refactor_obj.model_name_ = new_msg.model_name;
                 refactor_obj.model_type_ = new_msg.model_type;
+                
+                if(new_msg.read_table == 1) {
+                        refactor_obj.rooting_table = new_msg.rooting_table;
+                     }
                 
                 // POINT Network layer: received message
                 newPoint(NT_RECEIVED_MSG);
@@ -614,7 +622,7 @@ void network_layer::sender() { // consumer -- new message
         else{
             auto client_addr = rooting_table.find(new_msg.dest)->second;
             portno = client_addr.second;
-            
+            std::cout << "sending " << client_addr << " " << portno << std::endl;
             while(true) {
                 sockfd = socket(AF_INET, SOCK_STREAM, 0);
 

@@ -200,10 +200,11 @@ void systemAPI::refactor(refactoring_data refactor_message) {
     int num_class = refactor_message.num_class;
     int start = refactor_message.start;
     int end = refactor_message.end;
-
+    
+    std::cout << "TABLE: " << refactor_message.rooting_table.size() << std::endl;
     if (refactor_message.rooting_table.size() > 0) {
         for (int i=0; i < refactor_message.rooting_table.size(); i++) {
-            std::pair<int, std::string> addr = refactor_message.rooting_table[i];\
+            std::pair<int, std::string> addr = refactor_message.rooting_table[i];
             if(addr.first == 0) {
                 continue;
             }

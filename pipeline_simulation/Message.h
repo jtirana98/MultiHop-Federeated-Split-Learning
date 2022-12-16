@@ -326,7 +326,7 @@ T fromJson(const Json::Value& data) {
         object.*(property.member) = Json::asAny<Type>(data[property.name]);
 
     });
-    if (Json::asAny<int>(data["type"]) == OPERATION) { // operator
+    if (Json::asAny<int>(data["type"]) == OPERATION) { // operation
         constexpr auto nbProperties = std::tuple_size<decltype(T::properties_operator)>::value;
         // We iterate on the index sequence of size `nbProperties`
         for_sequence(std::make_index_sequence<nbProperties>{}, [&](auto i){
@@ -521,8 +521,6 @@ Json::Value fromStr_toJson(const std::string& data) {
             data_[property.name] = Json::getValue<Type>(values.find(property.name)->second);
         }); 
     }
-
-    
    return data_;
 }
 
@@ -534,7 +532,7 @@ struct Message {
     int start=-1, end=-1, prev=-1, next=-1, dataset=-1, num_classes=-1, model_name=-1, model_type=-1;
     std::vector<int> data_owners;
     std::vector<std::pair<int, std::string>> rooting_table; // id: ip --> ignoring port num
-    int read_table=-1;
+    int read_table=1;
     // operation
     int client_id=-1, prev_node=-1, size_=-1, type_op=-1;
     std::string values;
@@ -544,7 +542,7 @@ struct Message {
         property(&Message::type, "type")
     );
 
-    constexpr static auto properties_refactor = std::make_tuple(
+    constexpr static auto properties_refactor = std::make_tuple( // refactor message
         property(&Message::start, "start"),
         property(&Message::end, "end"),
         property(&Message::prev, "prev"),
