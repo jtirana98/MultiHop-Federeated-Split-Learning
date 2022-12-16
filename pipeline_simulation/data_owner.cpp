@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
 
     program.add_argument("-d", "--data_owners")
         .help("The list of data owners")
-        .default_value(std::string("0"))
+        .default_value(std::string("0,2"))
         .nargs(1);
 
     program.add_argument("-c", "--compute_nodes")
@@ -196,7 +196,7 @@ int main(int argc, char **argv) {
     // POINT 12 Initialization phase: completed
     sys_.my_network_layer.newPoint(INIT_END_INIT);
     
-    for (size_t round = 0; round != 0/*sys_.rounds*/; ++round) {
+    for (size_t round = 0; round != sys_.rounds; ++round) {
         int batch_index = 0;
         sys_.zero_metrics();
         int total_num = 0;
@@ -220,7 +220,7 @@ int main(int argc, char **argv) {
 
             auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2 - init_batch).count();
-            //std::cout << "Forward Model Part 1: " << _time << std::endl;
+            std::cout << "Forward Model Part 1: " << _time << std::endl;
             // POINT 17 Execution phase: DO produced activations from first part
             auto point17 = sys_.my_network_layer.newPoint(DO_FRWD_FIRST_PART);
            
@@ -246,7 +246,7 @@ int main(int argc, char **argv) {
             timestamp2 = std::chrono::steady_clock::now();
             _time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2 - timestamp1).count();
-            //std::cout << "Forward and BackProp Model Part 2: " << _time << std::endl;
+            std::cout << "Forward and BackProp Model Part 2: " << _time << std::endl;
             sys_.my_network_layer.mylogger.add_interval(point18, point19, fwd_bwd_opz);
 
             // wait for next backward task
@@ -259,7 +259,7 @@ int main(int argc, char **argv) {
             timestamp2 = std::chrono::steady_clock::now();
             _time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2 - timestamp1).count();
-            //std::cout << "BackProp Model Part 1: " << _time << std::endl;
+            std::cout << "BackProp Model Part 1: " << _time << std::endl;
 
             _time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2 - init_batch).count();
