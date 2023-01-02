@@ -33,9 +33,11 @@ class Task {
     int prev_node;
     int model_part;
     int size_;
+    bool check_=false;
     operation type;
     torch::Tensor values;
     torch::nn::Sequential model_part_;
+    std::string model_parts;
 
     Task(int client_id, operation type, int prev_node) : 
         client_id(client_id),

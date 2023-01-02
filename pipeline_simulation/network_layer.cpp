@@ -195,7 +195,8 @@ void network_layer::findPeers(int num, bool aggr) {
         close(sockfd);
         num--;
     }
-    put_internal_task(Task());
+    if(aggr)
+        put_internal_task(Task());
 
 }
 
@@ -242,7 +243,7 @@ void network_layer::findInit(bool aggr) {
         serv_addr.sin_port = htons(my_port);
 
     if (bind(my_socket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) 
-        perror("ERROR on binding");
+        perror("ERROR on binding!");
 
     u_int yes = 1;
     if (
@@ -283,8 +284,10 @@ void network_layer::findInit(bool aggr) {
 
     close(newsockfd);
     close(my_socket);
-    std::cout << "free" << std::endl;
-    put_internal_task(Task());
+    if(!is_data_owner || (is_data_owner && aggr)){
+        std::cout << "free" << std::endl;
+        put_internal_task(Task());
+    }
 }
 
 void network_layer::new_message(Task task, int send_to, bool compute_to_compute) { // produce -- new message
@@ -301,8 +304,11 @@ void network_layer::new_message(Task task, int send_to, bool compute_to_compute)
         msg.model_part = task.model_part;
         std::stringstream s;
         torch::save(task.model_part_, s);
-
-        msg.values = s.str();
+        if(task.check_) {
+            msg.values = task.model_parts;
+        }
+        else
+            msg.values = s.str();
         msg.save_connection = (compute_to_compute) ? 1 : 0;
         msg.dest = send_to;
     }
@@ -434,7 +440,7 @@ void network_layer::receiver() {
     sleep(1);
     std::pair<std::string, int> my_addr = rooting_table.find(myid)->second;
     my_port = my_addr.second;
-    std::cout << "info " << my_port << my_addr.first << std::endl;
+    // " << my_port << my_addr.first << std::endl;
     my_socket =  socket(AF_INET, SOCK_STREAM, 0);
     if (my_socket < 0) 
         perror("ERROR opening socket");
@@ -557,8 +563,9 @@ void network_layer::receiver() {
                 task.size_ = new_msg.size_;
                 
                 if((operation)new_msg.type_op == operation::aggregation_) {
-                    std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
-                    torch::load(task.model_part_, ss);
+                    // ss(std::string(new_msg.values.begin(), new_msg.values.end()));
+                    //torch::load(task.model_part_, ss);
+                    task.model_parts = new_msg.values;
                 }
                 else{
                     std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));

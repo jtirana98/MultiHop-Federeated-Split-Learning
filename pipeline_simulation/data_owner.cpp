@@ -181,7 +181,7 @@ int main(int argc, char **argv) {
 
     int num_classes = (type == CIFAR_10)? 10 : 100;
     
-    std::cout << sys_.parts[0].layers.size() << std::endl;
+    /*std::cout << sys_.parts[0].layers.size() << std::endl;
     std::cout << sys_.parts[1].layers.size() << std::endl;
     for (int i = 0; i< sys_.parts[0].layers.size(); i++) {
         std::cout << "new layer: "<< i+1 << " "<< sys_.parts[0].layers[i] << std::endl;
@@ -192,7 +192,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i< sys_.parts[1].layers.size(); i++) {
         std::cout << "new layer: "<< i+1 << " "<< sys_.parts[1].layers[i] << std::endl;
     }
-    
+    */
     // send aggregation task:
     auto newAggTask = Task(myID, operation::aggregation_, -1);
     newAggTask.model_part = 1;
