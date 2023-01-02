@@ -140,7 +140,7 @@ void network_layer::findPeers(int num, bool aggr) {
             perror("recvfrom");
             return ;
         }
-        if (registered.find(id) != registered.end())\
+        if (registered.find(id) != registered.end())
             continue;
         registered.insert(id);
         std::cout << "NODE: " << id << " just registered" << std::endl;
@@ -269,7 +269,12 @@ void network_layer::findInit(bool aggr) {
 
     // update init's node ip address
     std::map<int, std::pair<std::string, int>>::iterator itr;
-    itr = rooting_table.find(0);
+    
+    int id_ = 0;
+    if(aggr)
+        id_ = 1;
+    
+    itr = rooting_table.find(id);
     int port_n = itr->second.second;
     itr->second = std::pair<std::string, int>(str, port_n);
 
@@ -277,8 +282,9 @@ void network_layer::findInit(bool aggr) {
     send(newsockfd, buffer, 10, 0);
 
     bzero(buffer,256);
-
-    int n = read(newsockfd,buffer,255);
+    socklen_t addrlen = sizeof(addr);
+    //int n = read(newsockfd,buffer,255);
+    int n = recvfrom(newsockfd,buffer,255, MSG_WAITALL,(struct sockaddr *) &addr, &addrlen);
     if (n < 0) perror("ERROR reading from socket");
     printf("Here is the message: %s\n",buffer);
 
