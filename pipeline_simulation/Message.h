@@ -528,6 +528,7 @@ struct Message {
     int save_connection; 
     int type; //operation=0 or refacto=1,2
     int dest;
+    int model_part;
     // refactor
     int start=-1, end=-1, prev=-1, next=-1, dataset=-1, num_classes=-1, model_name=-1, model_type=-1;
     std::vector<int> data_owners;
@@ -561,7 +562,8 @@ struct Message {
         property(&Message::prev_node, "prev_node"),
         property(&Message::size_, "size_"),
         property(&Message::type_op, "type_op"),
-        property(&Message::values, "values")
+        property(&Message::values, "values"),
+        property(&Message::values, "model_part")
     );
 };
 

@@ -79,7 +79,7 @@ std::string my_receive(int socket_fd) {
     return leader_board_package; 
 }
 
-void network_layer::findPeers(int num) {
+void network_layer::findPeers(int num, bool aggr) {
     int completed = num;
     // mulitcast address
     std::string s = "230.0.0.0";
@@ -88,7 +88,11 @@ void network_layer::findPeers(int num) {
     char *group = group_;
     int port = 4321;
     std::set<int> registered;
-
+    
+    if(aggr) {
+        port = 4322;
+    }
+    std::cout << port << std::endl;
     // open a multicast socket
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd < 0) {
@@ -195,13 +199,17 @@ void network_layer::findPeers(int num) {
 
 }
 
-void network_layer::findInit() {
+void network_layer::findInit(bool aggr) {
     // mulitcast address
     std::string s = "230.0.0.0";
     char group_[s.length() + 1];
     strcpy(group_, s.c_str());
     char *group = group_;
     int port = 4321;
+
+    if(aggr) {
+        port = 4322;
+    }
 
     int id=myid;
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -288,17 +296,25 @@ void network_layer::new_message(Task task, int send_to, bool compute_to_compute)
     msg.client_id = task.client_id;
     msg.size_ = task.size_;
     msg.type_op = task.type;
-    //auto data = torch::pickle_save(task.values);
-    //std::string s(data.begin(), data.end());
-    //msg.values = s;
     
-    std::stringstream s;
-    torch::save(task.values, s);
-    msg.values = s.str();
-    
-    msg.save_connection = (compute_to_compute) ? 1 : 0;
+    if(msg.type_op == operation::aggregation_) {
+        msg.model_part = task.model_part;
+        std::stringstream s;
+        torch::save(task.model_part_, s);
 
-    msg.dest = send_to;
+        msg.values = s.str();
+        msg.save_connection = (compute_to_compute) ? 1 : 0;
+        msg.dest = send_to;
+    }
+    else{
+        std::stringstream s;
+        torch::save(task.values, s);
+        msg.values = s.str();
+        
+        msg.save_connection = (compute_to_compute) ? 1 : 0;
+
+        msg.dest = send_to;
+    }
 
     {
     std::unique_lock<std::mutex> lock(m_mutex_new_message);
@@ -414,10 +430,11 @@ void network_layer::receiver() {
     
     // lock
     auto dump = check_new_task();
-    std::cout << "let's go" << std::endl;
+    std::cout << "let's go " << myid << std::endl;
     sleep(1);
     std::pair<std::string, int> my_addr = rooting_table.find(myid)->second;
     my_port = my_addr.second;
+    std::cout << "info " << my_port << my_addr.first << std::endl;
     my_socket =  socket(AF_INET, SOCK_STREAM, 0);
     if (my_socket < 0) 
         perror("ERROR opening socket");
@@ -467,10 +484,16 @@ void network_layer::receiver() {
                     // from message to task object
                     Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
                     task.size_ = new_msg.size_;
-                    std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
-                    torch::load(task.values, ss);
-                    //task.values = torch::pickle_load(v).toTensor();
-                    // POINT Network layer: received message
+
+                    if((operation)new_msg.type_op == operation::aggregation_) {
+                        std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
+                        torch::load(task.model_part_, ss);
+                    }
+                    else{
+                        std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
+                        torch::load(task.values, ss);
+                    }
+                    
                     newPoint(NT_RECEIVED_MSG, task.client_id);
                     put_internal_task(task);
                 }
@@ -532,11 +555,16 @@ void network_layer::receiver() {
                 // from message to task object
                 Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
                 task.size_ = new_msg.size_;
-                //std::vector<char> v(new_msg.values.begin(), new_msg.values.end());
-                std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
-                torch::load(task.values, ss);
-                //task.values = torch::pickle_load(v).toTensor();                
-                // POINT Network layer: received message
+                
+                if((operation)new_msg.type_op == operation::aggregation_) {
+                    std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
+                    torch::load(task.model_part_, ss);
+                }
+                else{
+                    std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
+                    torch::load(task.values, ss);
+                }
+                
                 newPoint(NT_RECEIVED_MSG, task.client_id);
                 
                 put_internal_task(task);
@@ -622,7 +650,7 @@ void network_layer::sender() { // consumer -- new message
         else{
             auto client_addr = rooting_table.find(new_msg.dest)->second;
             portno = client_addr.second;
-            std::cout << "sending " << client_addr << " " << portno << std::endl;
+            std::cout << "sending: " << client_addr << " " << portno << std::endl;
             while(true) {
                 sockfd = socket(AF_INET, SOCK_STREAM, 0);
 

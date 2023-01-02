@@ -12,7 +12,8 @@ enum operation {
     backward_=2,
     optimize_=3,
     refactoring_=4,
-    noOp=5
+    aggregation_ = 5,
+    noOp=6
 };
 
 struct refactoring_data {
@@ -30,9 +31,11 @@ class Task {
  public:
     int client_id;
     int prev_node;
+    int model_part;
     int size_;
     operation type;
     torch::Tensor values;
+    torch::nn::Sequential model_part_;
 
     Task(int client_id, operation type, int prev_node) : 
         client_id(client_id),

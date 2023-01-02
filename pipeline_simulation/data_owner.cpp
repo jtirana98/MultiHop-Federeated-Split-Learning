@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
 
     program.add_argument("-s", "--splits")
         .help("The splits")
-        .default_value(std::string("10,35"))
+        .default_value(std::string("10,32"))
         .nargs(1);
 
     program.add_argument("-d", "--data_owners")
@@ -93,11 +93,8 @@ int main(int argc, char **argv) {
 
         sys_.my_network_layer.findPeers(data_owners.size() 
                                             + compute_nodes.size() - 1);
-        std::cout << "found them" << std::endl;
-        // offline decission --  from profiling (?)
+        std::cout << "found them" << std::endl; 
         sleep(2);
-        //std::vector<int>cut_layers{10, 35}/*{10, 20, 30}*/;
-        //6 , 10, 
 
         int data_onwer_end = 2;
         int data_owner_beg = 8;
@@ -162,6 +159,10 @@ int main(int argc, char **argv) {
         sys_.refactor(client_message);
        
     }
+
+    // find aggregator
+    sys_.my_network_layer.findInit(true);
+
     std::cout << "loading data..." << std::endl;
     // load dataset
     int type = client_message.dataset;
@@ -192,10 +193,28 @@ int main(int argc, char **argv) {
         std::cout << "new layer: "<< i+1 << " "<< sys_.parts[1].layers[i] << std::endl;
     }
     
+    // send aggregation task:
+    auto newAggTask = Task(myID, operation::aggregation_, -1);
+    newAggTask.model_part = 1;
+
+    for (int i = 0; i < 15; i++) {
+        auto timestamp1_ = std::chrono::steady_clock::now();
+        // send aggregation task
+        newAggTask.model_part_=sys_.parts[0].layers[0];
+        sys_.my_network_layer.new_message(newAggTask,-1);
+        // wait for updated model
+
+        auto next_task = sys_.my_network_layer.check_new_task();
+
+        auto timestamp2_ = std::chrono::steady_clock::now();
+        auto __time = std::chrono::duration_cast<std::chrono::milliseconds>
+                            (timestamp2_ - timestamp1_).count();
+            std::cout << "RTT: " << __time << std::endl;
+    }
 
     // POINT 12 Initialization phase: completed
     sys_.my_network_layer.newPoint(INIT_END_INIT);
-    
+    /*
     for (size_t round = 0; round != sys_.rounds; ++round) {
         int batch_index = 0;
         sys_.zero_metrics();
@@ -280,5 +299,5 @@ int main(int argc, char **argv) {
         std::cout << "Epoch [" << (round + 1) << "/" << sys_.rounds << "], Trainset - Loss: "
                 << sample_mean_loss << ", Accuracy: " << accuracy << " " << sys_.num_correct << std::endl;
 
-    }
+    }*/
 }
