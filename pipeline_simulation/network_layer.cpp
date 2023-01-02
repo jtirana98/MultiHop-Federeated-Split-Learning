@@ -6,9 +6,9 @@ std::queue<Message> pending_messages;
 int my_send(int socket_fd, std::string& data, int dest) {
     const char* data_ptr  = data.data();
     int data_size = data.size();
-    
-    if (data_size < 300)
-        std::cout << data << std::endl;
+    std::cout << "--> " << data_size << std::endl;
+    //if (data_size < 300)
+    //std::cout << "-->" << data << std::endl;
     
     //std::cout << "sending: " << data_size << " to: " << dest /*<< std::endl*/;
     auto timestamp1 = std::chrono::steady_clock::now();
@@ -272,12 +272,12 @@ void network_layer::findInit(bool aggr) {
     
     int id_ = 0;
     if(aggr)
-        id_ = 1;
+        id_ = -1;
     
-    itr = rooting_table.find(id);
+    itr = rooting_table.find(id_);
     int port_n = itr->second.second;
     itr->second = std::pair<std::string, int>(str, port_n);
-
+    std::cout << "addr " << str << std::endl;
     char buffer[256];
     send(newsockfd, buffer, 10, 0);
 
@@ -315,6 +315,7 @@ void network_layer::new_message(Task task, int send_to, bool compute_to_compute)
         }
         else
             msg.values = s.str();
+        //std::cout << "!!! " << msg.values.size() << std::endl;
         msg.save_connection = (compute_to_compute) ? 1 : 0;
         msg.dest = send_to;
     }
@@ -324,7 +325,7 @@ void network_layer::new_message(Task task, int send_to, bool compute_to_compute)
         msg.values = s.str();
         
         msg.save_connection = (compute_to_compute) ? 1 : 0;
-
+        //std::cout << "!!! " << msg.values.size() << std::endl;
         msg.dest = send_to;
     }
 
@@ -500,6 +501,7 @@ void network_layer::receiver() {
                     if((operation)new_msg.type_op == operation::aggregation_) {
                         std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
                         torch::load(task.model_part_, ss);
+                        task.model_parts = new_msg.values;
                     }
                     else{
                         std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
@@ -569,11 +571,14 @@ void network_layer::receiver() {
                 task.size_ = new_msg.size_;
                 
                 if((operation)new_msg.type_op == operation::aggregation_) {
-                    // ss(std::string(new_msg.values.begin(), new_msg.values.end()));
-                    //torch::load(task.model_part_, ss);
+                    std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
+                    torch::load(task.model_part_, ss);
                     task.model_parts = new_msg.values;
+                    //std::cout << "!! " << new_msg.values.size() << std::endl;
                 }
                 else{
+                    
+                    //std::cout << "!!~ " << new_msg.values.size() << std::endl;
                     std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
                     torch::load(task.values, ss);
                 }

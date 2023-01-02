@@ -213,8 +213,8 @@ int main(int argc, char **argv) {
     }
 
     // POINT 12 Initialization phase: completed
-    sys_.my_network_layer.newPoint(INIT_END_INIT);
-    /*
+    /*sys_.my_network_layer.newPoint(INIT_END_INIT);
+    
     for (size_t round = 0; round != sys_.rounds; ++round) {
         int batch_index = 0;
         sys_.zero_metrics();
