@@ -315,10 +315,10 @@ void resnet_cifar_FL(resnet_model model_option, int type, int batch_size, int da
     }
 
     val_samples = num_samples*(10.0/100);
-
+    //#ifdef COMMENT
     auto datasets = data_owners_data(path_selection, data_owners, type);
     std::vector<int> train_samples(data_owners);
-
+    
     auto validation_dataset = datasets[0]
                                 .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
                                 .map(torch::data::transforms::Stack<>());
@@ -340,12 +340,14 @@ void resnet_cifar_FL(resnet_model model_option, int type, int batch_size, int da
 
         train_samples[i] = datasets[i+1].size().value();
     }
-      
+    //#endif
     int num_classes = (type == CIFAR_10)? 10 : 100;
     auto layers = getLayers(model_option);
     
     bool usebottleneck = false;
+    
     ResNet/*<Block>*/ model(layers, num_classes, usebottleneck); // This is global
+    //#ifdef COMMENT
     torch::save(model, model_path);
 
     // store the init weights
@@ -367,7 +369,7 @@ void resnet_cifar_FL(resnet_model model_option, int type, int batch_size, int da
         optimizers[i] = new torch::optim::SGD(models[i]->parameters(), 
                 torch::optim::SGDOptions(r_learning_rate).momentum(0.9).weight_decay(weight_decay));
     }
-    int frequency = 1;   
+    int frequency = 5;   
     double best_loss = 100;
 
     std::vector<double> running_loss(data_owners), current_learning_rate(data_owners);
@@ -382,15 +384,6 @@ void resnet_cifar_FL(resnet_model model_option, int type, int batch_size, int da
                 
                 fill(running_loss.begin(), running_loss.end(), 0.0);
                 fill(num_correct.begin(), num_correct.end(), 0);
-                /* O PIO ILITHIOS KWDIKAS TOU AIWNA
-                auto train_dataset = datasets[i+1]
-                                    .map(ConstantPad(4))
-                                    .map(RandomHorizontalFlip())
-                                    .map(RandomCrop({32, 32}))
-                                    .map(torch::data::transforms::Stack<>());
-                
-                auto my_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(std::move(train_dataset), batch_size);
-                O PIO ILITHIOS KWDIKAS TOU AIWNA */
                 for (auto& batch : *dataloaders_[i].my_dataloader) {
                     optimizers[i]->zero_grad();
 
@@ -448,7 +441,7 @@ void resnet_cifar_FL(resnet_model model_option, int type, int batch_size, int da
                 auto p_g = model->named_parameters()[j];
                 auto p_ = models[i]->named_parameters()[j];
                 //std::cout << p_g.value()[0][0] << " !!!!!!!!!!!!!!!! " << p_.value()[0][0] << std::endl;
-                if (j == 0) {
+                if (i == 0) {
                      p_g.value() = p_.value();
                 }
                 else {
@@ -516,11 +509,12 @@ void resnet_cifar_FL(resnet_model model_option, int type, int batch_size, int da
         
         if (test_sample_mean_loss < best_loss) {
             torch::save(model, model_path);
+            best_loss = test_sample_mean_loss;
         }
 
         }
     }
-
+    //#endif
     std::cout << "Training finished!\n\n";
     std::cout << "Testing...\n";
 
@@ -543,7 +537,6 @@ void resnet_cifar_FL(resnet_model model_option, int type, int batch_size, int da
     for (const auto& batch : *test_loader) {
         auto data = batch.data;
         auto target = batch.target;
-
         auto output = model->forward(data);
 
         auto loss = torch::nn::functional::cross_entropy(output, target);
@@ -596,7 +589,7 @@ void train_resnet(dataset dataset_option, resnet_model model_option, bool split,
         }
     else {
         if (fl) {
-            resnet_cifar_FL/*<ResidualBlock>*/(model_option, CIFAR_10, batch_size, 3);
+            resnet_cifar_FL/*<ResidualBlock>*/(model_option, CIFAR_10, batch_size, 5);
         }
         else {
             switch (dataset_option) {

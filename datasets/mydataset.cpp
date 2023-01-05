@@ -159,7 +159,7 @@ std::vector<CIFAR> data_owners_data(const std::string& root, int data_owners, in
         int ans = *it;
         images = torch::cat({images, images_[ans].unsqueeze(0)});
         //targets[i] = targets_[ans].item<int64_t>();
-        targets = torch::cat({targets, targets_[i].unsqueeze(0)});
+        targets = torch::cat({targets, targets_[ans].unsqueeze(0)});
         i++;
     }
     

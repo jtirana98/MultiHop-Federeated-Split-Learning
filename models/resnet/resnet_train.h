@@ -22,6 +22,6 @@ using transform::RandomHorizontalFlip;
 //const int64_t num_classes = 10;
 //const int64_t g_batch_size = 128;
 const double r_learning_rate = 0.01;
-const size_t r_num_epochs = 70;
+const size_t r_num_epochs = 30;
 
 void train_resnet(dataset dataset_option, resnet_model model_option, bool split, int batch_size = 64, const std::vector<int>& split_points = std::vector<int>(), bool test = false, bool fl=false);
