@@ -500,12 +500,12 @@ void network_layer::receiver() {
 
                     if((operation)new_msg.type_op == operation::aggregation_) {
                         std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
-                        torch::load(task.model_part_, ss);
+                        //torch::load(task.model_part_, ss);
                         task.model_parts = new_msg.values;
                     }
                     else{
                         std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
-                        torch::load(task.values, ss);
+                        //torch::load(task.values, ss);
                     }
                     
                     newPoint(NT_RECEIVED_MSG, task.client_id);

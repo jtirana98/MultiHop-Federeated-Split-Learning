@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
 
     while (true) {
         auto next_task = sys_.my_network_layer.check_new_task();
+        std::cout << next_task.model_part_->size() << std::endl;
         auto client = next_task.client_id;
         next_task.check_ = true;
         sys_.my_network_layer.new_message(next_task,client);

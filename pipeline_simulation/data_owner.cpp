@@ -161,7 +161,7 @@ int main(int argc, char **argv) {
     }
 
     // find aggregator
-    sys_.my_network_layer.findInit(true);
+    //sys_.my_network_layer.findInit(true);
 
     std::cout << "loading data..." << std::endl;
     // load dataset
@@ -180,22 +180,22 @@ int main(int argc, char **argv) {
             std::move(train_dataset), sys_.batch_size);
 
     int num_classes = (type == CIFAR_10)? 10 : 100;
-    
-    /*std::cout << sys_.parts[0].layers.size() << std::endl;
+    /*
+    std::cout << sys_.parts[0].layers.size() << std::endl;
     std::cout << sys_.parts[1].layers.size() << std::endl;
     for (int i = 0; i< sys_.parts[0].layers.size(); i++) {
         std::cout << "new layer: "<< i+1 << " "<< sys_.parts[0].layers[i] << std::endl;
     }
-
+   
     std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-
+    
     for (int i = 0; i< sys_.parts[1].layers.size(); i++) {
         std::cout << "new layer: "<< i+1 << " "<< sys_.parts[1].layers[i] << std::endl;
     }
     */
     // send aggregation task:
-    auto newAggTask = Task(myID, operation::aggregation_, -1);
-    newAggTask.model_part = 1;
+    //auto newAggTask = Task(myID, operation::aggregation_, -1);
+    //newAggTask.model_part = 1;
 
     for (int i = 0; i < 15; i++) {
         auto timestamp1_ = std::chrono::steady_clock::now();
@@ -213,7 +213,7 @@ int main(int argc, char **argv) {
     }
 
     // POINT 12 Initialization phase: completed
-    /*sys_.my_network_layer.newPoint(INIT_END_INIT);
+    sys_.my_network_layer.newPoint(INIT_END_INIT);
     
     for (size_t round = 0; round != sys_.rounds; ++round) {
         int batch_index = 0;
@@ -299,5 +299,5 @@ int main(int argc, char **argv) {
         std::cout << "Epoch [" << (round + 1) << "/" << sys_.rounds << "], Trainset - Loss: "
                 << sample_mean_loss << ", Accuracy: " << accuracy << " " << sys_.num_correct << std::endl;
 
-    }*/
+    }
 }
