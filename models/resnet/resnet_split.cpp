@@ -44,13 +44,13 @@ std::vector<torch::nn::Sequential> resnet_split(const std::array<int64_t, 4>& la
     // layer 0
     part->push_back(torch::nn::Conv2d(torch::nn::Conv2dOptions(3, 64, 7).stride(2).padding(3)));
 
-    /*if (split_every_point || (!split_every_point && !at_end && split_points[l] == k)) {
+    if (split_every_point || (!split_every_point && !at_end && split_points[l] == k)) {
         parts.push_back(part);
         new_split = true;
         l += 1;
         if (l == split_points.size())
             at_end = true;
-    }*/
+    }
     k += 1;
 
     // layer 1
@@ -63,14 +63,14 @@ std::vector<torch::nn::Sequential> resnet_split(const std::array<int64_t, 4>& la
     part->push_back(torch::nn::BatchNorm2d(torch::nn::BatchNorm2dOptions(64)));
     part->push_back(torch::nn::ReLU(true));
 
-    /*if (split_every_point || (!split_every_point && !at_end && split_points[l] == k)) {
+    if (split_every_point || (!split_every_point && !at_end && split_points[l] == k)) {
         parts.push_back(part);
         new_split = true;
         l += 1;
         
         if (l == split_points.size())
             at_end = true;
-    }*/
+    }
     k += 1;
 
 
@@ -95,14 +95,14 @@ std::vector<torch::nn::Sequential> resnet_split(const std::array<int64_t, 4>& la
                 part->push_back(ResidualBlock(in_channels, out_channels, stride, downsample));
             
 
-            /*if (split_every_point || (!split_every_point && !at_end && split_points[l] == k)) {
+            if (split_every_point || (!split_every_point && !at_end && split_points[l] == k)) {
                 parts.push_back(part);
                 new_split = true;
                 l += 1;
                 
                 if (l == split_points.size())
                     at_end = true;
-            }*/
+            }
             
             k += 1;
 
@@ -121,7 +121,7 @@ std::vector<torch::nn::Sequential> resnet_split(const std::array<int64_t, 4>& la
 
     part->push_back(torch::nn::AdaptiveAvgPool2d(torch::nn::AdaptiveAvgPool2dOptions(1)));
 
-    /*if (split_every_point || (!split_every_point && !at_end && split_points[l] == k )) {
+    if (split_every_point || (!split_every_point && !at_end && split_points[l] == k )) {
         parts.push_back(part);
         new_split = true;
         l += 1;
@@ -132,7 +132,7 @@ std::vector<torch::nn::Sequential> resnet_split(const std::array<int64_t, 4>& la
    else { // split because we need to flatted input
         parts.push_back(part);
         new_split = true;
-    }*/
+    }
 
     k += 1;
 
@@ -179,12 +179,12 @@ std::vector<torch::nn::Sequential> resnet_part(resnet_model model_option, int64_
         first = 0;
     layers.push_back(parts[0]);
     
-    /*if (end <sum-1 && end != -1) {
+    if (end <sum-1 && end != -1) {
         return layers;
     }
     else {
         layers.push_back(parts[first + 1]);
-    }*/
+    }
     
     return layers;
 }
