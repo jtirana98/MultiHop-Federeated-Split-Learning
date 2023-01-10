@@ -130,7 +130,7 @@ const torch::Tensor& CIFAR::images() const {
 }
 
 
-std::vector<CIFAR> data_owners_data(const std::string& root, int data_owners, int type) {
+std::vector<CIFAR> data_owners_data(const std::string& root, int data_owners, int type, bool val) {
     auto data = read_data(root,/*mode=*/ true, type);
     auto images_ = std::move(data.first);
     auto targets_ = std::move(data.second);
@@ -138,6 +138,12 @@ std::vector<CIFAR> data_owners_data(const std::string& root, int data_owners, in
 
     int val_samples = kTrainSize*(10.0/100);
     int train_samples = (kTrainSize - val_samples)/data_owners;
+
+    if(val == false) {
+        datasets.push_back(CIFAR(std::pair<torch::Tensor, torch::Tensor>
+                        {images_, targets_}, type));
+        return(datasets);
+    }
     
     std::set<int> validation;
     srand((unsigned) time(NULL));
@@ -159,7 +165,7 @@ std::vector<CIFAR> data_owners_data(const std::string& root, int data_owners, in
         int ans = *it;
         images = torch::cat({images, images_[ans].unsqueeze(0)});
         //targets[i] = targets_[ans].item<int64_t>();
-        targets = torch::cat({targets, targets_[i].unsqueeze(0)});
+        targets = torch::cat({targets, targets_[ans].unsqueeze(0)});
         i++;
     }
     

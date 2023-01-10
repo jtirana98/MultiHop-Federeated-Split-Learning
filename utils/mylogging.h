@@ -12,7 +12,9 @@ enum measure_type {
     backprop,
     optimize,
     activations_load,
-    gradients_load
+    gradients_load,
+    start_batch,
+    end_batch
 };
 
 
@@ -44,15 +46,17 @@ class Total {
   public:
     Total();
     void addNew(Event part1, Event part2, Event part3);
+    void addNew(Event part1, Event part2);
     void addNew(Event part1, Event part2, Event part3, Event part4);
     void addEvent(Event event);
     void computeIntervals();
-    void printRes();
-    void printRes_intervals();
+    void printRes(int flag=0);
+    void printRes_intervals(); // for per-layer analysis
   private:
     std::vector<int> forward_;
     std::vector<int> backprop_;
     std::vector<int> optimizer_;
+    std::vector<int> batch_;
     std::vector<Event> forward_timestamps;
     std::vector<Event> backprop_timestamps;
     std::vector<Event> optimize_timestamps;

@@ -41,6 +41,6 @@ class CIFAR : public torch::data::datasets::Dataset<CIFAR> {
 };
 
 
-std::vector<CIFAR> data_owners_data(const std::string& root, int data_owners, int type=1);
+std::vector<CIFAR> data_owners_data(const std::string& root, int data_owners, int type=1, bool val=true);
 
 #endif

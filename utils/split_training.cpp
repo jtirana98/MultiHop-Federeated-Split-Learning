@@ -1,26 +1,26 @@
 #include "split_training.h"
 
 void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_size, int avg_point_, double learning_rate, int num_epochs) {
-    std::vector<gatherd_data> all_measures;
-
     auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
-    auto train_dataset = CIFAR(path_selection, type)
+    auto datasets = data_owners_data(path_selection, 1, type, false);
+    
+    auto train_dataset = datasets[0]
+                                    .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
                                     .map(ConstantPad(4))
                                     .map(RandomHorizontalFlip())
                                     .map(RandomCrop({32, 32}))
                                     .map(torch::data::transforms::Stack<>());
     auto num_train_samples = train_dataset.size().value();
-
+    
     auto train_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
             std::move(train_dataset), batch_size);
-
-    int num_classes = (type == CIFAR_10)? 10 : 100;
     
+    int num_classes = (type == CIFAR_10)? 10 : 100;
 
-    std::vector<torch::optim::Adam> optimizers;
+    std::vector<torch::optim::SGD> optimizers;
     
     for (int i=0; i<layers.size(); i++) {
-        optimizers.push_back(torch::optim::Adam(layers[i]->parameters(), torch::optim::AdamOptions(learning_rate)));
+        optimizers.push_back(torch::optim::SGD(layers[i]->parameters(), torch::optim::SGDOptions(learning_rate).momentum(0.9).weight_decay(0.0001)));
         std::cout << "new layer: "<< i+1 << " "<< layers[i] << std::endl;
     }
 
@@ -149,14 +149,12 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
             }
         }
 
-    
         auto sample_mean_loss = running_loss / num_train_samples;
         auto accuracy = static_cast<double>(num_correct) / num_train_samples;
 
         std::cout << "Epoch [" << (epoch + 1) << "/" << num_epochs << "], Trainset - Loss: "
             << sample_mean_loss << ", Accuracy: " << accuracy << '\n';
     }
-
 
     std::cout << "activations load" << std::endl;
     for (int i = 0; i<data_loads.activations.size(); i++) {
