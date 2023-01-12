@@ -13,12 +13,12 @@ class State {
     std::vector<torch::Tensor> detached_activations;
     std::vector<torch::Tensor> activations;
     torch::Tensor received_activation; // received from prev node
-    std::vector<torch::optim::Adam *> optimizers;
+    std::vector<torch::optim::SGD *> optimizers;
     double learning_rate = 0.1;
     
     //  State() {};
 
-    State(int client_id, std::vector<torch::nn::Sequential> layers, std::vector<torch::optim::Adam *> optimizers) :
+    State(int client_id, std::vector<torch::nn::Sequential> layers, std::vector<torch::optim::SGD *> optimizers) :
       client_id(client_id),
       layers(layers),
       optimizers(optimizers) {

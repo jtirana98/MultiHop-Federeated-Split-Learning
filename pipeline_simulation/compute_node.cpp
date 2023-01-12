@@ -5,13 +5,8 @@
 //#include <argparse/argparse.hpp> //https://github.com/p-ranav/argparse
 
 int main(int argc, char **argv) {
-    char *p;
-    long conv = strtol(argv[1], &p, 10);
+    /*argparse::ArgumentParser program("compute_node");
 
-    int myID = conv;
-    std::string log_dir = "main_experiment";
-    //argparse::ArgumentParser program("compute_node");
-    /*
     program.add_argument("-i", "--id")
         .help("The node's id")
         .required()
@@ -33,8 +28,16 @@ int main(int argc, char **argv) {
     }
 
     auto myID = program.get<int>("-i");
+    std::cout << "myid " << myID << std::endl;
     auto log_dir = program.get<std::string>("-l");
     */
+    char *p;
+    long conv = strtol(argv[1], &p, 10);
+
+    int myID = conv;
+    std::string log_dir = "main_experiment";
+
+
     systemAPI sys_(false, myID, log_dir);
     Task next_task;
     int next_node;
@@ -44,8 +47,8 @@ int main(int argc, char **argv) {
     sys_.my_network_layer.newPoint(INIT_WAIT_FOR_REFACTOR);
     
     // wait for init refactoring
+    //sys_.my_network_layer.findInit();
     auto refactor_message = sys_.my_network_layer.check_new_refactor_task();
-    
     // POINT 11 Initialization phase: do/cn end waiting for refactor message
     sys_.my_network_layer.newPoint(INIT_END_W_REFACTOR);
 
@@ -70,7 +73,12 @@ int main(int argc, char **argv) {
     while (true) {
         // POINT 13 Execution phase: CN waits for new task
         sys_.my_network_layer.newPoint(CN_START_WAIT);
+        auto timestamp1_ = std::chrono::steady_clock::now();
         next_task = sys_.my_network_layer.check_new_task();
+        auto timestamp2_ = std::chrono::steady_clock::now();
+        auto __time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (timestamp2_ - timestamp1_).count();
+        std::cout << "Waiting... " << __time << std::endl;
 
         interval_type type_;
         std::string operation;
@@ -93,7 +101,7 @@ int main(int argc, char **argv) {
 
         // POINT 14 Execution phase: CN starts executing task
         auto point1 = sys_.my_network_layer.newPoint(CN_START_EXEC, next_task.client_id, operation);
-
+        auto timestamp1 = std::chrono::steady_clock::now();
         auto task = sys_.exec(next_task, tmp); 
 
         if (task.type != noOp) {
@@ -106,7 +114,11 @@ int main(int argc, char **argv) {
             sys_.my_network_layer.new_message(task, next_node, keep_connection);
         }
 
-
+        auto timestamp2 = std::chrono::steady_clock::now();
+        auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (timestamp2 - timestamp1).count();
+        std::cout << "Computing: " << operation << ": " << _time << std::endl;
+        
         // POINT 15 Execution phase: CN completed a task
         auto point2 = sys_.my_network_layer.newPoint(CN_END_EXEC, next_task.client_id, operation);
         // 14 - 15 interval

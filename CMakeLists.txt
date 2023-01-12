@@ -55,15 +55,15 @@ set(SOURCE_FILES
                 pipeline_simulation/systemAPI.cpp
 )
 
-add_executable("${CMAKE_PROJECT_NAME}"  ${SOURCE_FILES} main.cpp)
-#add_executable(compute_node  ${SOURCE_FILES} pipeline_simulation/compute_node.cpp)
-#add_executable(data_owner  ${SOURCE_FILES} pipeline_simulation/data_owner.cpp)
+#add_executable("${CMAKE_PROJECT_NAME}"  ${SOURCE_FILES} main.cpp)
+add_executable(compute_node  ${SOURCE_FILES} pipeline_simulation/compute_node.cpp)
+add_executable(data_owner  ${SOURCE_FILES} pipeline_simulation/data_owner.cpp)
 #add_library(MyLib SHARED ${SOURCE_FILES})
 
-target_link_libraries("${CMAKE_PROJECT_NAME}" ${TORCH_LIBRARIES})
-#target_link_libraries(compute_node ${TORCH_LIBRARIES})
-#target_link_libraries(data_owner ${TORCH_LIBRARIES})
+#target_link_libraries("${CMAKE_PROJECT_NAME}" ${TORCH_LIBRARIES})
+target_link_libraries(compute_node ${TORCH_LIBRARIES})
+target_link_libraries(data_owner ${TORCH_LIBRARIES})
 
-set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 17)
-#set_property(TARGET compute_node PROPERTY CXX_STANDARD 17)
-#set_property(TARGET data_owner PROPERTY CXX_STANDARD 17)
+#set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+set_property(TARGET compute_node PROPERTY CXX_STANDARD 17)
+set_property(TARGET data_owner PROPERTY CXX_STANDARD 17)

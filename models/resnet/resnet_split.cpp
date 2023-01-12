@@ -177,7 +177,7 @@ std::vector<torch::nn::Sequential> resnet_part(resnet_model model_option, int64_
     int first = 1;
     if (start == 0)
         first = 0;
-    layers.push_back(parts[0]);
+    layers.push_back(parts[first]);
     
     if (end <sum-1 && end != -1) {
         return layers;
