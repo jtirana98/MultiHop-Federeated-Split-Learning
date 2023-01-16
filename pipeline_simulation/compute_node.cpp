@@ -71,8 +71,17 @@ int main(int argc, char **argv) {
     sys_.my_network_layer.newPoint(INIT_END_INIT);
 
     while (true) {
+        
+        /* CODE FOR MEASURING RTT - COMMENT */
+        for(int i = 0; i < 15 ; i ++ ){
+            auto task_ = sys_.my_network_layer.check_new_task();
+            sys_.my_network_layer.new_message(task_, 0);
+        }
+        /* CODE FOR MEASURING RTT - COMMENT */
+
+
         // POINT 13 Execution phase: CN waits for new task
-        sys_.my_network_layer.newPoint(CN_START_WAIT);
+        /*sys_.my_network_layer.newPoint(CN_START_WAIT);
         auto timestamp1_ = std::chrono::steady_clock::now();
         next_task = sys_.my_network_layer.check_new_task();
         auto timestamp2_ = std::chrono::steady_clock::now();
@@ -122,6 +131,6 @@ int main(int argc, char **argv) {
         // POINT 15 Execution phase: CN completed a task
         auto point2 = sys_.my_network_layer.newPoint(CN_END_EXEC, next_task.client_id, operation);
         // 14 - 15 interval
-        sys_.my_network_layer.mylogger.add_interval(point1, point2, type_);
+        sys_.my_network_layer.mylogger.add_interval(point1, point2, type_);*/
     }
 }
