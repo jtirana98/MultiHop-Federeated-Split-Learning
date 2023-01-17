@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
         auto compute_nodes_ = program.get<std::string>("-c");*/
 
         auto cut_layers_ = "10,32";
-        auto data_owners_ = "0,2";
+        auto data_owners_ = "0";
         auto compute_nodes_ = "1";
 
 
@@ -249,7 +249,7 @@ int main(int argc, char **argv) {
             //sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
             
             /* CODE FOR MEASURING RTT - COMMENT */
-            for(int i = 0; i < 15 ; i ++ ){
+            /*for(int i = 0; i < 15 ; i ++ ){
                 auto timestamp_1 = std::chrono::steady_clock::now();
                 sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
                 auto task_ = sys_.my_network_layer.check_new_task();
@@ -261,7 +261,7 @@ int main(int argc, char **argv) {
             }
             /* CODE FOR MEASURING RTT - COMMENT */
 
-            /*
+            
             auto timestamp2 = std::chrono::steady_clock::now();
 
             auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
@@ -317,8 +317,6 @@ int main(int argc, char **argv) {
 
             // 20 - 21 interval backward and optimize
             sys_.my_network_layer.mylogger.add_interval(point20, point21, bwd_opz);
-
-            */
         }
         
         auto sample_mean_loss = sys_.running_loss / batch_index;
