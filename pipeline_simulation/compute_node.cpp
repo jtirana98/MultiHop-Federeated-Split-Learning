@@ -58,13 +58,13 @@ int main(int argc, char **argv) {
     // ----------- TEST ------------
     //sys_.init_state(vgg, vgg_model::v11, 10, 1, 3);
     //sys_.init_state_vector(resnet, resnet_model::resnet18, 10, 9, 13);
-    /*
+    
     auto layers = sys_.clients_state.find(0)->second.layers;
     std::cout << sys_.clients_state.find(1)->second.client_id << std::endl;
     for (int i = 0; i< layers.size(); i++) {
         std::cout << "new layer: "<< i+1 << " "<< layers[i] << std::endl;
     }
-    */
+    
     // -------- TEST ------------
 
     // POINT 12 Initialization phase: completed
@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
         default:
             break;
         }
-
+        std::cout << operation << std::endl;
         // POINT 14 Execution phase: CN starts executing task
         auto point1 = sys_.my_network_layer.newPoint(CN_START_EXEC, next_task.client_id, operation);
         auto timestamp1 = std::chrono::steady_clock::now();

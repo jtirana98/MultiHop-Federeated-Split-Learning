@@ -505,7 +505,7 @@ void network_layer::receiver() {
                     }
                     else{
                         std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
-                        //torch::load(task.values, ss);
+                        torch::load(task.values, ss);
                     }
                     
                     newPoint(NT_RECEIVED_MSG, task.client_id);
@@ -577,7 +577,6 @@ void network_layer::receiver() {
                     //std::cout << "!! " << new_msg.values.size() << std::endl;
                 }
                 else{
-                    
                     //std::cout << "!!~ " << new_msg.values.size() << std::endl;
                     std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
                     torch::load(task.values, ss);
