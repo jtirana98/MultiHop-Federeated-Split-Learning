@@ -124,20 +124,13 @@ int main(int argc, char **argv) {
         client_message.prev = compute_nodes[compute_nodes.size() -1];
         client_message.num_class = 10;
         
-        // POINT 6 Initialization phase: init node completes preperation - start bcast to dataowners
-        sys_.my_network_layer.newPoint(INIT_END_PREP_START_DO_BCAST);
-
+        
         for (int i=1; i<data_owners.size(); i++) {
            sys_.my_network_layer.new_message(client_message, data_owners[i], false, true);
 
         }
-
-        // POINT 7 Initialization phase: bcast to do completed - start refactoring
-        sys_.my_network_layer.newPoint(INIT_END_BCAST_START_REFACTOR);
         sys_.refactor(client_message);
         
-        // POINT 8 Initialization phase: completes refactoring - start bcast to cn
-        sys_.my_network_layer.newPoint(INIT_END_REFACTOR_START_CN_BCAST);
         client_message.to_data_onwer = false;
         client_message.data_owners = data_owners;
         
@@ -158,17 +151,11 @@ int main(int argc, char **argv) {
 
            sys_.my_network_layer.new_message(client_message, compute_nodes[i], false, true);
         }
-
-        // POINT 9 Initialization phase: bcast to cn completed
-        sys_.my_network_layer.newPoint(INIT_END_BCAST_CN);
     }
     else { // if not wait for init refactoring
-        // POINT 10 Initialization phase: do/cn waiting for refactor message
-        sys_.my_network_layer.newPoint(INIT_WAIT_FOR_REFACTOR);
-        sys_.my_network_layer.findInit();
+        //sys_.my_network_layer.findInit();
         client_message = sys_.my_network_layer.check_new_refactor_task();
-        // POINT 11 Initialization phase: do/cn end waiting for refactor message
-        sys_.my_network_layer.newPoint(INIT_END_W_REFACTOR);
+        
         sys_.refactor(client_message);
        
     }
@@ -205,28 +192,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i< sys_.parts[1].layers.size(); i++) {
         std::cout << "new layer: "<< i+1 << " "<< sys_.parts[1].layers[i] << std::endl;
     }
-    
-    // send aggregation task:
-    //auto newAggTask = Task(myID, operation::aggregation_, -1);
-    //newAggTask.model_part = 1;
-
-    for (int i = 0; i < 15; i++) {
-        auto timestamp1_ = std::chrono::steady_clock::now();
-        // send aggregation task
-        newAggTask.model_part_=sys_.parts[0].layers[0];
-        sys_.my_network_layer.new_message(newAggTask,-1);
-        // wait for updated model
-
-        auto next_task = sys_.my_network_layer.check_new_task();
-
-        auto timestamp2_ = std::chrono::steady_clock::now();
-        auto __time = std::chrono::duration_cast<std::chrono::milliseconds>
-                            (timestamp2_ - timestamp1_).count();
-            std::cout << "RTT: " << __time << std::endl;
-    }
     */
-    // POINT 12 Initialization phase: completed
-    sys_.my_network_layer.newPoint(INIT_END_INIT);
     
     for (size_t round = 0; round != sys_.rounds; ++round) {
         int batch_index = 0;
@@ -247,20 +213,6 @@ int main(int argc, char **argv) {
 
             // send task to next node
             sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
-            
-            /* CODE FOR MEASURING RTT - COMMENT */
-            /*for(int i = 0; i < 15 ; i ++ ){
-                auto timestamp_1 = std::chrono::steady_clock::now();
-                sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
-                auto task_ = sys_.my_network_layer.check_new_task();
-                auto timestamp_2 = std::chrono::steady_clock::now();
-
-                auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (timestamp_2 - timestamp_1).count();
-                std::cout << "RTT: " << _time << std::endl;
-            }
-            /* CODE FOR MEASURING RTT - COMMENT */
-
             
             auto timestamp2 = std::chrono::steady_clock::now();
 

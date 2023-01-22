@@ -445,9 +445,18 @@ void network_layer::receiver() {
     //auto dump = check_new_task();
     std::cout << "let's go " << myid << std::endl;
     sleep(1);
-    std::pair<std::string, int> my_addr = rooting_table.find(myid)->second;
-    my_port = my_addr.second;
-    std::cout << my_port << my_addr.first << std::endl;
+
+    if(myid > 5) {
+        std::pair<std::string, int> my_addr = rooting_table.find(5)->second;
+        my_port = my_addr.second;
+        my_port = my_port + (myid - 5);
+    }
+    else{
+        std::pair<std::string, int> my_addr = rooting_table.find(myid)->second;
+        my_port = my_addr.second;
+    }
+    
+    //std::cout << my_port << my_addr.first << std::endl;
     my_socket =  socket(AF_INET, SOCK_STREAM, 0);
     if (my_socket < 0) 
         perror("ERROR opening socket");

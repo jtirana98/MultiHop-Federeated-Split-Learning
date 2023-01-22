@@ -103,10 +103,10 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                 }
 
                 // DRAFT 
-                if (batch_index % 15 == 0) {
-                    std::cout << /*"Epoch: " << epoch << */"Batch: " << batch_index
-                        << " | Loss: " << loss.item<float>() << "| Acc: " << corr_ << std::endl;
-                }
+               /*if (batch_index % 15 == 0) {
+                    std::cout << /*"Epoch: " << epoch << *///"Batch: " << batch_index
+                        //<< " | Loss: " << loss.item<float>() << "| Acc: " << corr_ << std::endl;
+                //}
                 // DRAFT 
 
                 values = parts[1].received_activation.grad().clone().detach();
