@@ -75,7 +75,9 @@ int main(int argc, char **argv) {
         client_message.next = compute_nodes[0];
         client_message.prev = compute_nodes[compute_nodes.size() -1];
         client_message.num_class = 10;
-        
+
+        auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+        std::cout << my_time.count() << std::endl;
         
         for (int i=1; i<data_owners.size(); i++) {
            sys_.my_network_layer.new_message(client_message, data_owners[i], false, true);
@@ -160,8 +162,9 @@ int main(int argc, char **argv) {
             task.values = batch.data;
             task = sys_.exec(task, batch.target);
             task.t_start = send_activations.count();
+            std::cout << task.t_start << std::endl;
             total_num += task.size_; 
-
+            task.batch0 = batch_index;
             // send task to next node
             sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
             

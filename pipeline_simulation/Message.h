@@ -568,9 +568,9 @@ struct Message {
         property(&Message::size_, "size_"),
         property(&Message::type_op, "type_op"),
         property(&Message::model_part, "model_part"),
-        property(&Message::values, "values"),
         property(&Message::t_start, "t_start"),
-        property(&Message::batch0, "batch0")
+        property(&Message::batch0, "batch0"),
+        property(&Message::values, "values")
     );
 };
 
