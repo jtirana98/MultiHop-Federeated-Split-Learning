@@ -27,7 +27,8 @@ int main(int argc, char **argv) {
         sys_.my_network_layer.newPoint(INIT_START_MSG_PREP);
 
         auto cut_layers_ = "2,35";
-        auto data_owners_ = "0";  // CHANGE
+        auto data_owners_ = argv[2];  // CHANGE
+        std::cout << data_owners_ << std::endl;
         auto compute_nodes_ = "1"; // CHANGE
 
 
@@ -80,8 +81,17 @@ int main(int argc, char **argv) {
         std::cout << my_time.count() << std::endl;
         
         for (int i=1; i<data_owners.size(); i++) {
-           sys_.my_network_layer.new_message(client_message, data_owners[i], false, true);
+            if(data_owners[i] > 5) {
+                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(5)->second;
+                int my_port = my_addr.second;
+                my_port = my_port + (data_owners[i] - 5);
+                my_addr.second = my_port;
 
+                sys_.my_network_layer.rooting_table[data_owners[i]] = my_addr;
+
+            }
+
+            sys_.my_network_layer.new_message(client_message, data_owners[i], false, true);
         }
         sys_.refactor(client_message);
         
