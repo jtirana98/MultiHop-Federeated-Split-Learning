@@ -14,6 +14,9 @@
 #include <sys/types.h> 
 #include <stdlib.h>
 #include <vector>
+#include <ctime>
+#include <ratio>
+#include <chrono>
 
 // sequence for
 template <typename T, T... S, typename F>
@@ -536,6 +539,8 @@ struct Message {
     int read_table=1;
     // operation
     int client_id=-1, prev_node=-1, size_=-1, type_op=-1;
+    /*std::chrono::steady_clock::time_point*/
+    int t_start=0;
     std::string values;
 
     constexpr static auto properties_header = std::make_tuple(
@@ -563,7 +568,8 @@ struct Message {
         property(&Message::size_, "size_"),
         property(&Message::type_op, "type_op"),
         property(&Message::model_part, "model_part"),
-        property(&Message::values, "values")
+        property(&Message::values, "values"),
+        property(&Message::t_start, "t_start")
     );
 };
 

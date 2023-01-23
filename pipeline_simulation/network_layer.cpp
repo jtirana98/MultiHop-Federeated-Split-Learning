@@ -305,6 +305,7 @@ void network_layer::new_message(Task task, int send_to, bool compute_to_compute)
     msg.client_id = task.client_id;
     msg.size_ = task.size_;
     msg.type_op = task.type;
+    msg.t_start = task.t_start;
     
     if(msg.type_op == operation::aggregation_) {
         msg.model_part = task.model_part;
@@ -315,7 +316,6 @@ void network_layer::new_message(Task task, int send_to, bool compute_to_compute)
         }
         else
             msg.values = s.str();
-        //std::cout << "!!! " << msg.values.size() << std::endl;
         msg.save_connection = (compute_to_compute) ? 1 : 0;
         msg.dest = send_to;
     }
@@ -325,7 +325,6 @@ void network_layer::new_message(Task task, int send_to, bool compute_to_compute)
         msg.values = s.str();
         
         msg.save_connection = (compute_to_compute) ? 1 : 0;
-        //std::cout << "!!! " << msg.values.size() << std::endl;
         msg.dest = send_to;
     }
 
@@ -376,20 +375,11 @@ void network_layer::new_message(refactoring_data task, int send_to, bool compute
 }
 
 void network_layer::put_internal_task(Task task) {
-   //f (is_data_owner || (!is_data_owner && task.type == operation::forward_)) {
         {
         std::unique_lock<std::mutex> lock(m_mutex_new_task);
         pending_tasks.push(task);
         }
         m_cv_new_task.notify_one();
-   /* }
-    else {
-        {
-        std::unique_lock<std::mutex> lock(m_mutex_new_task_);
-        pending_tasks_.push(task);
-        }
-        m_cv_new_task_.notify_one();
-    }*/
     
 }
 
@@ -498,14 +488,12 @@ void network_layer::receiver() {
 
                 auto json_format = fromStr_toJson<Message>(json_format_str);
                 new_msg = fromJson<Message>(json_format);
-                /*if (new_msg.prev_node == -1)
-                    std::cout << " msg from: " << new_msg.client_id << std::endl;
-                else
-                    std::cout << " msg from: " << new_msg.prev_node << std::endl;*/
+                
                 if (new_msg.type == OPERATION) { // create new Task object
                     // from message to task object
                     Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
                     task.size_ = new_msg.size_;
+                    task.t_start = new_msg.t_start;
 
                     if((operation)new_msg.type_op == operation::aggregation_) {
                         std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
@@ -558,9 +546,6 @@ void network_layer::receiver() {
                 continue;
             }
 
-           /* printf("server: got connection from %s port %d\n",
-                inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
-            */
             
             auto json_format_str = my_receive(newsockfd);
             if(json_format_str == "")
@@ -568,25 +553,19 @@ void network_layer::receiver() {
             
             auto json_format = fromStr_toJson<Message>(json_format_str);
             new_msg = fromJson<Message>(json_format);
-            /*
-            if (new_msg.prev_node == -1)
-                std::cout << " msg from: " << new_msg.client_id << std::endl;
-            else
-                std::cout << " msg from: " << new_msg.prev_node << std::endl;
-            */
+           
             if (new_msg.type == OPERATION) { // create new Task object
                 // from message to task object
                 Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
                 task.size_ = new_msg.size_;
+                task.t_start = new_msg.t_start;
                 
                 if((operation)new_msg.type_op == operation::aggregation_) {
                     std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
                     torch::load(task.model_part_, ss);
                     task.model_parts = new_msg.values;
-                    //std::cout << "!! " << new_msg.values.size() << std::endl;
                 }
                 else{
-                    //std::cout << "!!~ " << new_msg.values.size() << std::endl;
                     std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
                     torch::load(task.values, ss);
                 }

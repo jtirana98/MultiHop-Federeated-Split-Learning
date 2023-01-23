@@ -6,54 +6,13 @@
 #include "systemAPI.h"
 #include "mydataset.h"
 #include "transform.h"
+#include "rpi_stats.h"
 
 using transform::ConstantPad;
 using transform::RandomCrop;
 using transform::RandomHorizontalFlip;
 
 int main(int argc, char **argv) {
-    /*argparse::ArgumentParser program("data_owner");
-
-    program.add_argument("-i", "--id")
-        .help("The node's id")
-        .required()
-        .nargs(1)
-        .scan<'i', int>();
-
-    program.add_argument("-l", "--log_directory")
-        .help("The directory name to store looging info")
-        .default_value(std::string("main_experiment"))
-        .nargs(1);
-
-    program.add_argument("-s", "--splits")
-        .help("The splits")
-        .default_value(std::string("10,32"))
-        .nargs(1);
-
-    program.add_argument("-d", "--data_owners")
-        .help("The list of data owners")
-        .default_value(std::string("0,2"))
-        .nargs(1);
-
-    program.add_argument("-c", "--compute_nodes")
-        .help("The list of compute nodes")
-        .default_value(std::string("1"))
-        .nargs(1);
-
-    try {
-        program.parse_args(argc, argv);
-    }
-    catch (const std::runtime_error& err) {
-        std::cerr << err.what() << std::endl;
-        std::cerr << program;
-        std::exit(1);
-    }
-
-    auto myID = program.get<int>("-i");
-    std::cout << "myid " << myID << std::endl;
-    auto log_dir = program.get<std::string>("-l");
-    */
-
     char *p;
     long conv = strtol(argv[1], &p, 10);
 
@@ -68,13 +27,9 @@ int main(int argc, char **argv) {
         // POINT 5 Initialization phase: init node starts preperation
         sys_.my_network_layer.newPoint(INIT_START_MSG_PREP);
 
-        /*auto cut_layers_ = program.get<std::string>("-s");
-        auto data_owners_ = program.get<std::string>("-d");
-        auto compute_nodes_ = program.get<std::string>("-c");*/
-
         auto cut_layers_ = "2,35";
-        auto data_owners_ = "0";
-        auto compute_nodes_ = "1";
+        auto data_owners_ = "0";  // CHANGE
+        auto compute_nodes_ = "1"; // CHANGE
 
 
         const char separator = ',';
@@ -104,8 +59,6 @@ int main(int argc, char **argv) {
 
         int num_parts = compute_nodes.size() + 2;
 
-        /*sys_.my_network_layer.findPeers(data_owners.size() 
-                                            + compute_nodes.size() - 1);*/
         std::cout << "found them" << std::endl; 
         sleep(2);
 
@@ -153,15 +106,9 @@ int main(int argc, char **argv) {
         }
     }
     else { // if not wait for init refactoring
-        //sys_.my_network_layer.findInit();
         client_message = sys_.my_network_layer.check_new_refactor_task();
-        
         sys_.refactor(client_message);
-       
     }
-
-    // find aggregator
-    //sys_.my_network_layer.findInit(true);
 
     std::cout << "loading data..." << std::endl;
     // load dataset
@@ -193,83 +140,61 @@ int main(int argc, char **argv) {
         std::cout << "new layer: "<< i+1 << " "<< sys_.parts[1].layers[i] << std::endl;
     }
     */
-    
+
+    auto send_activations = std::chrono::steady_clock::now();
+    auto send_gradients = std::chrono::steady_clock::now();
+
+
     for (size_t round = 0; round != sys_.rounds; ++round) {
         int batch_index = 0;
         sys_.zero_metrics();
         int total_num = 0;
+
+        send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+        
         for (auto& batch : *train_dataloader) {
             // create task with new batch
-
-            // POINT 16 Execution phase: DO starts new batch
-            auto point16 = sys_.my_network_layer.newPoint(DO_START_BATCH);
-
             auto init_batch = std::chrono::steady_clock::now();
+            
             Task task(sys_.myid, forward_, -1);
             task.size_ = batch.data.size(0);
             task.values = batch.data;
             task = sys_.exec(task, batch.target);
-            total_num += task.size_; 
+            task.t_start = send_activations.count();
+            total_n um += task.size_; 
 
             // send task to next node
             sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
             
-            auto timestamp2 = std::chrono::steady_clock::now();
-
-            auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (timestamp2 - init_batch).count();
-            std::cout << "Forward Model Part 1: " << _time << std::endl;
-            // POINT 17 Execution phase: DO produced activations from first part
-            auto point17 = sys_.my_network_layer.newPoint(DO_FRWD_FIRST_PART);
-           
-            // 16 - 17 interval forward_part
-            sys_.my_network_layer.mylogger.add_interval(point16, point17, fwd_only);
 
             // wait for next forward task
-            task = sys_.my_network_layer.check_new_task();
-            // POINT 18 Execution phase: DO received activations from CN
-            auto point18 = sys_.my_network_layer.newPoint(DO_END_WAIT);
-
-            auto timestamp1 = std::chrono::steady_clock::now();
             task = sys_.exec(task, batch.target); // forward and backward
             // send task - backward
             sys_.my_network_layer.new_message(task, sys_.inference_path[1]);
             //optimize task
+            
             auto task1 = sys_.my_network_layer.check_new_task();
-            task1 = sys_.exec(task1, batch.target); // optimize
 
-            // POINT 19 Execution phase: DO completed training of last part
-            auto point19 = sys_.my_network_layer.newPoint(DO_FRWD_BCKWD_SECOND_PART);
-            // 18 - 19 interval forward - backward - optimize
-            timestamp2 = std::chrono::steady_clock::now();
-            _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (timestamp2 - timestamp1).count();
-            std::cout << "Forward and BackProp Model Part 2: " << _time << std::endl;
-            sys_.my_network_layer.mylogger.add_interval(point18, point19, fwd_bwd_opz);
+            task1 = sys_.exec(task1, batch.target); // optimize
 
             // wait for next backward task
             task = sys_.my_network_layer.check_new_task();
-            
-            // POINT 20 Execution phase: DO received gradients
-            auto point20 = sys_.my_network_layer.newPoint(DO_END_WAIT2);
-            timestamp1 = std::chrono::steady_clock::now();
             task = sys_.exec(task, batch.target); //backward and optimize
-            timestamp2 = std::chrono::steady_clock::now();
-            _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (timestamp2 - timestamp1).count();
-            std::cout << "BackProp Model Part 1: " << _time << std::endl;
 
+
+            send_activations = std::chrono::steady_clock::now();
             _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (timestamp2 - init_batch).count();
+                        (send_activations - init_batch).count();
             std::cout << "One batch " << _time << std::endl;
+            
             // end of batch
             batch_index++;
-            // POINT 21 Execution phase: DO completed training for first part
-            auto point21 = sys_.my_network_layer.newPoint(DO_END_BATCH);
 
-            // 20 - 21 interval backward and optimize
-            sys_.my_network_layer.mylogger.add_interval(point20, point21, bwd_opz);
+            if (batch_index > 100)
+                break;
         }
+
+        // new epoch
         
         auto sample_mean_loss = sys_.running_loss / batch_index;
         auto accuracy = sys_.num_correct / total_num;

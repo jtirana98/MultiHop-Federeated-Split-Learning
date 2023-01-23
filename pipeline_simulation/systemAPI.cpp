@@ -102,13 +102,6 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                     parts[1].activations[0].backward(detached_grad);
                 }
 
-                // DRAFT 
-               /*if (batch_index % 15 == 0) {
-                    std::cout << /*"Epoch: " << epoch << *///"Batch: " << batch_index
-                        //<< " | Loss: " << loss.item<float>() << "| Acc: " << corr_ << std::endl;
-                //}
-                // DRAFT 
-
                 values = parts[1].received_activation.grad().clone().detach();
                 Task opt(client_id, optimize_, prev_node);
                 my_network_layer.put_internal_task(opt);
@@ -201,13 +194,16 @@ void systemAPI::refactor(refactoring_data refactor_message) {
     int start = refactor_message.start;
     int end = refactor_message.end;
     
-    std::cout << "TABLE: " << refactor_message.rooting_table.size() << std::endl;
+    //std::cout << "TABLE: " << refactor_message.rooting_table.size() << std::endl;
     if (refactor_message.rooting_table.size() > 0) {
         for (int i=0; i < refactor_message.rooting_table.size(); i++) {
             std::pair<int, std::string> addr = refactor_message.rooting_table[i];
-            if(addr.first == 0) {
+            
+            // In VM version we do not have node search
+            /*if(addr.first == 0) {
                 continue;
-            }
+            }*/
+
             my_network_layer.rooting_table[addr.first].first = addr.second; 
         }
     }

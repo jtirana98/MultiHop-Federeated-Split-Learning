@@ -33,6 +33,7 @@ class Task {
     int prev_node;
     int model_part;
     int size_;
+    int t_start;
     bool check_=false;
     operation type;
     torch::Tensor values;
