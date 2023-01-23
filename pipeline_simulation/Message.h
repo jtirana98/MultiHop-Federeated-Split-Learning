@@ -538,7 +538,7 @@ struct Message {
     std::vector<std::pair<int, std::string>> rooting_table; // id: ip --> ignoring port num
     int read_table=1;
     // operation
-    int client_id=-1, prev_node=-1, size_=-1, type_op=-1;
+    int client_id=-1, prev_node=-1, size_=-1, type_op=-1, batch0 = -1;
     /*std::chrono::steady_clock::time_point*/
     int t_start=0;
     std::string values;
@@ -569,7 +569,8 @@ struct Message {
         property(&Message::type_op, "type_op"),
         property(&Message::model_part, "model_part"),
         property(&Message::values, "values"),
-        property(&Message::t_start, "t_start")
+        property(&Message::t_start, "t_start"),
+        property(&Message::batch0, "batch0")
     );
 };
 

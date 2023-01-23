@@ -187,7 +187,17 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
 void systemAPI::refactor(refactoring_data refactor_message) {
     inference_path.clear();
     inference_path.push_back(refactor_message.next);
+    
+    if(refactor_message.next == -1) {
+        my_network_layer.sim_back = true;
+    }
+
     inference_path.push_back(refactor_message.prev);
+
+    if(refactor_message.prev == -1) {
+        my_network_layer.sim_forw = true;
+    }
+
     model_name name = (model_name) refactor_message.model_name_;
     int model_ = refactor_message.model_type_;
     int num_class = refactor_message.num_class;

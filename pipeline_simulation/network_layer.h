@@ -29,6 +29,7 @@
 
 #include "Task.h"
 #include "pipeline_logging.h"
+#include "rpi_stats.h"
 //#include "Message.h"
 
 class network_layer {
@@ -38,6 +39,9 @@ class network_layer {
     std::map<int, std::pair<std::string, int>> rooting_table; // (node_id, (ip, port))
     std::mutex m_mutex_new_message;
     std::condition_variable m_cv_new_message;
+    bool sim_forw = false;
+    bool sim_back = false;
+    rpi_stats my_rpi;
 
     // pending tasks for the APP
     std::queue<Task> pending_tasks;
@@ -60,7 +64,8 @@ class network_layer {
     network_layer(int myid, std::string log_dir, bool is_data_owner) : myid(myid), 
     is_data_owner(is_data_owner),
     mylogger(myid, log_dir),
-    logger_thread(&logger::logger_, &mylogger) 
+    logger_thread(&logger::logger_, &mylogger) ,
+    my_rpi(1)
     {
         rooting_table.insert({0, std::pair<std::string, int>("10.84.18.62", 8081)});
         rooting_table.insert({1, std::pair<std::string, int>("10.96.12.130", 8082)});

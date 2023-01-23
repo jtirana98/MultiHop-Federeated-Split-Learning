@@ -6,7 +6,6 @@
 #include "systemAPI.h"
 #include "mydataset.h"
 #include "transform.h"
-#include "rpi_stats.h"
 
 using transform::ConstantPad;
 using transform::RandomCrop;
@@ -141,8 +140,8 @@ int main(int argc, char **argv) {
     }
     */
 
-    auto send_activations = std::chrono::steady_clock::now();
-    auto send_gradients = std::chrono::steady_clock::now();
+    auto send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+    auto send_gradients = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
 
 
     for (size_t round = 0; round != sys_.rounds; ++round) {
@@ -161,15 +160,20 @@ int main(int argc, char **argv) {
             task.values = batch.data;
             task = sys_.exec(task, batch.target);
             task.t_start = send_activations.count();
-            total_n um += task.size_; 
+            total_num += task.size_; 
 
             // send task to next node
             sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
             
 
             // wait for next forward task
+            task = sys_.my_network_layer.check_new_task();
+
+            send_gradients = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
             task = sys_.exec(task, batch.target); // forward and backward
             // send task - backward
+            
+            task.t_start = send_gradients.count();
             sys_.my_network_layer.new_message(task, sys_.inference_path[1]);
             //optimize task
             
@@ -182,9 +186,10 @@ int main(int argc, char **argv) {
             task = sys_.exec(task, batch.target); //backward and optimize
 
 
-            send_activations = std::chrono::steady_clock::now();
-            _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (send_activations - init_batch).count();
+            send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+            auto end_batch = std::chrono::steady_clock::now();
+            auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (end_batch - init_batch).count();
             std::cout << "One batch " << _time << std::endl;
             
             // end of batch

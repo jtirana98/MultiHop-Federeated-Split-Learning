@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
 
             // create task with new batch
             while(batch_index < 150) {
-                auto t1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+                //auto t1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
                 //std::cout << t1.count() << std::endl;
 
                 auto init_batch = std::chrono::steady_clock::now();
@@ -226,10 +226,10 @@ int main(int argc, char **argv) {
                 batch_index++;
                 first = 0;
 
-                auto t2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+                //auto t2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
                 //std::cout << "T2:" << t2.count() << std::endl;
 
-                std::cout << "diafora:" << t2.count()-t1.count() << std::endl;
+                //std::cout << "diafora:" << t2.count()-t1.count() << std::endl;
                 
             }
             break;

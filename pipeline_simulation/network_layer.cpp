@@ -31,17 +31,21 @@ int my_send(int socket_fd, std::string& data, int dest) {
     return 1;
 }
 
-std::string my_receive(int socket_fd) {
+std::vector<std::string> my_receive(int socket_fd) {
     int max = 4096;
     int expected_input=0, bytes_recv = 0, n, len=max;
     std::string json_format;
     std::string leader_board_package= "";
+    std::vector<std::string> to_return;
 
     read(socket_fd,&expected_input,sizeof(int));
     //std::cout << "I expect: " << expected_input << std::endl;
+    to_return.push_back(std::to_string(expected_input));
     auto timestamp1 = std::chrono::steady_clock::now();
-    if (expected_input == 0)
-        return leader_board_package;
+    if (expected_input == 0){
+        to_return.push_back(leader_board_package);
+        return to_return; 
+    }
     
     char* buffer = new char[expected_input];
     if (buffer == NULL) {
@@ -59,7 +63,8 @@ std::string my_receive(int socket_fd) {
         buffer_ptr = buffer_ptr + n;
         if (bytes_recv == -1) {
             std::cout << "Communication error...";
-            return "";
+            to_return.push_back("");
+            return to_return;
         }
         /*else {
             for (int i =0; i<n; i++) {
@@ -75,8 +80,8 @@ std::string my_receive(int socket_fd) {
 
     delete[] buffer;
     
-    
-    return leader_board_package; 
+    to_return.push_back(leader_board_package);
+    return to_return; 
 }
 
 void network_layer::findPeers(int num, bool aggr) {
@@ -306,6 +311,7 @@ void network_layer::new_message(Task task, int send_to, bool compute_to_compute)
     msg.size_ = task.size_;
     msg.type_op = task.type;
     msg.t_start = task.t_start;
+    msg.batch0 = task.batch0;
     
     if(msg.type_op == operation::aggregation_) {
         msg.model_part = task.model_part;
@@ -479,7 +485,7 @@ void network_layer::receiver() {
         std::vector<int> to_remove;
         for (auto it = open_connections.begin(); it != open_connections.end(); it++) {
             if (FD_ISSET(it->second, &readset)) {
-                auto json_format_str = my_receive(it->second);
+                auto json_format_str = my_receive(it->second)[1];
                 if (json_format_str.size()==0 || json_format_str == "") { // remove socket
                     to_remove.push_back(it->first);
                     close(it->second);
@@ -494,6 +500,7 @@ void network_layer::receiver() {
                     Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
                     task.size_ = new_msg.size_;
                     task.t_start = new_msg.t_start;
+                    task.batch0 = new_msg.batch0;
 
                     if((operation)new_msg.type_op == operation::aggregation_) {
                         std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
@@ -546,8 +553,13 @@ void network_layer::receiver() {
                 continue;
             }
 
+            auto received = my_receive(newsockfd);
+            auto json_format_str = received[1];
             
-            auto json_format_str = my_receive(newsockfd);
+            std::stringstream load(received[0]);
+            int load_received = 0;
+            load >>  load_received;
+
             if(json_format_str == "")
                     continue;
             
@@ -559,20 +571,57 @@ void network_layer::receiver() {
                 Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
                 task.size_ = new_msg.size_;
                 task.t_start = new_msg.t_start;
+                task.batch0 = new_msg.batch0;
                 
                 if((operation)new_msg.type_op == operation::aggregation_) {
                     std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
                     torch::load(task.model_part_, ss);
                     task.model_parts = new_msg.values;
+                    put_internal_task(task);
                 }
                 else{
                     std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
                     torch::load(task.values, ss);
+                    auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+                    /* SIMULATION CODE*/
+                    if(!is_data_owner) {
+                        if(sim_forw && task.type == operation::forward_) {
+                            if (task.batch0) {
+                                int expected_time = task.t_start + my_rpi.rpi_fm1 + 
+                                                        ((load_received* 0.0000076294)/my_rpi.rpi_to_vm);
+
+                                if(my_time.count() > expected_time) {
+                                    std::cout << "CANNOT SIMULATE" << std::endl;
+                                }
+                            }
+                            else {
+                                int expected_time = task.t_start + my_rpi.rpi_fm1 + my_rpi.rpi_bm1 +
+                                                        ((load_received* 0.0000076294)/my_rpi.rpi_to_vm);
+
+                                if(my_time.count() > expected_time) {
+                                    std::cout << "CANNOT SIMULATE" << std::endl;
+                                }
+                            }
+                        }
+                        else if(sim_back && task.type == operation::backward_) {
+                            int expected_time = task.t_start + my_rpi.rpi_fbm2 +
+                                                        ((load_received* 0.0000076294)/my_rpi.rpi_to_vm);
+
+                            if(my_time.count() > expected_time) {
+                                    std::cout << "CANNOT SIMULATE" << std::endl;
+                                }
+                        }
+                        else{
+                            put_internal_task(task);
+                        }
+                    }
+                    else{
+                        put_internal_task(task);
+                    }
                 }
                 
                 newPoint(NT_RECEIVED_MSG, task.client_id);
                 
-                put_internal_task(task);
                 
             }
             else {
