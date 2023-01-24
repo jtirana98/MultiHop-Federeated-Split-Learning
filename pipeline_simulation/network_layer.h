@@ -67,12 +67,12 @@ class network_layer {
     logger_thread(&logger::logger_, &mylogger) ,
     my_rpi(1)
     {
-        rooting_table.insert({0, std::pair<std::string, int>("10.96.12.131", 8081)});
-        rooting_table.insert({1, std::pair<std::string, int>("10.96.12.136", 8082)});
-        rooting_table.insert({2, std::pair<std::string, int>("10.96.12.131", 8083)});
-        rooting_table.insert({3, std::pair<std::string, int>("10.96.12.131", 8084)});
-        rooting_table.insert({4, std::pair<std::string, int>("10.96.12.131", 8085)});
-        rooting_table.insert({5, std::pair<std::string, int>("10.96.12.131", 8086)});
+        rooting_table.insert({0, std::pair<std::string, int>("10.96.12.138", 8081)});
+        rooting_table.insert({1, std::pair<std::string, int>("10.96.12.130", 8082)});
+        rooting_table.insert({2, std::pair<std::string, int>("10.96.12.138", 8083)});
+        rooting_table.insert({3, std::pair<std::string, int>("10.96.12.138", 8084)});
+        rooting_table.insert({4, std::pair<std::string, int>("10.96.12.138", 8085)});
+        rooting_table.insert({5, std::pair<std::string, int>("10.96.12.138", 8086)});
     }
 
     void findPeers(int num, bool aggr = false);
