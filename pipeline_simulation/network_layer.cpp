@@ -581,9 +581,11 @@ void network_layer::receiver() {
                 else{
                     std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
                     torch::load(task.values, ss);
-                    auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
                     /* SIMULATION CODE*/
                     if(!is_data_owner) {
+                        auto p0 = std::chrono::time_point<std::chrono::system_clock>{};
+                        auto p1 = std::chrono::system_clock::now();
+                        auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch());
                         if(sim_forw && task.type == operation::forward_) {
                             if (task.batch0 == 0) {
                                 int expected_time = task.t_start + my_rpi.rpi_fm1 + 

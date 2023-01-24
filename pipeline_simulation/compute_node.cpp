@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 
     // POINT 12 Initialization phase: completed
     sys_.my_network_layer.newPoint(INIT_END_INIT);
-
+    
     while (true) {
         
         /* CODE FOR MEASURING RTT - COMMENT */

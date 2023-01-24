@@ -151,16 +151,15 @@ int main(int argc, char **argv) {
     }
     */
 
-    auto send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
-    auto send_gradients = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
-
+    auto send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+    auto send_gradients = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 
     for (size_t round = 0; round != sys_.rounds; ++round) {
         int batch_index = 0;
         sys_.zero_metrics();
         int total_num = 0;
 
-        send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+        send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
         
         for (auto& batch : *train_dataloader) {
             // create task with new batch
@@ -181,7 +180,7 @@ int main(int argc, char **argv) {
             // wait for next forward task
             task = sys_.my_network_layer.check_new_task();
 
-            send_gradients = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+            send_gradients = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
             task = sys_.exec(task, batch.target); // forward and backward
             // send task - backward
             
@@ -198,7 +197,7 @@ int main(int argc, char **argv) {
             task = sys_.exec(task, batch.target); //backward and optimize
 
 
-            send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+            send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
             auto end_batch = std::chrono::steady_clock::now();
             auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (end_batch - init_batch).count();
