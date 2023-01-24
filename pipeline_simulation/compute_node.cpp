@@ -45,6 +45,9 @@ int main(int argc, char **argv) {
 
     // POINT 10 Initialization phase: do/cn waiting for refactor message
     sys_.my_network_layer.newPoint(INIT_WAIT_FOR_REFACTOR);
+
+    auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+    std::cout << my_time.count() << std::endl;
     
     // wait for init refactoring
     //sys_.my_network_layer.findInit();
@@ -59,11 +62,11 @@ int main(int argc, char **argv) {
     //sys_.init_state(vgg, vgg_model::v11, 10, 1, 3);
     //sys_.init_state_vector(resnet, resnet_model::resnet18, 10, 9, 13);
     
-    auto layers = sys_.clients_state.find(0)->second.layers;
+    /*auto layers = sys_.clients_state.find(0)->second.layers;
     std::cout << sys_.clients_state.find(1)->second.client_id << std::endl;
     for (int i = 0; i< layers.size(); i++) {
         std::cout << "new layer: "<< i+1 << " "<< layers[i] << std::endl;
-    }
+    }*/
     
     // -------- TEST ------------
 
@@ -87,7 +90,7 @@ int main(int argc, char **argv) {
         auto timestamp2_ = std::chrono::steady_clock::now();
         auto __time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2_ - timestamp1_).count();
-        std::cout << "Waiting... " << __time << std::endl;
+        //std::cout << "Waiting... " << __time << std::endl;
 
         interval_type type_;
         std::string operation;
@@ -107,7 +110,7 @@ int main(int argc, char **argv) {
         default:
             break;
         }
-        std::cout << operation << std::endl;
+        //std::cout << operation << std::endl;
         // POINT 14 Execution phase: CN starts executing task
         auto point1 = sys_.my_network_layer.newPoint(CN_START_EXEC, next_task.client_id, operation);
         auto timestamp1 = std::chrono::steady_clock::now();
@@ -126,7 +129,7 @@ int main(int argc, char **argv) {
         auto timestamp2 = std::chrono::steady_clock::now();
         auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2 - timestamp1).count();
-        std::cout << "Computing: " << operation << ": " << _time << std::endl;
+        //std::cout << "Computing: " << operation << ": " << _time << std::endl;
         
         // POINT 15 Execution phase: CN completed a task
         auto point2 = sys_.my_network_layer.newPoint(CN_END_EXEC, next_task.client_id, operation);

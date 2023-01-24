@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
         int num_parts = compute_nodes.size() + 2;
 
         std::cout << "found them" << std::endl; 
-        sleep(2);
+        //sleep(2);
 
         int data_onwer_end = 2;
         int data_owner_beg = 8;
@@ -80,15 +80,14 @@ int main(int argc, char **argv) {
         auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
         std::cout << my_time.count() << std::endl;
         
+        
         for (int i=1; i<data_owners.size(); i++) {
+            std::cout << data_owners[i] << std::endl;
             if(data_owners[i] > 5) {
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(5)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (data_owners[i] - 5);
-                my_addr.second = my_port;
-
-                sys_.my_network_layer.rooting_table[data_owners[i]] = my_addr;
-
+                sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
 
             sys_.my_network_layer.new_message(client_message, data_owners[i], false, true);
@@ -172,7 +171,7 @@ int main(int argc, char **argv) {
             task.values = batch.data;
             task = sys_.exec(task, batch.target);
             task.t_start = send_activations.count();
-            std::cout << task.t_start << std::endl;
+            //std::cout << task.t_start << std::endl;
             total_num += task.size_; 
             task.batch0 = batch_index;
             // send task to next node

@@ -12,4 +12,5 @@ do
     ../../build/simulated_data_owner $i > /root/experiments/simulations/dataowners_$1_/d$i.data &
 done
 
-../../build/simulated_data_owner 0 0,1,3,4,5 > /root/experiments/simulations/dataowners_$1_/d0.data &
+sudo iptables -I INPUT -p tcp -m tcp --dport 8081 -j ACCEPT
+../../build/simulated_data_owner 0 0,2,3,4,5 > /root/experiments/simulations/dataowners_$1_/d0.data &

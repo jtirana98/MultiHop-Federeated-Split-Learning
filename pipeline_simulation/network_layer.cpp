@@ -6,11 +6,11 @@ std::queue<Message> pending_messages;
 int my_send(int socket_fd, std::string& data, int dest) {
     const char* data_ptr  = data.data();
     int data_size = data.size();
-    std::cout << "--> " << data_size << std::endl;
+    //std::cout << "--> " << data_size << std::endl;
     //if (data_size < 300)
     //std::cout << "-->" << data << std::endl;
     
-    std::cout << "sending: " << data_size << " to: " << dest /*<< std::endl*/;
+    //std::cout << "sending: " << data_size << " to: " << dest /*<< std::endl*/;
     auto timestamp1 = std::chrono::steady_clock::now();
     std::string len = std::to_string(data_size);
     send(socket_fd, &data_size, sizeof(int), 0);
@@ -439,7 +439,7 @@ void network_layer::receiver() {
     
     // lock
     //auto dump = check_new_task();
-    std::cout << "let's go " << myid << std::endl;
+    //std::cout << "let's go " << myid << std::endl;
     sleep(1);
 
     if(myid > 5) {
@@ -555,17 +555,16 @@ void network_layer::receiver() {
 
             auto received = my_receive(newsockfd);
             auto json_format_str = received[1];
-            
+
             std::stringstream load(received[0]);
             int load_received = 0;
             load >>  load_received;
 
             if(json_format_str == "")
                     continue;
-            
+
             auto json_format = fromStr_toJson<Message>(json_format_str);
             new_msg = fromJson<Message>(json_format);
-           
             if (new_msg.type == OPERATION) { // create new Task object
                 // from message to task object
                 Task task(new_msg.client_id, (operation)new_msg.type_op, new_msg.prev_node);
@@ -586,30 +585,32 @@ void network_layer::receiver() {
                     /* SIMULATION CODE*/
                     if(!is_data_owner) {
                         if(sim_forw && task.type == operation::forward_) {
-                            if (task.batch0) {
+                            if (task.batch0 == 0) {
                                 int expected_time = task.t_start + my_rpi.rpi_fm1 + 
-                                                        ((load_received* 0.0000076294)/my_rpi.rpi_to_vm);
-
+                                                        (((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000);
+                                std::cout << "f1-0 " << task.t_start << " " << expected_time << " " << my_time.count() << std::endl;
                                 if(my_time.count() > expected_time) {
                                     std::cout << "CANNOT SIMULATE" << std::endl;
                                 }
                             }
                             else {
                                 int expected_time = task.t_start + my_rpi.rpi_fm1 + my_rpi.rpi_bm1 +
-                                                        ((load_received* 0.0000076294)/my_rpi.rpi_to_vm);
-
+                                                        (((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000);
+                                std::cout << "f1 "<< task.t_start << " " << expected_time << " " << my_time.count() << std::endl;
                                 if(my_time.count() > expected_time) {
                                     std::cout << "CANNOT SIMULATE" << std::endl;
                                 }
                             }
+                            put_internal_task(task);
                         }
                         else if(sim_back && task.type == operation::backward_) {
                             int expected_time = task.t_start + my_rpi.rpi_fbm2 +
-                                                        ((load_received* 0.0000076294)/my_rpi.rpi_to_vm);
-
+                                                        (((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000);
+                            std::cout << "M2 " << task.t_start << " " << expected_time << " " << my_time.count() << std::endl;
                             if(my_time.count() > expected_time) {
                                     std::cout << "CANNOT SIMULATE" << std::endl;
-                                }
+                            }
+                            put_internal_task(task);
                         }
                         else{
                             put_internal_task(task);
@@ -704,7 +705,7 @@ void network_layer::sender() { // consumer -- new message
         else{
             auto client_addr = rooting_table.find(new_msg.dest)->second;
             portno = client_addr.second;
-            std::cout << "sending: " << client_addr << " " << portno << std::endl;
+            //std::cout << "sending: " << client_addr << " " << portno << std::endl;
             while(true) {
                 sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -738,7 +739,7 @@ void network_layer::sender() { // consumer -- new message
                 res = connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
                 //std::cerr << "ERROR connecting";
                 if (res < 0) {
-                    std::cout << "server not found" << std::endl;
+                    std::cout << "server not found (" << client_addr << "," << new_msg.dest << ")" << std::endl;
                     sleep(2);
                 }
             } while (res<0);
