@@ -33,7 +33,7 @@ class Task {
     int prev_node;
     int model_part;
     int size_;
-    int t_start;
+    long t_start;
     int batch0=-1;
     bool check_=false;
     operation type;

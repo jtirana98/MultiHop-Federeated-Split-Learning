@@ -160,7 +160,9 @@ int main(int argc, char **argv) {
         int total_num = 0;
 
         send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-        
+        //long c = send_activations.count();
+        //std::cout << c << std::endl;
+        //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << std::endl;
         for (auto& batch : *train_dataloader) {
             // create task with new batch
             auto init_batch = std::chrono::steady_clock::now();

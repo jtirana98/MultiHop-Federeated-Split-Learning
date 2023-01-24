@@ -33,6 +33,7 @@ namespace Json {
         std::map<std::string, Value> subObject;
         std::string string_;
         int number = 0;
+        long number_l = 0;
         std::vector<int> numbers;
         std::vector<std::pair<int, std::string>> addr;
     };
@@ -59,8 +60,13 @@ namespace Json {
             return *this;
         }
         
-        Value& operator=(double value) {
+        Value& operator=(int value) {
             data.number = value;
+            return *this;
+        }
+
+        Value& operator=(long value) {
+            data.number_l = value;
             return *this;
         }
 
@@ -92,6 +98,16 @@ namespace Json {
     template<>
     const int& asAny<int>(const Value& value) {
         return value.data.number;
+    }
+
+    template<>
+    long& asAny<long>(Value& value) {
+        return value.data.number_l;
+    }
+    
+    template<>
+    const long& asAny<long>(const Value& value) {
+        return value.data.number_l;
     }
     
     template<>
@@ -135,6 +151,18 @@ namespace Json {
     template<>
     const std::string getStr<int>(const Value& value) {
         auto s = std::to_string(value.data.number);
+        return s;
+    }
+
+    template<>
+    std::string getStr<long>(Value& value) {
+        auto s = std::to_string(value.data.number_l);
+        return s;
+    }
+    
+    template<>
+    const std::string getStr<long>(const Value& value) {
+        auto s = std::to_string(value.data.number_l);
         return s;
     }
     
@@ -205,6 +233,19 @@ namespace Json {
         auto s = stoi(value);
         return s;
     }
+
+    template<>
+    long getValue<long>(std::string& value) {
+        auto s = stol(value);
+        return s;
+    }
+
+    template<>
+    const long getValue<long>(const std::string& value) {
+        auto s = stol(value);
+        return s;
+    }
+
 
     template<>
     const std::string getValue<std::string>(const std::string& value) {
@@ -540,7 +581,7 @@ struct Message {
     // operation
     int client_id=-1, prev_node=-1, size_=-1, type_op=-1, batch0 = -1;
     /*std::chrono::steady_clock::time_point*/
-    int t_start=0;
+    long t_start=0;
     std::string values;
 
     constexpr static auto properties_header = std::make_tuple(
