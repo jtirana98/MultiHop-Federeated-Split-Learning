@@ -81,11 +81,11 @@ class network_layer {
     void new_message(Task task, int send_to, bool compute_to_compute=false); // produce -- new message
     void new_message(refactoring_data task, int send_to, bool compute_to_compute=false, bool rooting_table_=false); // produce -- new message
     
-    void put_internal_task(Task task);
+    void put_internal_task(Task task, bool back=false);
     void put_internal_task(refactoring_data task);
 
     //Task check_new_task(); //consumer - new task
-    Task check_new_task(); //consumer - new task
+    Task check_new_task(bool back=false); //consumer - new task
     refactoring_data check_new_refactor_task(); //consumer - new task
 
     //threads

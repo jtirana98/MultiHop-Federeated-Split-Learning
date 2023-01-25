@@ -380,13 +380,21 @@ void network_layer::new_message(refactoring_data task, int send_to, bool compute
      m_cv_new_message.notify_one();
 }
 
-void network_layer::put_internal_task(Task task) {
+void network_layer::put_internal_task(Task task, bool back) {
+    if(back) {
+        {
+        std::unique_lock<std::mutex> lock(m_mutex_new_task_);
+        pending_tasks_.push(task);
+        }
+        m_cv_new_task_.notify_one();
+    }
+    else {
         {
         std::unique_lock<std::mutex> lock(m_mutex_new_task);
         pending_tasks.push(task);
         }
         m_cv_new_task.notify_one();
-    
+    }
 }
 
 void network_layer::put_internal_task(refactoring_data task) {
@@ -399,16 +407,27 @@ void network_layer::put_internal_task(refactoring_data task) {
     m_cv_new_refactor_task.notify_one();
 }
 
-Task network_layer::check_new_task() { //consumer
+Task network_layer::check_new_task(bool back) { //consumer
     Task new_task;
 
-    std::unique_lock<std::mutex> lock(m_mutex_new_task);
-    while (pending_tasks.empty()) {
-        m_cv_new_task.wait(lock, [&](){ return !pending_tasks.empty(); });
+    if(back) {
+        std::unique_lock<std::mutex> lock(m_mutex_new_task_);
+        while (pending_tasks_.empty()) {
+            m_cv_new_task_.wait(lock, [&](){ return !pending_tasks_.empty(); });
+        }
+        
+        new_task = pending_tasks_.front();
+        pending_tasks_.pop();
     }
-    
-    new_task = pending_tasks.front();
-    pending_tasks.pop();
+    else { 
+        std::unique_lock<std::mutex> lock(m_mutex_new_task);
+        while (pending_tasks.empty()) {
+            m_cv_new_task.wait(lock, [&](){ return !pending_tasks.empty(); });
+        }
+        
+        new_task = pending_tasks.front();
+        pending_tasks.pop();
+    }
 
     return new_task;
 }
@@ -581,13 +600,14 @@ void network_layer::receiver() {
                 else{
                     std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
                     torch::load(task.values, ss);
-                    /* SIMULATION CODE*/
                     if(!is_data_owner) {
-                        auto p1 = std::chrono::system_clock::now();
+                        put_internal_task(task, (task.type != operation::forward_));
+                        /* SIMULATION CODE*/
+                        /*auto p1 = std::chrono::system_clock::now();
                         auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch());
                         if(sim_forw && task.type == operation::forward_) {
                             if (task.batch0 == 0) {
-                                long expected_time = task.t_start /*+ my_rpi.rpi_fm1*/ + 
+                                long expected_time = task.t_start + my_rpi.rpi_fm1 + 
                                                         (((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000);
                                 std::cout << "f1-0 " << task.t_start << " " << expected_time << " " << my_time.count() << std::endl;
                                 if(my_time.count() > expected_time) {
@@ -595,7 +615,7 @@ void network_layer::receiver() {
                                 }
                             }
                             else {
-                                long expected_time = task.t_start /*+ my_rpi.rpi_fm1 + my_rpi.rpi_bm1*/ +
+                                long expected_time = task.t_start + my_rpi.rpi_fm1 + my_rpi.rpi_bm1 +
                                                         (((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000);
                                 std::cout << "f1 "<< task.t_start << " " << expected_time << " " << my_time.count() << std::endl;
                                 if(my_time.count() > expected_time) {
@@ -605,17 +625,13 @@ void network_layer::receiver() {
                             put_internal_task(task);
                         }
                         else if(sim_back && task.type == operation::backward_) {
-                            long expected_time = task.t_start /*+ my_rpi.rpi_fbm2*/ +
+                            long expected_time = task.t_start + my_rpi.rpi_fbm2 +
                                                         (((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000);
                             std::cout << "M2 " << task.t_start << " " << expected_time << " " << my_time.count() << std::endl;
                             if(my_time.count() > expected_time) {
                                     std::cout << "CANNOT SIMULATE" << std::endl;
                             }
-                            put_internal_task(task);
-                        }
-                        else{
-                            put_internal_task(task);
-                        }
+                            put_internal_task(task);*/
                     }
                     else{ // data owner -- simulate transfer
                         auto p1 = std::chrono::system_clock::now();
@@ -626,7 +642,7 @@ void network_layer::receiver() {
                             std::cout << "Network: Cannot Simulate" << std::endl;
                         } 
                         else{
-                            //std::cout << "go to sleep " << real_duration-(my_time.count()-task.t_start) << std::endl;
+                            std::cout << "go to sleep " << real_duration-(my_time.count()-task.t_start) << std::endl;
                             
                             usleep(real_duration-(my_time.count()-task.t_start));
                         }

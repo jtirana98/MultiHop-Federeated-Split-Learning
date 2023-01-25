@@ -107,7 +107,7 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                 my_network_layer.put_internal_task(opt);
             }
         }
-        else {
+        else { // compute node
             values = task.values;
             auto client_state = &(clients_state.find(client_id)->second);
             client_state->received_activation = values;
@@ -141,7 +141,7 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
             nextOp = noOp; // end of batch
             
         }
-        else {
+        else { // compute node
             values = task.values;
             auto client_state = &clients_state.find(client_id)->second;
             for (int i=client_state->layers.size()-1; i>=0; i--) {
@@ -155,7 +155,7 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
             }
             // add optimization task to list
             Task opt(client_id, optimize_, prev_node);
-            my_network_layer.put_internal_task(opt);
+            my_network_layer.put_internal_task(opt, true);
         }
 
         nextTask = Task(client_id, nextOp, prev_node);
