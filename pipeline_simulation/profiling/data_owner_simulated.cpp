@@ -185,10 +185,10 @@ int main(int argc, char **argv) {
             }
 
             if (end_f1-send_activations.count() > real_duration) {
-                std::cout << "Cannot Simulate" << std::endl;
+                std::cout << "Model part 1: Cannot Simulate" << std::endl;
             } 
             else{
-                std::cout << "go to sleep " << real_duration-(end_f1-send_activations.count()) << std::endl;
+                //std::cout << "go to sleep " << real_duration-(end_f1-send_activations.count()) << std::endl;
                 
                 usleep(real_duration-(end_f1-send_activations.count()));
             }
@@ -212,11 +212,10 @@ int main(int argc, char **argv) {
             real_duration = my_rpi.rpi_fbm2;
             
             if (end_m2-send_gradients.count() > real_duration) {
-                std::cout << "Cannot Simulate" << std::endl;
+                std::cout << "Model part last: Cannot Simulate" << std::endl;
             }
             else{
-                std::cout << "go to sleep " << real_duration-(end_m2-send_gradients.count()) << std::endl;
-
+                //std::cout << "go to sleep " << real_duration-(end_m2-send_gradients.count()) << std::endl;
                 usleep(real_duration-(end_m2-send_gradients.count()));
             }
             

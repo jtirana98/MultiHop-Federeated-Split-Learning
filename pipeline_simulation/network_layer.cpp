@@ -583,7 +583,6 @@ void network_layer::receiver() {
                     torch::load(task.values, ss);
                     /* SIMULATION CODE*/
                     if(!is_data_owner) {
-                        auto p0 = std::chrono::time_point<std::chrono::system_clock>{};
                         auto p1 = std::chrono::system_clock::now();
                         auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch());
                         if(sim_forw && task.type == operation::forward_) {
@@ -618,7 +617,20 @@ void network_layer::receiver() {
                             put_internal_task(task);
                         }
                     }
-                    else{
+                    else{ // data owner -- simulate transfer
+                        auto p1 = std::chrono::system_clock::now();
+                        auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch());
+                        long real_duration = ((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000;
+
+                        if (my_time.count()-task.t_start > real_duration) {
+                            std::cout << "Network: Cannot Simulate" << std::endl;
+                        } 
+                        else{
+                            //std::cout << "go to sleep " << real_duration-(my_time.count()-task.t_start) << std::endl;
+                            
+                            usleep(real_duration-(my_time.count()-task.t_start));
+                        }
+
                         put_internal_task(task);
                     }
                 }
@@ -681,7 +693,7 @@ void network_layer::sender() { // consumer -- new message
 
         new_msg = pending_messages.front();
         pending_messages.pop();
-        //new_msg.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        new_msg.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
         // POINT 2 Network layer: preparing to send
         newPoint(NT_PREPARE_MSG, new_msg.dest);
