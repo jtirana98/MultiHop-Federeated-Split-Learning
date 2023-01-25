@@ -588,7 +588,7 @@ void network_layer::receiver() {
                         auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch());
                         if(sim_forw && task.type == operation::forward_) {
                             if (task.batch0 == 0) {
-                                int expected_time = task.t_start + my_rpi.rpi_fm1 + 
+                                long expected_time = task.t_start /*+ my_rpi.rpi_fm1*/ + 
                                                         (((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000);
                                 std::cout << "f1-0 " << task.t_start << " " << expected_time << " " << my_time.count() << std::endl;
                                 if(my_time.count() > expected_time) {
@@ -596,7 +596,7 @@ void network_layer::receiver() {
                                 }
                             }
                             else {
-                                int expected_time = task.t_start + my_rpi.rpi_fm1 + my_rpi.rpi_bm1 +
+                                long expected_time = task.t_start /*+ my_rpi.rpi_fm1 + my_rpi.rpi_bm1*/ +
                                                         (((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000);
                                 std::cout << "f1 "<< task.t_start << " " << expected_time << " " << my_time.count() << std::endl;
                                 if(my_time.count() > expected_time) {
@@ -606,7 +606,7 @@ void network_layer::receiver() {
                             put_internal_task(task);
                         }
                         else if(sim_back && task.type == operation::backward_) {
-                            int expected_time = task.t_start + my_rpi.rpi_fbm2 +
+                            long expected_time = task.t_start /*+ my_rpi.rpi_fbm2*/ +
                                                         (((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000);
                             std::cout << "M2 " << task.t_start << " " << expected_time << " " << my_time.count() << std::endl;
                             if(my_time.count() > expected_time) {
@@ -681,6 +681,7 @@ void network_layer::sender() { // consumer -- new message
 
         new_msg = pending_messages.front();
         pending_messages.pop();
+        //new_msg.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
         // POINT 2 Network layer: preparing to send
         newPoint(NT_PREPARE_MSG, new_msg.dest);

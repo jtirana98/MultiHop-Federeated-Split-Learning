@@ -6,6 +6,7 @@
 #include "systemAPI.h"
 #include "mydataset.h"
 #include "transform.h"
+#include "rpi_stats.h"
 
 using transform::ConstantPad;
 using transform::RandomCrop;
@@ -17,7 +18,7 @@ int main(int argc, char **argv) {
 
     int myID = conv;
     std::string log_dir = "main_experiment";
-
+    rpi_stats my_rpi = rpi_stats(1);
 
     systemAPI sys_(true, myID, log_dir);
     refactoring_data client_message;
@@ -171,11 +172,30 @@ int main(int argc, char **argv) {
             task.size_ = batch.data.size(0);
             task.values = batch.data;
             task = sys_.exec(task, batch.target);
-            task.t_start = send_activations.count();
+            //task.t_start = send_activations.count();
             //std::cout << task.t_start << std::endl;
             total_num += task.size_; 
             task.batch0 = batch_index;
+            auto end_f1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            
+            long real_duration = 0;
+            real_duration = my_rpi.rpi_fm1;
+            if (batch_index != 0) {
+                real_duration = real_duration + my_rpi.rpi_bm1;
+            }
+
+            if (end_f1-send_activations.count() > real_duration) {
+                std::cout << "Cannot Simulate" << std::endl;
+            } 
+            else{
+                std::cout << "go to sleep " << real_duration-(end_f1-send_activations.count()) << std::endl;
+                
+                usleep(real_duration-(end_f1-send_activations.count()));
+            }
+            
+            //std::cout << "f1-end: " << end_f1-send_activations.count() << std::endl;
             // send task to next node
+            task.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
             
 
@@ -185,8 +205,23 @@ int main(int argc, char **argv) {
             send_gradients = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
             task = sys_.exec(task, batch.target); // forward and backward
             // send task - backward
+            auto end_m2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            //std::cout << "m2-end: " << end_m2-send_gradients.count() << std::endl;
             
-            task.t_start = send_gradients.count();
+            real_duration = 0;
+            real_duration = my_rpi.rpi_fbm2;
+            
+            if (end_m2-send_gradients.count() > real_duration) {
+                std::cout << "Cannot Simulate" << std::endl;
+            }
+            else{
+                std::cout << "go to sleep " << real_duration-(end_m2-send_gradients.count()) << std::endl;
+
+                usleep(real_duration-(end_m2-send_gradients.count()));
+            }
+            
+            //task.t_start = send_gradients.count();
+            task.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             sys_.my_network_layer.new_message(task, sys_.inference_path[1]);
             //optimize task
             
