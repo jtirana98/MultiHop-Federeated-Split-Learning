@@ -381,20 +381,20 @@ void network_layer::new_message(refactoring_data task, int send_to, bool compute
 }
 
 void network_layer::put_internal_task(Task task, bool back) {
-    if(back) {
+   /* if(back) {
         {
         std::unique_lock<std::mutex> lock(m_mutex_new_task_);
         pending_tasks_.push(task);
         }
         m_cv_new_task_.notify_one();
     }
-    else {
+    else {*/
         {
         std::unique_lock<std::mutex> lock(m_mutex_new_task);
         pending_tasks.push(task);
         }
         m_cv_new_task.notify_one();
-    }
+    //}
 }
 
 void network_layer::put_internal_task(refactoring_data task) {
@@ -410,7 +410,7 @@ void network_layer::put_internal_task(refactoring_data task) {
 Task network_layer::check_new_task(bool back) { //consumer
     Task new_task;
 
-    if(back) {
+    /*if(back) {
         std::unique_lock<std::mutex> lock(m_mutex_new_task_);
         while (pending_tasks_.empty()) {
             m_cv_new_task_.wait(lock, [&](){ return !pending_tasks_.empty(); });
@@ -418,8 +418,8 @@ Task network_layer::check_new_task(bool back) { //consumer
         
         new_task = pending_tasks_.front();
         pending_tasks_.pop();
-    }
-    else { 
+    }*/
+    //else { 
         std::unique_lock<std::mutex> lock(m_mutex_new_task);
         while (pending_tasks.empty()) {
             m_cv_new_task.wait(lock, [&](){ return !pending_tasks.empty(); });
@@ -427,7 +427,7 @@ Task network_layer::check_new_task(bool back) { //consumer
         
         new_task = pending_tasks.front();
         pending_tasks.pop();
-    }
+   // }
 
     return new_task;
 }

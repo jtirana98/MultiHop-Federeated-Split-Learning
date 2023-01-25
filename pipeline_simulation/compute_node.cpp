@@ -11,16 +11,16 @@ class ComputeNode {
     systemAPI &sys_;
 
     ComputeNode(int myID, systemAPI &sys_) :myID(myID), sys_(sys_) {}
-    void task_operator(operation op); // this will be the thread
+    void task_operator(/*operation op*/); // this will be the thread
 };
 
-void ComputeNode::task_operator(operation op) {
+void ComputeNode::task_operator(/*operation op*/) {
     Task next_task;
     int next_node;
     torch::Tensor tmp;
 
     std::string my_operation;
-    switch (op) {
+    /*switch (op) {
     case forward_:
         my_operation = "forward";
         break;
@@ -29,14 +29,14 @@ void ComputeNode::task_operator(operation op) {
         break;
     default:
         break;  
-    }
+    }*/
 
-    std::cout << "The " << my_operation << " thread started!" << std::endl;
+    //std::cout << "The " << my_operation << " thread started!" << std::endl;
 
 
     while (true) {
         //auto timestamp1_ = std::chrono::steady_clock::now();
-        next_task = sys_.my_network_layer.check_new_task(op==operation::backward_); // TODO: CHANGE THAT
+        next_task = sys_.my_network_layer.check_new_task(/*op==operation::backward_*/); // TODO: CHANGE THAT
         //auto timestamp2_ = std::chrono::steady_clock::now();
         /*auto __time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2_ - timestamp1_).count();*/
@@ -94,11 +94,11 @@ int main(int argc, char **argv) {
     sys_.refactor(refactor_message);
     ComputeNode the_cnode = ComputeNode(myID, sys_);
 
-    std::thread forward_operations(&ComputeNode::task_operator, &the_cnode, operation::forward_);
-    std::thread backprop_operations(&ComputeNode::task_operator, &the_cnode, operation::backward_);
-
-    forward_operations.join();
-    backprop_operations.join();
+    //std::thread forward_operations(&ComputeNode::task_operator, &the_cnode, operation::forward_);
+    //std::thread backprop_operations(&ComputeNode::task_operator, &the_cnode, operation::backward_);
+    the_cnode.task_operator();
+    //forward_operations.join();
+    //backprop_operations.join();
 
     // ----------- TEST ------------
     //sys_.init_state(vgg, vgg_model::v11, 10, 1, 3);
