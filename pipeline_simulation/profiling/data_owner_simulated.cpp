@@ -160,21 +160,27 @@ int main(int argc, char **argv) {
         std::cout << "new layer: "<< i+1 << " "<< sys_.parts[1].layers[i] << std::endl;
     }
     */
-
+    auto init_epoch = std::chrono::steady_clock::now();
     auto send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
     auto send_gradients = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
     int epoch_count = 0, g_epoch_count = 0; // communication round
+    bool new_r = true;
     for (size_t round = 0; round != sys_.rounds; ++round) {
         int batch_index = 0;
         sys_.zero_metrics();
         int total_num = 0;
-        auto init_epoch = std::chrono::steady_clock::now();
+        if (new_r) {
+            std::cout << "New round " << std::endl;
+            init_epoch = std::chrono::steady_clock::now();
+            new_r = false;
+        }
+
         send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
         //long c = send_activations.count();
         //std::cout << c << std::endl;
         //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << std::endl;
         
-        for (int inter_batch = 0; inter_batch < 15; inter_batch++ ) {    
+        for (int inter_batch = 0; inter_batch < 10; inter_batch++ ) {    
             for (auto& batch : *train_dataloader) {
                 // create task with new batch
                 auto init_batch = std::chrono::steady_clock::now();
@@ -256,13 +262,14 @@ int main(int argc, char **argv) {
         }
         epoch_count++;
 
-        if(epoch_count <  3)
+        if(epoch_count <  2)
             continue;
         
         epoch_count = 0;
         g_epoch_count++;
+        new_r = true;
         // stdout end of round
-
+        auto aggr_beg = std::chrono::steady_clock::now();
         // new epoch
         std::cout << "sending to the aggegator" << std::endl;
         auto newAggTask = Task(myID, operation::aggregation_, -1);
@@ -297,6 +304,11 @@ int main(int argc, char **argv) {
         auto end_epoch = std::chrono::steady_clock::now();
         auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
                     (end_epoch - init_epoch).count();
+
+        auto _time2 = std::chrono::duration_cast<std::chrono::milliseconds>
+                    (end_epoch - aggr_beg).count();
+        std::cout << "aggregation: " << _time2 << std::endl;
         std::cout << "One epoch e: " << g_epoch_count << " took: " << _time << std::endl;
+        
     }
 }
