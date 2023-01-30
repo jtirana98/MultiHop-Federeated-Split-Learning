@@ -29,7 +29,8 @@ int main(int argc, char **argv) {
 
         auto cut_layers_ = "2,35";
         auto data_owners_ = argv[2];  // CHANGE
-        std::cout << data_owners_ << std::endl;
+        int num_data_owners = atoi(argv[2]);
+        //std::cout << data_owners_ << std::endl;
         auto compute_nodes_ = "1"; // CHANGE
 
 
@@ -44,12 +45,16 @@ int main(int argc, char **argv) {
             }
         }
 
-        streamData = std::stringstream(data_owners_);
+        data_owners.push_back(0);
+        for (int i = 0; i < num_data_owners-1; i++) {
+            data_owners.push_back(i+2);
+        }
+        /*streamData = std::stringstream(data_owners_);
         while (std::getline(streamData, val, separator)) {
             if (val != "") {
                 data_owners.push_back(stoi(val));
             }
-        }
+        }*/
 
         streamData  = std::stringstream(compute_nodes_);
         while (std::getline(streamData, val, separator)) {
@@ -83,7 +88,7 @@ int main(int argc, char **argv) {
         
         
         for (int i=1; i<data_owners.size(); i++) {
-            std::cout << data_owners[i] << std::endl;
+            //std::cout << data_owners[i] << std::endl;
             if(data_owners[i] > 5) {
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(5)->second;
                 int my_port = my_addr.second;
@@ -93,6 +98,10 @@ int main(int argc, char **argv) {
 
             sys_.my_network_layer.new_message(client_message, data_owners[i], false, true);
         }
+
+        // send to aggregator:
+        sys_.my_network_layer.new_message(client_message, -1, false, true);
+
         sys_.refactor(client_message);
         
         client_message.to_data_onwer = false;
@@ -133,7 +142,7 @@ int main(int argc, char **argv) {
                                     .map(RandomCrop({32, 32}))
                                     .map(torch::data::transforms::Stack<>());
     auto num_train_samples = train_dataset.size().value();
-
+    //std::cout << train_dataset.size().value() << std::endl;
     auto train_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
             std::move(train_dataset), sys_.batch_size);
 
@@ -164,7 +173,7 @@ int main(int argc, char **argv) {
         //long c = send_activations.count();
         //std::cout << c << std::endl;
         //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << std::endl;
-        for (auto& batch : *train_dataloader) {
+        /*for (auto& batch : *train_dataloader) {
             // create task with new batch
             auto init_batch = std::chrono::steady_clock::now();
             
@@ -185,7 +194,7 @@ int main(int argc, char **argv) {
             }
 
             if (end_f1-send_activations.count() > real_duration) {
-                std::cout << "Model part 1: Cannot Simulate" << std::endl;
+                std::cout << "Model part 1: Cannot Simulate " << (nd_f1-send_activations.count() - real_duration) << std::endl;
             } 
             else{
                 //std::cout << "go to sleep " << real_duration-(end_f1-send_activations.count()) << std::endl;
@@ -212,7 +221,7 @@ int main(int argc, char **argv) {
             real_duration = my_rpi.rpi_fbm2;
             
             if (end_m2-send_gradients.count() > real_duration) {
-                std::cout << "Model part last: Cannot Simulate" << std::endl;
+                std::cout << "Model part last: Cannot Simulate " << (end_m2-send_gradients.count() - )<< std::endl;
             }
             else{
                 //std::cout << "go to sleep " << real_duration-(end_m2-send_gradients.count()) << std::endl;
@@ -237,23 +246,26 @@ int main(int argc, char **argv) {
             auto end_batch = std::chrono::steady_clock::now();
             auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (end_batch - init_batch).count();
-            std::cout << "One batch " << _time << std::endl;
+            std::cout << "One batch e: " << round <<" b: " << batch_index  << " is" << _time << std::endl;
             
             // end of batch
             batch_index++;
 
             if (batch_index > 100)
                 break;
-        }
+        }*/
+
+        // stdout end of round
 
         // new epoch
-        
-        auto sample_mean_loss = sys_.running_loss / batch_index;
-        auto accuracy = sys_.num_correct / total_num;
 
-            
-        std::cout << "Epoch [" << (round + 1) << "/" << sys_.rounds << "], Trainset - Loss: "
-                << sample_mean_loss << ", Accuracy: " << accuracy << " " << sys_.num_correct << std::endl;
+        auto newAggTask = Task(myID, operation::aggregation_, -1);
+        newAggTask.model_part = 1;
 
+        // send aggregation task
+        newAggTask.model_part_=sys_.parts[0].layers[0];
+        sys_.my_network_layer.new_message(newAggTask,-1);
+        //auto next_task = sys_.my_network_layer.check_new_task();
+       
     }
 }

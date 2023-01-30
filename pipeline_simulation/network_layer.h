@@ -66,7 +66,8 @@ class network_layer {
     mylogger(myid, log_dir),
     logger_thread(&logger::logger_, &mylogger) ,
     my_rpi(1)
-    {
+    {   
+        rooting_table.insert({-1, std::pair<std::string, int>("10.96.12.131", 8080)});
         rooting_table.insert({0, std::pair<std::string, int>("10.96.12.138", 8081)});
         rooting_table.insert({1, std::pair<std::string, int>("10.96.12.130", 8082)});
         rooting_table.insert({2, std::pair<std::string, int>("10.96.12.138", 8083)});
