@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
         client_message.to_data_onwer = false;
         client_message.data_owners = data_owners;
         
-        for (int i=0; i<compute_nodes.size(); i++) {
+        /*for (int i=0; i<compute_nodes.size(); i++) {
             
             client_message.start = cut_layers[i] + 1;
             client_message.end = cut_layers[i+1];
@@ -123,7 +123,7 @@ int main(int argc, char **argv) {
                 client_message.prev = compute_nodes[i-1];
 
            sys_.my_network_layer.new_message(client_message, compute_nodes[i], false, true);
-        }
+        }*/
     }
     else { // if not wait for init refactoring
         client_message = sys_.my_network_layer.check_new_refactor_task();
@@ -133,7 +133,7 @@ int main(int argc, char **argv) {
     std::cout << "loading data..." << std::endl;
     // load dataset
     int type = client_message.dataset;
-    auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
+    /*auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
     auto datasets = data_owners_data(path_selection, 1, type, false);
     auto train_dataset = datasets[0]
                                     .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
     auto num_train_samples = train_dataset.size().value();
     //std::cout << train_dataset.size().value() << std::endl;
     auto train_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
-            std::move(train_dataset), sys_.batch_size);
+            std::move(train_dataset), sys_.batch_size);*/
 
     int num_classes = (type == CIFAR_10)? 10 : 100;
     /*
@@ -258,14 +258,33 @@ int main(int argc, char **argv) {
         // stdout end of round
 
         // new epoch
-
+        std::cout << "sending to the aggegator" << std::endl;
         auto newAggTask = Task(myID, operation::aggregation_, -1);
         newAggTask.model_part = 1;
 
         // send aggregation task
         newAggTask.model_part_=sys_.parts[0].layers[0];
         sys_.my_network_layer.new_message(newAggTask,-1);
-        //auto next_task = sys_.my_network_layer.check_new_task();
+        auto next_task = sys_.my_network_layer.check_new_task();
+        std::stringstream ss(std::string(next_task.model_parts.begin(), next_task.model_parts.end()));
+        torch::load(sys_.parts[0].layers[0], ss);
+
+        std::cout << "received global firt part model" << std::endl;
+
+        newAggTask.model_part = 2;
+        for (int i = 0; i < sys_.parts[1].layers.size(); i++) {
+            std::cout << newAggTask.model_part << std::endl;
+            newAggTask.model_part_=sys_.parts[1].layers[i];
+            sys_.my_network_layer.new_message(newAggTask,-1);
+
+            newAggTask.model_part++;
+        }
+
+        for (int i = 0; i < 2; i++) {
+            next_task = sys_.my_network_layer.check_new_task();
+            std::stringstream sss(std::string(next_task.model_parts.begin(), next_task.model_parts.end()));
+            torch::load(sys_.parts[1].layers[next_task.model_part-2], sss);
+        }
        
     }
 }

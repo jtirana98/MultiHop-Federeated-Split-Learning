@@ -30,6 +30,11 @@ void systemAPI::init_model_sate(model_name name, int model_, int num_class, int 
     parts.push_back(part_first);
     State part_last(myid, last_.layers, optimizers_last);
     parts.push_back(part_last);
+
+    if(myid == -1) {
+        parts_.push_back(part_first);
+        parts_.push_back(part_last);
+    }
 }
 
 Task systemAPI::exec(Task task, torch::Tensor& target) {

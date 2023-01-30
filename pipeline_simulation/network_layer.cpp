@@ -10,7 +10,7 @@ int my_send(int socket_fd, std::string& data, int dest) {
     //if (data_size < 300)
     //std::cout << "-->" << data << std::endl;
     
-    //std::cout << "sending: " << data_size << " to: " << dest /*<< std::endl*/;
+    std::cout << "sending: " << data_size << " to: " << dest << std::endl;
     auto timestamp1 = std::chrono::steady_clock::now();
     std::string len = std::to_string(data_size);
     send(socket_fd, &data_size, sizeof(int), 0);
@@ -317,11 +317,11 @@ void network_layer::new_message(Task task, int send_to, bool compute_to_compute)
         msg.model_part = task.model_part;
         std::stringstream s;
         torch::save(task.model_part_, s);
-        if(task.check_) {
+        /*if(task.check_) {
             msg.values = task.model_parts;
         }
-        else
-            msg.values = s.str();
+        else*/
+        msg.values = s.str();
         msg.save_connection = (compute_to_compute) ? 1 : 0;
         msg.dest = send_to;
     }
@@ -523,8 +523,8 @@ void network_layer::receiver() {
 
                     if((operation)new_msg.type_op == operation::aggregation_) {
                         std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
-                        torch::load(task.model_part_, ss);
-                        //task.model_parts = new_msg.values;
+                        torch::load(task.values, ss);
+                        task.model_parts = new_msg.values;
                     }
                     else{
                         std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
@@ -593,8 +593,9 @@ void network_layer::receiver() {
                 
                 if((operation)new_msg.type_op == operation::aggregation_) {
                     std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
-                    torch::load(task.model_part_, ss);
-                    //task.model_parts = new_msg.values;
+                    //torch::load(task.model_part_/*task.model_part_*/, ss);
+                    task.model_part = new_msg.model_part;
+                    task.model_parts = new_msg.values;
                     put_internal_task(task);
                 }
                 else{
