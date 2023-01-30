@@ -44,7 +44,8 @@ class network_layer {
     rpi_stats my_rpi;
 
     // pending tasks for the APP
-    std::queue<Task> pending_tasks;
+    //std::queue<Task> pending_tasks;
+    std::vector<std::pair<long, Task>> pending_tasks;
     std::mutex m_mutex_new_task;
     std::condition_variable m_cv_new_task;
 
@@ -81,7 +82,7 @@ class network_layer {
     void new_message(Task task, int send_to, bool compute_to_compute=false); // produce -- new message
     void new_message(refactoring_data task, int send_to, bool compute_to_compute=false, bool rooting_table_=false); // produce -- new message
     
-    void put_internal_task(Task task, bool back=false);
+    void put_internal_task(Task task, long timestamp=-1, bool back=false);
     void put_internal_task(refactoring_data task);
 
     //Task check_new_task(); //consumer - new task

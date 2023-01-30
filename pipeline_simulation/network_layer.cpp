@@ -380,21 +380,19 @@ void network_layer::new_message(refactoring_data task, int send_to, bool compute
      m_cv_new_message.notify_one();
 }
 
-void network_layer::put_internal_task(Task task, bool back) {
+void network_layer::put_internal_task(Task task, long timestamp, bool back) {
    /* if(back) {
         {
         std::unique_lock<std::mutex> lock(m_mutex_new_task_);
         pending_tasks_.push(task);
         }
         m_cv_new_task_.notify_one();
+    }*/
+    {
+    std::unique_lock<std::mutex> lock(m_mutex_new_task);
+    pending_tasks.push_back(std::pair<long, Task>(timestamp, task));
     }
-    else {*/
-        {
-        std::unique_lock<std::mutex> lock(m_mutex_new_task);
-        pending_tasks.push(task);
-        }
-        m_cv_new_task.notify_one();
-    //}
+    m_cv_new_task.notify_one();
 }
 
 void network_layer::put_internal_task(refactoring_data task) {
@@ -419,17 +417,103 @@ Task network_layer::check_new_task(bool back) { //consumer
         new_task = pending_tasks_.front();
         pending_tasks_.pop();
     }*/
-    //else { 
-        std::unique_lock<std::mutex> lock(m_mutex_new_task);
-        while (pending_tasks.empty()) {
-            m_cv_new_task.wait(lock, [&](){ return !pending_tasks.empty(); });
-        }
-        
-        new_task = pending_tasks.front();
-        pending_tasks.pop();
-   // }
+    
+    
+    {
+    std::unique_lock<std::mutex> lock(m_mutex_new_task);
+    while (pending_tasks.empty()) {
+        m_cv_new_task.wait(lock, [&](){ return !pending_tasks.empty(); });
+    }
+    }
+    m_mutex_new_task.lock();
+    if (is_data_owner) {
+        auto new_task_pair = pending_tasks[0];
+        new_task = new_task_pair.second;
+        pending_tasks.erase(pending_tasks.begin());
 
-    return new_task;
+        m_mutex_new_task.unlock();
+        return new_task;
+    }
+    else {
+        bool not_ready = false;
+        
+        while(!not_ready) {
+            //std::vector<std::pair<long, Task>>::iterator it_best = pending_tasks.begin();
+            int it_best;
+            long best_time=-1, min=100;
+            auto p1 = std::chrono::system_clock::now();
+            auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch());
+
+            // case 1 - tasks that have exceed
+            int i = 0;
+            for (std::vector<std::pair<long, Task>>::iterator it = pending_tasks.begin(); it != pending_tasks.end(); it++) {
+                
+                if(it->first == -1) { // early exit
+                    new_task = it->second;
+                    pending_tasks.erase(pending_tasks.begin()+i);
+
+                    m_mutex_new_task.unlock();
+                    std::cout << "-1 ready: " << std::endl;
+                    return new_task;
+                }
+
+                if(my_time.count() >= it->first) {  
+                    auto time_tmp = my_time.count() - it->first;
+                    if (best_time < time_tmp) {
+                        //std::cout << "best is " << it->first << std::endl;
+                        it_best = i;
+                        best_time = time_tmp;
+                    }
+                }
+                i++;
+            }
+
+            if (best_time != -1) {
+                std::cout << "expired but ok " << best_time << " " << pending_tasks[it_best].first << " " << my_time.count() << std::endl;
+                new_task = pending_tasks[it_best].second;
+                /*std::cout << "prin" << std::endl;
+                for (std::vector<std::pair<long, Task>>::iterator it = pending_tasks.begin(); it != pending_tasks.end(); it++) {
+                    std::cout << it->first << std::endl;
+                }
+
+                std::cout << "meta" << std::endl;
+                for (std::vector<std::pair<long, Task>>::iterator it = pending_tasks.begin(); it != pending_tasks.end(); it++) {
+                    std::cout << it->first << std::endl;
+                }*/
+                pending_tasks.erase(pending_tasks.begin()+it_best);
+                m_mutex_new_task.unlock();
+                return new_task;
+            }
+            
+            // case 2 - task that are near threadhold
+            best_time = 3000000;
+            i = 0;
+            for (std::vector<std::pair<long, Task>>::iterator it = pending_tasks.begin(); it != pending_tasks.end(); it++) {
+                if((it->first > my_time.count()) && ((it->first - my_time.count()) <= min)) {  
+                    auto time_tmp = it->first - my_time.count();
+                    if (best_time > time_tmp) {
+                        it_best = i;
+                        best_time = time_tmp;
+                    }
+                }
+                i++;
+            }
+
+            if (best_time != 3000000) {
+                std::cout << "in time " << best_time << " " << pending_tasks[it_best].first << " " << my_time.count() << std::endl;
+                new_task = pending_tasks[it_best].second;
+                pending_tasks.erase(pending_tasks.begin()+it_best);
+                m_mutex_new_task.unlock();
+                return new_task;
+            }
+
+            // case 3 - not ready yet sleep
+            m_mutex_new_task.unlock();
+            usleep(min);
+            m_mutex_new_task.lock();
+        }
+
+    }
 }
 
 refactoring_data network_layer::check_new_refactor_task() {
@@ -455,7 +539,7 @@ void network_layer::receiver() {
     char buffer[1024];
     int my_socket, my_port, maxfd, num, n;
     fd_set readset;
-    
+    auto p_prev = std::chrono::system_clock::now();
     // lock
     //auto dump = check_new_task();
     //std::cout << "let's go " << myid << std::endl;
@@ -601,37 +685,21 @@ void network_layer::receiver() {
                     std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
                     torch::load(task.values, ss);
                     if(!is_data_owner) {
-                        put_internal_task(task, (task.type != operation::forward_));
-                        /* SIMULATION CODE*/
-                        /*auto p1 = std::chrono::system_clock::now();
+                        auto p1 = std::chrono::system_clock::now();
                         auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch());
-                        if(sim_forw && task.type == operation::forward_) {
-                            if (task.batch0 == 0) {
-                                long expected_time = task.t_start + my_rpi.rpi_fm1 + 
-                                                        (((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000);
-                                std::cout << "f1-0 " << task.t_start << " " << expected_time << " " << my_time.count() << std::endl;
-                                if(my_time.count() > expected_time) {
-                                    std::cout << "CANNOT SIMULATE" << std::endl;
-                                }
-                            }
-                            else {
-                                long expected_time = task.t_start + my_rpi.rpi_fm1 + my_rpi.rpi_bm1 +
-                                                        (((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000);
-                                std::cout << "f1 "<< task.t_start << " " << expected_time << " " << my_time.count() << std::endl;
-                                if(my_time.count() > expected_time) {
-                                    std::cout << "CANNOT SIMULATE" << std::endl;
-                                }
-                            }
+                        long real_duration = ((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000;
+                        
+                        if (my_time.count()-task.t_start > real_duration) {
+                            std::cout << "Network: Cannot Simulate for " << (my_time.count()-task.t_start) << std::endl;
                             put_internal_task(task);
                         }
-                        else if(sim_back && task.type == operation::backward_) {
-                            long expected_time = task.t_start + my_rpi.rpi_fbm2 +
-                                                        (((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000);
-                            std::cout << "M2 " << task.t_start << " " << expected_time << " " << my_time.count() << std::endl;
-                            if(my_time.count() > expected_time) {
-                                    std::cout << "CANNOT SIMULATE" << std::endl;
-                            }
-                            put_internal_task(task);*/
+                        else {
+                            /* my_time.count() + (real_duration-(my_time.count()-task.t_start))*/
+                            auto prev = std::chrono::duration_cast<std::chrono::milliseconds>(p_prev.time_since_epoch());
+                            std::cout << "received task for " << task.t_start+real_duration  << " " << my_time.count()-prev.count() << " " << real_duration - (my_time.count() - task.t_start) << std::endl;
+                            put_internal_task(task, task.t_start+real_duration);
+                        }
+                        p_prev = p1;
                     }
                     else{ // data owner -- simulate transfer
                         auto p1 = std::chrono::system_clock::now();

@@ -155,7 +155,7 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
             }
             // add optimization task to list
             Task opt(client_id, optimize_, prev_node);
-            my_network_layer.put_internal_task(opt, true);
+            my_network_layer.put_internal_task(opt);
         }
 
         nextTask = Task(client_id, nextOp, prev_node);

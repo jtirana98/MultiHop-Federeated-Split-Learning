@@ -62,7 +62,12 @@ void ComputeNode::task_operator(/*operation op*/) {
         }
 
         //std::cout << operation << std::endl;
-        auto task = sys_.exec(next_task, tmp); 
+        auto timestamp1_ = std::chrono::steady_clock::now();
+        auto task = sys_.exec(next_task, tmp);
+        auto timestamp2_ = std::chrono::steady_clock::now();
+        auto __time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (timestamp2_ - timestamp1_).count();
+        std::cout << "Exec "  << operation_ << " " << __time << std::endl;
 
         if (task.type != noOp) {
             bool keep_connection = true;
@@ -93,12 +98,10 @@ int main(int argc, char **argv) {
     auto refactor_message = sys_.my_network_layer.check_new_refactor_task();
     sys_.refactor(refactor_message);
     ComputeNode the_cnode = ComputeNode(myID, sys_);
-
+    std::cout << "refactored ok" << std::endl;
     //std::thread forward_operations(&ComputeNode::task_operator, &the_cnode, operation::forward_);
     //std::thread backprop_operations(&ComputeNode::task_operator, &the_cnode, operation::backward_);
-    the_cnode.task_operator();
-    //forward_operations.join();
-    //backprop_operations.join();
+
 
     // ----------- TEST ------------
     //sys_.init_state(vgg, vgg_model::v11, 10, 1, 3);
@@ -111,6 +114,11 @@ int main(int argc, char **argv) {
     }*/
     
     // -------- TEST ------------
+
+    the_cnode.task_operator();
+    //forward_operations.join();
+    //backprop_operations.join();
+
 
     
     //while (true) {
