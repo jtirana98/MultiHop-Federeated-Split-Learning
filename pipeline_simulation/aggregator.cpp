@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
             auto model_2 = sys_.parts_[0].layers[0];
             auto params = model->named_parameters(true /*recurse*/);
             auto buffers = model->named_buffers(true /*recurse*/);
-            std::cout << "size " << model->named_parameters().size() << " " << model_2->named_parameters().size() << std::endl;
+            //std::cout << "size " << model->named_parameters().size() << " " << model_2->named_parameters().size() << std::endl;
             for (int j = 0; j < model->named_parameters().size(); j++) {
                 auto p_g = model->named_parameters()[j];
                 auto p_ = model_2->named_parameters()[j]; //model->named_parameters()[j]; //THIS SHOULD BE THE RECEIVED
@@ -64,12 +64,13 @@ int main(int argc, char **argv) {
 
         // send aggregation task
         newAggTask.model_part_=sys_.parts[0].layers[0];
+        newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         sys_.my_network_layer.new_message(newAggTask,0);
-        for (int i = 2; i < num_data_owners-1; i++) {
+        for (int i = 2; i <= num_data_owners; i++) {
+            newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             sys_.my_network_layer.new_message(newAggTask,i);
         }
 
-        
         // the same for last model part
         int received1 = 0, received2=0;
         int sum = num_data_owners*sys_.parts[1].layers.size();
@@ -87,7 +88,7 @@ int main(int argc, char **argv) {
             auto model_2 = sys_.parts_[1].layers[model_task.model_part-2];
             auto params = model->named_parameters(true /*recurse*/);
             auto buffers = model->named_buffers(true /*recurse*/);
-            std::cout << "size " << model->named_parameters().size() << " " << model_2->named_parameters().size() << std::endl;
+            //std::cout << "size " << model->named_parameters().size() << " " << model_2->named_parameters().size() << std::endl;
             for (int j = 0; j < model->named_parameters().size(); j++) {
                 auto p_g = model->named_parameters()[j];
                 auto p_ = model_2->named_parameters()[j]; //model->named_parameters()[j]; //THIS SHOULD BE THE RECEIVED
@@ -119,9 +120,11 @@ int main(int argc, char **argv) {
         newAggTask.model_part = 2;
         for (int i = 0; i < sys_.parts[1].layers.size(); i++) {
             newAggTask.model_part_=sys_.parts[1].layers[newAggTask.model_part-2];
+            newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             sys_.my_network_layer.new_message(newAggTask,0);
 
-            for (int i = 2; i < num_data_owners-1; i++) {
+            for (int i = 2; i <= num_data_owners; i++) {
+                newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
                 sys_.my_network_layer.new_message(newAggTask,i);
             }
 

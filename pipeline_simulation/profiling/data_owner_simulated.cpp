@@ -264,6 +264,7 @@ int main(int argc, char **argv) {
 
         // send aggregation task
         newAggTask.model_part_=sys_.parts[0].layers[0];
+        newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         sys_.my_network_layer.new_message(newAggTask,-1);
         auto next_task = sys_.my_network_layer.check_new_task();
         std::stringstream ss(std::string(next_task.model_parts.begin(), next_task.model_parts.end()));
@@ -275,6 +276,7 @@ int main(int argc, char **argv) {
         for (int i = 0; i < sys_.parts[1].layers.size(); i++) {
             std::cout << newAggTask.model_part << std::endl;
             newAggTask.model_part_=sys_.parts[1].layers[i];
+            newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             sys_.my_network_layer.new_message(newAggTask,-1);
 
             newAggTask.model_part++;
