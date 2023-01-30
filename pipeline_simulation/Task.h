@@ -35,7 +35,7 @@ class Task {
     int size_;
     long t_start;
     int batch0=-1;
-    bool check_=false;
+    bool check_=true;
     operation type;
     torch::Tensor values;
     torch::nn::Sequential model_part_;

@@ -10,7 +10,7 @@ int my_send(int socket_fd, std::string& data, int dest) {
     //if (data_size < 300)
     //std::cout << "-->" << data << std::endl;
     
-    //std::cout << "sending: " << data_size << " to: " << dest /*<< std::endl*/;
+    std::cout << "sending: " << data_size << " to: " << dest << std::endl;
     auto timestamp1 = std::chrono::steady_clock::now();
     std::string len = std::to_string(data_size);
     send(socket_fd, &data_size, sizeof(int), 0);
@@ -317,11 +317,11 @@ void network_layer::new_message(Task task, int send_to, bool compute_to_compute)
         msg.model_part = task.model_part;
         std::stringstream s;
         torch::save(task.model_part_, s);
-        if(task.check_) {
+        /*if(task.check_) {
             msg.values = task.model_parts;
         }
-        else
-            msg.values = s.str();
+        else*/
+        msg.values = s.str();
         msg.save_connection = (compute_to_compute) ? 1 : 0;
         msg.dest = send_to;
     }
@@ -605,15 +605,15 @@ void network_layer::receiver() {
                     task.t_start = new_msg.t_start;
                     task.batch0 = new_msg.batch0;
 
-                    if((operation)new_msg.type_op == operation::aggregation_) {
-                        std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
-                        //torch::load(task.model_part_, ss);
-                        task.model_parts = new_msg.values;
-                    }
-                    else{
+                    /*if((operation)new_msg.type_op == operation::aggregation_) {
                         std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
                         torch::load(task.values, ss);
+                        task.model_parts = new_msg.values;
                     }
+                    else{*/
+                    std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
+                    torch::load(task.values, ss);
+                    //}
                     
                     newPoint(NT_RECEIVED_MSG, task.client_id);
                     put_internal_task(task);
@@ -677,8 +677,23 @@ void network_layer::receiver() {
                 
                 if((operation)new_msg.type_op == operation::aggregation_) {
                     std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
-                    torch::load(task.model_part_, ss);
+                    //torch::load(task.model_part_/*task.model_part_*/, ss);
+                    task.model_part = new_msg.model_part;
                     task.model_parts = new_msg.values;
+
+                    auto p1 = std::chrono::system_clock::now();
+                    auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch());
+                    long real_duration = ((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000;
+
+                    if (my_time.count()-task.t_start > real_duration) {
+                        std::cout << "Network: Cannot Simulate" << std::endl;
+                    } 
+                    else{
+                        //std::cout << "go to sleep " << real_duration-(my_time.count()-task.t_start) << " " << load_received << std::endl;
+                        
+                        usleep(real_duration-(my_time.count()-task.t_start));
+                    }
+
                     put_internal_task(task);
                 }
                 else{
@@ -710,7 +725,7 @@ void network_layer::receiver() {
                             std::cout << "Network: Cannot Simulate" << std::endl;
                         } 
                         else{
-                            std::cout << "go to sleep " << real_duration-(my_time.count()-task.t_start) << std::endl;
+                            //std::cout << "go to sleep " << real_duration-(my_time.count()-task.t_start) << std::endl;
                             
                             usleep(real_duration-(my_time.count()-task.t_start));
                         }
