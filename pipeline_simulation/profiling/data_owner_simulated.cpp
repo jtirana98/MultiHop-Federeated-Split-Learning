@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
         client_message.to_data_onwer = false;
         client_message.data_owners = data_owners;
         
-        /*for (int i=0; i<compute_nodes.size(); i++) {
+        for (int i=0; i<compute_nodes.size(); i++) {
             
             client_message.start = cut_layers[i] + 1;
             client_message.end = cut_layers[i+1];
@@ -123,7 +123,7 @@ int main(int argc, char **argv) {
                 client_message.prev = compute_nodes[i-1];
 
            sys_.my_network_layer.new_message(client_message, compute_nodes[i], false, true);
-        }*/
+        }
     }
     else { // if not wait for init refactoring
         client_message = sys_.my_network_layer.check_new_refactor_task();
@@ -133,7 +133,7 @@ int main(int argc, char **argv) {
     std::cout << "loading data..." << std::endl;
     // load dataset
     int type = client_message.dataset;
-    /*auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
+    auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
     auto datasets = data_owners_data(path_selection, 1, type, false);
     auto train_dataset = datasets[0]
                                     .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
     auto num_train_samples = train_dataset.size().value();
     //std::cout << train_dataset.size().value() << std::endl;
     auto train_dataloader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(
-            std::move(train_dataset), sys_.batch_size);*/
+            std::move(train_dataset), sys_.batch_size);
 
     int num_classes = (type == CIFAR_10)? 10 : 100;
     /*
@@ -163,98 +163,104 @@ int main(int argc, char **argv) {
 
     auto send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
     auto send_gradients = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-
+    int epoch_count = 0, g_epoch_count = 0; // communication round
     for (size_t round = 0; round != sys_.rounds; ++round) {
         int batch_index = 0;
         sys_.zero_metrics();
         int total_num = 0;
-
+        auto init_epoch = std::chrono::steady_clock::now();
         send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
         //long c = send_activations.count();
         //std::cout << c << std::endl;
         //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << std::endl;
-        /*for (auto& batch : *train_dataloader) {
-            // create task with new batch
-            auto init_batch = std::chrono::steady_clock::now();
-            
-            Task task(sys_.myid, forward_, -1);
-            task.size_ = batch.data.size(0);
-            task.values = batch.data;
-            task = sys_.exec(task, batch.target);
-            //task.t_start = send_activations.count();
-            //std::cout << task.t_start << std::endl;
-            total_num += task.size_; 
-            task.batch0 = batch_index;
-            auto end_f1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-            
-            long real_duration = 0;
-            real_duration = my_rpi.rpi_fm1;
-            if (batch_index != 0) {
-                real_duration = real_duration + my_rpi.rpi_bm1;
-            }
-
-            if (end_f1-send_activations.count() > real_duration) {
-                std::cout << "Model part 1: Cannot Simulate " << (nd_f1-send_activations.count() - real_duration) << std::endl;
-            } 
-            else{
-                //std::cout << "go to sleep " << real_duration-(end_f1-send_activations.count()) << std::endl;
+        
+        for (int inter_batch = 0; inter_batch < 15; inter_batch++ ) {    
+            for (auto& batch : *train_dataloader) {
+                // create task with new batch
+                auto init_batch = std::chrono::steady_clock::now();
                 
-                usleep(real_duration-(end_f1-send_activations.count()));
+                Task task(sys_.myid, forward_, -1);
+                task.size_ = batch.data.size(0);
+                task.values = batch.data;
+                task = sys_.exec(task, batch.target);
+                //task.t_start = send_activations.count();
+                //std::cout << task.t_start << std::endl;
+                total_num += task.size_; 
+                task.batch0 = batch_index;
+                auto end_f1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                
+                long real_duration = 0;
+                real_duration = my_rpi.rpi_fm1;
+                if (batch_index != 0) {
+                    real_duration = real_duration + my_rpi.rpi_bm1;
+                }
+
+                if (end_f1-send_activations.count() > real_duration) {
+                    std::cout << "Model part 1: Cannot Simulate " << (end_f1-send_activations.count() - real_duration) << std::endl;
+                } 
+                else{
+                    //std::cout << "go to sleep " << real_duration-(end_f1-send_activations.count()) << std::endl;
+                    
+                    usleep(real_duration-(end_f1-send_activations.count()));
+                }
+                
+                //std::cout << "f1-end: " << end_f1-send_activations.count() << std::endl;
+                // send task to next node
+                task.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
+                
+
+                // wait for next forward task
+                task = sys_.my_network_layer.check_new_task();
+
+                send_gradients = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+                task = sys_.exec(task, batch.target); // forward and backward
+                // send task - backward
+                auto end_m2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                //std::cout << "m2-end: " << end_m2-send_gradients.count() << std::endl;
+                
+                real_duration = 0;
+                real_duration = my_rpi.rpi_fbm2;
+                
+                if (end_m2-send_gradients.count() > real_duration) {
+                    std::cout << "Model part last: Cannot Simulate " << (end_m2-send_gradients.count() - real_duration)<< std::endl;
+                }
+                else{
+                    //std::cout << "go to sleep " << real_duration-(end_m2-send_gradients.count()) << std::endl;
+                    usleep(real_duration-(end_m2-send_gradients.count()));
+                }
+                
+                //task.t_start = send_gradients.count();
+                task.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                sys_.my_network_layer.new_message(task, sys_.inference_path[1]);
+                //optimize task
+                
+                auto task1 = sys_.my_network_layer.check_new_task();
+
+                task1 = sys_.exec(task1, batch.target); // optimize
+
+                // wait for next backward task
+                task = sys_.my_network_layer.check_new_task();
+                task = sys_.exec(task, batch.target); //backward and optimize
+
+
+                send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+                auto end_batch = std::chrono::steady_clock::now();
+                auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
+                            (end_batch - init_batch).count();
+                std::cout << "One batch: global epoch " << g_epoch_count+1 << " local epoch: " << epoch_count+1 <<" b: " << batch_index+1  << " is " << _time << std::endl;
+                
+                // end of batch
+                batch_index++;
             }
-            
-            //std::cout << "f1-end: " << end_f1-send_activations.count() << std::endl;
-            // send task to next node
-            task.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-            sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
-            
+        }
+        epoch_count++;
 
-            // wait for next forward task
-            task = sys_.my_network_layer.check_new_task();
-
-            send_gradients = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-            task = sys_.exec(task, batch.target); // forward and backward
-            // send task - backward
-            auto end_m2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-            //std::cout << "m2-end: " << end_m2-send_gradients.count() << std::endl;
-            
-            real_duration = 0;
-            real_duration = my_rpi.rpi_fbm2;
-            
-            if (end_m2-send_gradients.count() > real_duration) {
-                std::cout << "Model part last: Cannot Simulate " << (end_m2-send_gradients.count() - )<< std::endl;
-            }
-            else{
-                //std::cout << "go to sleep " << real_duration-(end_m2-send_gradients.count()) << std::endl;
-                usleep(real_duration-(end_m2-send_gradients.count()));
-            }
-            
-            //task.t_start = send_gradients.count();
-            task.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-            sys_.my_network_layer.new_message(task, sys_.inference_path[1]);
-            //optimize task
-            
-            auto task1 = sys_.my_network_layer.check_new_task();
-
-            task1 = sys_.exec(task1, batch.target); // optimize
-
-            // wait for next backward task
-            task = sys_.my_network_layer.check_new_task();
-            task = sys_.exec(task, batch.target); //backward and optimize
-
-
-            send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-            auto end_batch = std::chrono::steady_clock::now();
-            auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (end_batch - init_batch).count();
-            std::cout << "One batch e: " << round <<" b: " << batch_index  << " is" << _time << std::endl;
-            
-            // end of batch
-            batch_index++;
-
-            if (batch_index > 100)
-                break;
-        }*/
-
+        if(epoch_count <  3)
+            continue;
+        
+        epoch_count = 0;
+        g_epoch_count++;
         // stdout end of round
 
         // new epoch
@@ -287,6 +293,10 @@ int main(int argc, char **argv) {
             std::stringstream sss(std::string(next_task.model_parts.begin(), next_task.model_parts.end()));
             torch::load(sys_.parts[1].layers[next_task.model_part-2], sss);
         }
-       
+
+        auto end_epoch = std::chrono::steady_clock::now();
+        auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
+                    (end_epoch - init_epoch).count();
+        std::cout << "One epoch e: " << g_epoch_count << " took: " << _time << std::endl;
     }
 }

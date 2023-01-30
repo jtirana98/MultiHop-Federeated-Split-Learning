@@ -15,6 +15,7 @@ using torch::indexing::Ellipsis;
 namespace {
 // CIFAR10 dataset description can be found at https://www.cs.toronto.edu/~kriz/cifar.html.
 constexpr uint32_t kTrainSize = 50000;
+constexpr uint32_t k_temp = 1000;
 constexpr uint32_t kTestSize = 10000;
 constexpr uint32_t kSizePerBatch = 10000;
 constexpr uint32_t kImageRows = 32;
@@ -72,7 +73,7 @@ std::pair<torch::Tensor, torch::Tensor> read_data(const std::string& root, bool 
     }
 
     TORCH_CHECK(data_buffer.size() == files.size() * kBytesPerBatchFile, "Unexpected file sizes");
-
+    num_samples = k_temp;
     auto targets = torch::empty(num_samples, torch::kByte);
     auto images = torch::empty({num_samples, 3, kImageRows, kImageColumns}, torch::kByte);
 
@@ -138,7 +139,7 @@ std::vector<CIFAR> data_owners_data(const std::string& root, int data_owners, in
 
     int val_samples = kTrainSize*(10.0/100);
     int train_samples = (kTrainSize - val_samples)/data_owners;
-
+    train_samples = k_temp;
     if(val == false) {
         datasets.push_back(CIFAR(std::pair<torch::Tensor, torch::Tensor>
                         {images_, targets_}, type));

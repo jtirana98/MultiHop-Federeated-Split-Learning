@@ -10,7 +10,7 @@ int my_send(int socket_fd, std::string& data, int dest) {
     //if (data_size < 300)
     //std::cout << "-->" << data << std::endl;
     
-    std::cout << "sending: " << data_size << " to: " << dest << std::endl;
+    //std::cout << "sending: " << data_size << " to: " << dest << std::endl;
     auto timestamp1 = std::chrono::steady_clock::now();
     std::string len = std::to_string(data_size);
     send(socket_fd, &data_size, sizeof(int), 0);
