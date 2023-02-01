@@ -453,7 +453,7 @@ Task network_layer::check_new_task(bool back) { //consumer
                     pending_tasks.erase(pending_tasks.begin()+i);
 
                     m_mutex_new_task.unlock();
-                    std::cout << "-1 ready: " << std::endl;
+                    //std::cout << "-1 ready: " << std::endl;
                     return new_task;
                 }
 
@@ -469,7 +469,7 @@ Task network_layer::check_new_task(bool back) { //consumer
             }
 
             if (best_time != -1) {
-                std::cout << "expired but ok " << best_time << " " << pending_tasks[it_best].first << " " << my_time.count() << std::endl;
+                //std::cout << "expired but ok " << best_time << " " << pending_tasks[it_best].first << " " << my_time.count() << std::endl;
                 new_task = pending_tasks[it_best].second;
                 /*std::cout << "prin" << std::endl;
                 for (std::vector<std::pair<long, Task>>::iterator it = pending_tasks.begin(); it != pending_tasks.end(); it++) {
@@ -500,7 +500,7 @@ Task network_layer::check_new_task(bool back) { //consumer
             }
 
             if (best_time != 3000000) {
-                std::cout << "in time " << best_time << " " << pending_tasks[it_best].first << " " << my_time.count() << std::endl;
+                //std::cout << "in time " << best_time << " " << pending_tasks[it_best].first << " " << my_time.count() << std::endl;
                 new_task = pending_tasks[it_best].second;
                 pending_tasks.erase(pending_tasks.begin()+it_best);
                 m_mutex_new_task.unlock();
@@ -686,7 +686,7 @@ void network_layer::receiver() {
                     long real_duration = ((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000;
 
                     if (my_time.count()-task.t_start > real_duration) {
-                        std::cout << "Network: Cannot Simulate" << std::endl;
+                        std::cout << "Network: Cannot Simulate " << (my_time.count()-task.t_start - real_duration) << std::endl;
                     } 
                     else{
                         //std::cout << "go to sleep " << real_duration-(my_time.count()-task.t_start) << " " << load_received << std::endl;
@@ -705,13 +705,13 @@ void network_layer::receiver() {
                         long real_duration = ((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000;
                         
                         if (my_time.count()-task.t_start > real_duration) {
-                            std::cout << "Network: Cannot Simulate for " << (my_time.count()-task.t_start) << std::endl;
+                            std::cout << "Network: Cannot Simulate for " << (my_time.count()-task.t_start - real_duration) << std::endl;
                             put_internal_task(task);
                         }
                         else {
                             /* my_time.count() + (real_duration-(my_time.count()-task.t_start))*/
                             auto prev = std::chrono::duration_cast<std::chrono::milliseconds>(p_prev.time_since_epoch());
-                            std::cout << "received task for " << task.t_start+real_duration  << " " << my_time.count()-prev.count() << " " << real_duration - (my_time.count() - task.t_start) << std::endl;
+                            //std::cout << "received task for " << task.t_start+real_duration  << " " << my_time.count()-prev.count() << " " << real_duration - (my_time.count() - task.t_start) << std::endl;
                             put_internal_task(task, task.t_start+real_duration);
                         }
                         p_prev = p1;
@@ -722,7 +722,7 @@ void network_layer::receiver() {
                         long real_duration = ((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000;
 
                         if (my_time.count()-task.t_start > real_duration) {
-                            std::cout << "Network: Cannot Simulate" << std::endl;
+                            std::cout << "Network: Cannot Simulate " << (my_time.count()-task.t_start - real_duration) << std::endl;
                         } 
                         else{
                             //std::cout << "go to sleep " << real_duration-(my_time.count()-task.t_start) << std::endl;

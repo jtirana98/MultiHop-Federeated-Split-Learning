@@ -33,7 +33,7 @@ void ComputeNode::task_operator(/*operation op*/) {
 
     //std::cout << "The " << my_operation << " thread started!" << std::endl;
 
-
+    int g_c = 0;
     while (true) {
         //auto timestamp1_ = std::chrono::steady_clock::now();
         next_task = sys_.my_network_layer.check_new_task(/*op==operation::backward_*/); // TODO: CHANGE THAT
@@ -67,7 +67,8 @@ void ComputeNode::task_operator(/*operation op*/) {
         auto timestamp2_ = std::chrono::steady_clock::now();
         auto __time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2_ - timestamp1_).count();
-        std::cout << "Exec "  << operation_ << " " << __time << std::endl;
+        if(g_c % 200 == 0)
+            std::cout << "Exec "  << operation_ << " " << __time << std::endl;
 
         if (task.type != noOp) {
             bool keep_connection = true;
@@ -78,7 +79,7 @@ void ComputeNode::task_operator(/*operation op*/) {
             }
             sys_.my_network_layer.new_message(task, next_node, keep_connection); // TODO: CHECK
         }
-        
+        g_c++;
     }
 
 } 
@@ -98,7 +99,7 @@ int main(int argc, char **argv) {
     auto refactor_message = sys_.my_network_layer.check_new_refactor_task();
     sys_.refactor(refactor_message);
     ComputeNode the_cnode = ComputeNode(myID, sys_);
-    std::cout << "refactored ok" << std::endl;
+    //std::cout << "refactored ok" << std::endl;
     //std::thread forward_operations(&ComputeNode::task_operator, &the_cnode, operation::forward_);
     //std::thread backprop_operations(&ComputeNode::task_operator, &the_cnode, operation::backward_);
 

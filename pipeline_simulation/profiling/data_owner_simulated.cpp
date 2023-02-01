@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
         sys_.zero_metrics();
         int total_num = 0;
         if (new_r) {
-            std::cout << "New round " << std::endl;
+            //std::cout << "New round " << std::endl;
             init_epoch = std::chrono::steady_clock::now();
             new_r = false;
         }
@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
         //long c = send_activations.count();
         //std::cout << c << std::endl;
         //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << std::endl;
-        
+        int g_i = 0;
         for (int inter_batch = 0; inter_batch < 10; inter_batch++ ) {    
             for (auto& batch : *train_dataloader) {
                 // create task with new batch
@@ -254,10 +254,13 @@ int main(int argc, char **argv) {
                 auto end_batch = std::chrono::steady_clock::now();
                 auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
                             (end_batch - init_batch).count();
-                std::cout << "One batch: global epoch " << g_epoch_count+1 << " local epoch: " << epoch_count+1 <<" b: " << batch_index+1  << " is " << _time << std::endl;
+                
+                if (g_i % 200 == 0)
+                    std::cout << "One batch: global epoch " << g_epoch_count+1 << " local epoch: " << epoch_count+1 <<" b: " << batch_index+1  << " is " << _time << std::endl;
                 
                 // end of batch
                 batch_index++;
+                g_i++;
             }
         }
         epoch_count++;
@@ -271,7 +274,7 @@ int main(int argc, char **argv) {
         // stdout end of round
         auto aggr_beg = std::chrono::steady_clock::now();
         // new epoch
-        std::cout << "sending to the aggegator" << std::endl;
+        //std::cout << "sending to the aggegator" << std::endl;
         auto newAggTask = Task(myID, operation::aggregation_, -1);
         newAggTask.model_part = 1;
 
@@ -283,11 +286,11 @@ int main(int argc, char **argv) {
         std::stringstream ss(std::string(next_task.model_parts.begin(), next_task.model_parts.end()));
         torch::load(sys_.parts[0].layers[0], ss);
 
-        std::cout << "received global firt part model" << std::endl;
+        //std::cout << "received global firt part model" << std::endl;
 
         newAggTask.model_part = 2;
         for (int i = 0; i < sys_.parts[1].layers.size(); i++) {
-            std::cout << newAggTask.model_part << std::endl;
+            // << newAggTask.model_part << std::endl;
             newAggTask.model_part_=sys_.parts[1].layers[i];
             newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             sys_.my_network_layer.new_message(newAggTask,-1);
