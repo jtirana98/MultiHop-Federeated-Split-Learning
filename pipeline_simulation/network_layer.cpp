@@ -545,10 +545,10 @@ void network_layer::receiver() {
     //std::cout << "let's go " << myid << std::endl;
     sleep(1);
 
-    if(myid > 5) {
+    if(myid >= rooting_table.size()) {
         std::pair<std::string, int> my_addr = rooting_table.find(5)->second;
         my_port = my_addr.second;
-        my_port = my_port + (myid - 5);
+        my_port = my_port + (myid - rooting_table.size());
     }
     else{
         std::pair<std::string, int> my_addr = rooting_table.find(myid)->second;
@@ -700,21 +700,28 @@ void network_layer::receiver() {
                     std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
                     torch::load(task.values, ss);
                     if(!is_data_owner) {
-                        auto p1 = std::chrono::system_clock::now();
-                        auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch());
-                        long real_duration = ((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000;
-                        
-                        if (my_time.count()-task.t_start > real_duration) {
-                            std::cout << "Network: Cannot Simulate for " << (my_time.count()-task.t_start - real_duration) << std::endl;
-                            put_internal_task(task);
+                        if((sim_forw && (operation)task.type_op == operation::forward_ ) || (sim_back && (operation)task.type_op == operation::backward_)){ 
+                            std::cout << "we will simulate" << std::endl;
+                            auto p1 = std::chrono::system_clock::now();
+                            auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch());
+                            long real_duration = ((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000;
+                            
+                            if (my_time.count()-task.t_start > real_duration) {
+                                std::cout << "Network: Cannot Simulate for " << (my_time.count()-task.t_start - real_duration) << std::endl;
+                                put_internal_task(task);
+                            }
+                            else {
+                                /* my_time.count() + (real_duration-(my_time.count()-task.t_start))*/
+                                auto prev = std::chrono::duration_cast<std::chrono::milliseconds>(p_prev.time_since_epoch());
+                                //std::cout << "received task for " << task.t_start+real_duration  << " " << my_time.count()-prev.count() << " " << real_duration - (my_time.count() - task.t_start) << std::endl;
+                                put_internal_task(task, task.t_start+real_duration);
+                            }
+                            p_prev = p1;
                         }
                         else {
-                            /* my_time.count() + (real_duration-(my_time.count()-task.t_start))*/
-                            auto prev = std::chrono::duration_cast<std::chrono::milliseconds>(p_prev.time_since_epoch());
-                            //std::cout << "received task for " << task.t_start+real_duration  << " " << my_time.count()-prev.count() << " " << real_duration - (my_time.count() - task.t_start) << std::endl;
-                            put_internal_task(task, task.t_start+real_duration);
+                            std::cout << "no need to simulate" << std::endl;
+                            put_internal_task(task);
                         }
-                        p_prev = p1;
                     }
                     else{ // data owner -- simulate transfer
                         auto p1 = std::chrono::system_clock::now();
