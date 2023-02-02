@@ -93,13 +93,13 @@ int main(int argc, char **argv) {
         auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
         std::cout << my_time.count() << std::endl;
         
-        
+        int size_table = (int)sys_.my_network_layer.rooting_table.size();
         for (int i=1; i<data_owners.size(); i++) {
             //std::cout << data_owners[i] << std::endl;
-            if(data_owners[i] >= sys_.my_network_layer.rooting_table.size()-2) {
+            if(data_owners[i] >= 2) {
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(0)->second;
                 int my_port = my_addr.second;
-                my_port = my_port + (data_owners[i] - sys_.my_network_layer.rooting_table.size());
+                my_port = my_port + (data_owners[i] +2);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
 
@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
                 task.values = batch.data;
                 task = sys_.exec(task, batch.target);
                 //task.t_start = send_activations.count();
-                //std::cout << task.t_start << std::endl;
+                std::cout << task.t_start << std::endl;
                 total_num += task.size_; 
                 task.batch0 = batch_index;
                 auto end_f1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();

@@ -545,10 +545,10 @@ void network_layer::receiver() {
     //std::cout << "let's go " << myid << " " << rooting_table.size() << std::endl;
     sleep(1);
 
-    if(myid >= (int)rooting_table.size()-2) {
+    if(myid >= 2) {
         std::pair<std::string, int> my_addr = rooting_table.find(0)->second;
         my_port = my_addr.second;
-        my_port = my_port + (myid - rooting_table.size());
+        my_port = my_port + (myid +2);
     }
     else{
         std::pair<std::string, int> my_addr = rooting_table.find(myid)->second;
