@@ -219,10 +219,34 @@ void systemAPI::refactor(refactoring_data refactor_message) {
                 continue;
             }*/
 
-            if(addr.first >= 2) {
+            if((addr.first > 3) && (addr.first < 18)) {
                 std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(0)->second;
                 int my_port = my_addr.second;
-                my_port = my_port + (addr.first + 2);
+                my_port = my_port + (addr.first + 3);
+                my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
+            }
+            /*else if (addr.first > 18 && addr.first < 23) {
+                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(18)->second;
+                int my_port = my_addr.second;
+                my_port = my_port + (addr.first-18);
+                my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
+            }
+            else if (addr.first > 23 && addr.first < 33){
+                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(23)->second;
+                int my_port = my_addr.second;
+                my_port = my_port + (addr.first-23);
+                my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
+            }
+            else if (addr.first > 33 && addr.first < 43) {
+                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(33)->second;
+                int my_port = my_addr.second;
+                my_port = my_port + (addr.first-33);
+                my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
+            }*/
+            else if (addr.first >= 18) {
+                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(18)->second;
+                int my_port = my_addr.second;
+                my_port = my_port + (addr.first-18);
                 my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
             }
             else {
@@ -238,6 +262,7 @@ void systemAPI::refactor(refactoring_data refactor_message) {
         clients.clear();
         clients = refactor_message.data_owners;
         init_state_vector(name, model_, num_class, start, end);
+        my_network_layer.num_data_owners = clients.size();
     }
 
 }

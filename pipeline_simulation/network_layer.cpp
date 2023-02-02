@@ -7,8 +7,8 @@ int my_send(int socket_fd, std::string& data, int dest) {
     const char* data_ptr  = data.data();
     int data_size = data.size();
     //std::cout << "--> " << data_size << std::endl;
-    //if (data_size < 300)
-    //std::cout << "-->" << data << std::endl;
+    if (data_size < 1000)
+        std::cout << "-->" << data << std::endl;
     
     //std::cout << "sending: " << data_size << " to: " << dest << std::endl;
     auto timestamp1 = std::chrono::steady_clock::now();
@@ -87,7 +87,7 @@ std::vector<std::string> my_receive(int socket_fd) {
 void network_layer::findPeers(int num, bool aggr) {
     int completed = num;
     // mulitcast address
-    std::string s = "230.0.0.0";
+    std::string s = "130.0.0.0";
     char group_[s.length() + 1];
     strcpy(group_, s.c_str());
     char *group = group_;
@@ -207,7 +207,7 @@ void network_layer::findPeers(int num, bool aggr) {
 
 void network_layer::findInit(bool aggr) {
     // mulitcast address
-    std::string s = "230.0.0.0";
+    std::string s = "130.0.0.0";
     char group_[s.length() + 1];
     strcpy(group_, s.c_str());
     char *group = group_;
@@ -542,13 +542,33 @@ void network_layer::receiver() {
     auto p_prev = std::chrono::system_clock::now();
     // lock
     //auto dump = check_new_task();
-    //std::cout << "let's go " << myid << " " << rooting_table.size() << std::endl;
+    std::cout << "let's go " << myid << " " << rooting_table.size() << std::endl;
     sleep(1);
 
-    if(myid > 2) {
+    if(myid > 3 && myid < 18) {
         std::pair<std::string, int> my_addr = rooting_table.find(0)->second;
         my_port = my_addr.second;
-        my_port = my_port + (myid +2);
+        my_port = my_port + (myid +3);
+    }
+    /*else if (myid > 13 && myid < 23) {
+        std::pair<std::string, int> my_addr = rooting_table.find(13)->second;
+        my_port = my_addr.second;
+        my_port = my_port + (myid - 13);
+    }
+    else if (myid > 23 && myid < 33) {
+        std::pair<std::string, int> my_addr = rooting_table.find(23)->second;
+        my_port = my_addr.second;
+        my_port = my_port + (myid - 23);
+    }
+    else if (myid > 33 && myid < 43) {
+        std::pair<std::string, int> my_addr = rooting_table.find(33)->second;
+        my_port = my_addr.second;
+        my_port = my_port + (myid - 33);
+    }*/
+    else if (myid >= 18) {
+        std::pair<std::string, int> my_addr = rooting_table.find(18)->second;
+        my_port = my_addr.second;
+        my_port = my_port + (myid - 18);
     }
     else{
         std::pair<std::string, int> my_addr = rooting_table.find(myid)->second;
@@ -847,6 +867,7 @@ void network_layer::sender() { // consumer -- new message
                 //exit(0);
             }
             int res=0;
+            int k = 0;
             do {
                 bzero((char *) &serv_addr, sizeof(serv_addr));
                 serv_addr.sin_family = AF_INET;
@@ -857,10 +878,11 @@ void network_layer::sender() { // consumer -- new message
 
                 res = connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
                 //std::cerr << "ERROR connecting";
-                if (res < 0) {
+                if (res < 0 && (k<100)) {
                     std::cout << "server not found (" << client_addr << "," << new_msg.dest << ")" << std::endl;
-                    sleep(2);
+                    sleep(4);
                 }
+                k++;
             } while (res<0);
 
             // POINT 3  Network layer: starts message transmission
