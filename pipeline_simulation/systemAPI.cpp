@@ -219,7 +219,7 @@ void systemAPI::refactor(refactoring_data refactor_message) {
                 continue;
             }*/
 
-            if(addr.first >= 2) {
+            if(addr.first > 2) {
                 std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(0)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (addr.first + 2);

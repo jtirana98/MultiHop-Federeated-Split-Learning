@@ -63,8 +63,9 @@ int main(int argc, char **argv) {
 
         data_owners.push_back(0);
         for (int i = 0; i < num_data_owners-1; i++) {
-            data_owners.push_back(i+compute_nodes.size() +1);
+            data_owners.push_back(i+num_compute_nodes +1);
         }
+
 
         for (int i = 1; i <= num_compute_nodes; i++) {
             compute_nodes.push_back(i);
@@ -96,7 +97,7 @@ int main(int argc, char **argv) {
         int size_table = (int)sys_.my_network_layer.rooting_table.size();
         for (int i=1; i<data_owners.size(); i++) {
             //std::cout << data_owners[i] << std::endl;
-            if(data_owners[i] >= 2) {
+            if(data_owners[i] > 2) {
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(0)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (data_owners[i] +2);
@@ -197,7 +198,7 @@ int main(int argc, char **argv) {
                 task.values = batch.data;
                 task = sys_.exec(task, batch.target);
                 //task.t_start = send_activations.count();
-                std::cout << task.t_start << std::endl;
+                //std::cout << task.t_start << std::endl;
                 total_num += task.size_; 
                 task.batch0 = batch_index;
                 auto end_f1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -281,7 +282,7 @@ int main(int argc, char **argv) {
         // stdout end of round
         auto aggr_beg = std::chrono::steady_clock::now();
         // new epoch
-        //std::cout << "sending to the aggegator" << std::endl;
+        std::cout << "sending to the aggegator" << std::endl;
         auto newAggTask = Task(myID, operation::aggregation_, -1);
         newAggTask.model_part = 1;
 
@@ -293,7 +294,7 @@ int main(int argc, char **argv) {
         std::stringstream ss(std::string(next_task.model_parts.begin(), next_task.model_parts.end()));
         torch::load(sys_.parts[0].layers[0], ss);
 
-        //std::cout << "received global firt part model" << std::endl;
+        std::cout << "received global firt part model" << std::endl;
 
         newAggTask.model_part = 2;
         for (int i = 0; i < sys_.parts[1].layers.size(); i++) {
@@ -305,7 +306,8 @@ int main(int argc, char **argv) {
             newAggTask.model_part++;
         }
 
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < sys_.parts[1].layers.size(); i++) {
+            //std::cout << "wait " << i << " " << sys_.parts[1].layers.size() << std::endl;
             next_task = sys_.my_network_layer.check_new_task();
             std::stringstream sss(std::string(next_task.model_parts.begin(), next_task.model_parts.end()));
             torch::load(sys_.parts[1].layers[next_task.model_part-2], sss);

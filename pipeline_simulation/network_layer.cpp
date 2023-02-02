@@ -7,8 +7,8 @@ int my_send(int socket_fd, std::string& data, int dest) {
     const char* data_ptr  = data.data();
     int data_size = data.size();
     //std::cout << "--> " << data_size << std::endl;
-    //if (data_size < 300)
-    //std::cout << "-->" << data << std::endl;
+    if (data_size < 1000)
+        std::cout << "-->" << data << std::endl;
     
     //std::cout << "sending: " << data_size << " to: " << dest << std::endl;
     auto timestamp1 = std::chrono::steady_clock::now();
@@ -542,17 +542,21 @@ void network_layer::receiver() {
     auto p_prev = std::chrono::system_clock::now();
     // lock
     //auto dump = check_new_task();
-    //std::cout << "let's go " << myid << " " << rooting_table.size() << std::endl;
+    std::cout << "let's go " << myid << " " << rooting_table.size() << std::endl;
     sleep(1);
 
     if(myid > 2) {
+        std::cout << "ok1" << std::endl;
         std::pair<std::string, int> my_addr = rooting_table.find(0)->second;
         my_port = my_addr.second;
         my_port = my_port + (myid +2);
+        std::cout << "ok1" << std::endl;
     }
     else{
+        std::cout << "ok2" << std::endl;
         std::pair<std::string, int> my_addr = rooting_table.find(myid)->second;
         my_port = my_addr.second;
+        std::cout << "ok2" << std::endl;
     }
     
     //std::cout << my_port << my_addr.first << std::endl;
