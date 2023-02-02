@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
         
         for (int i=1; i<data_owners.size(); i++) {
             //std::cout << data_owners[i] << std::endl;
-            if(data_owners[i] >= sys_.my_network_layer.rooting_table.size()) {
+            if(data_owners[i] >= sys_.my_network_layer.rooting_table.size()-2) {
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(0)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (data_owners[i] - sys_.my_network_layer.rooting_table.size());

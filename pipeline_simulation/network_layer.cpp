@@ -542,11 +542,11 @@ void network_layer::receiver() {
     auto p_prev = std::chrono::system_clock::now();
     // lock
     //auto dump = check_new_task();
-    //std::cout << "let's go " << myid << std::endl;
+    //std::cout << "let's go " << myid << " " << rooting_table.size() << std::endl;
     sleep(1);
 
-    if(myid >= rooting_table.size()) {
-        std::pair<std::string, int> my_addr = rooting_table.find(5)->second;
+    if(myid >= (int)rooting_table.size()-2) {
+        std::pair<std::string, int> my_addr = rooting_table.find(0)->second;
         my_port = my_addr.second;
         my_port = my_port + (myid - rooting_table.size());
     }
