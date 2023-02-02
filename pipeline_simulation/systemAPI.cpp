@@ -221,7 +221,7 @@ void systemAPI::refactor(refactoring_data refactor_message) {
 
 
             if(addr.first > 5) {
-                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(5)->second;
+                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(0)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (addr.first - 5);
                 my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
