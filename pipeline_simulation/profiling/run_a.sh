@@ -12,4 +12,4 @@ port=$(( 8081 + $2 ))
 
 sudo iptables -I INPUT -p tcp -m tcp --dport $port -j ACCEPT
 
-../../build/aggregator $1 $2 > /root/experiments/aggregator/out_a_c$3_d$1.data &
+../../build/aggregator $1 $2 $3 > /root/experiments/aggregator/out_a_c$3_d$1.data &

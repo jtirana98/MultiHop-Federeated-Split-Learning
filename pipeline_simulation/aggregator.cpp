@@ -19,6 +19,7 @@ int main(int argc, char **argv) {
     //std::cout << "Refactor ok" << std::endl;
 
     int num_data_owners = atoi(argv[1]);
+    int num_compute_nodes = atoi(argv[3]);
     while(true) {
         int received = 0;
 
@@ -26,7 +27,7 @@ int main(int argc, char **argv) {
         while (received < num_data_owners) {
             auto model_task = sys_.my_network_layer.check_new_task();
 
-            //std::cout << "model part 1: received from " << model_task.client_id << std::endl;
+            std::cout << "model part 1: received from " << model_task.client_id << std::endl;
             std::stringstream ss(std::string(model_task.model_parts.begin(), model_task.model_parts.end()));
             torch::load(sys_.parts_[0].layers[0]/*task.model_part_*/, ss);
             // wait for the task
@@ -67,20 +68,20 @@ int main(int argc, char **argv) {
         newAggTask.model_part_=sys_.parts[0].layers[0];
         newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         sys_.my_network_layer.new_message(newAggTask,0);
-        for (int i = 2; i <= num_data_owners; i++) {
+        for (int i = 0; i < num_data_owners-1; i++) {
             newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-            sys_.my_network_layer.new_message(newAggTask,i);
+            sys_.my_network_layer.new_message(newAggTask,i+num_compute_nodes+1);
         }
-
         // the same for last model part
         int received1 = 0, received2=0;
         int sum = num_data_owners*sys_.parts[1].layers.size();
-
+        std::cout << sum << std::endl;
         //model part 1
         while (received1 + received2 < sum) {
             auto model_task = sys_.my_network_layer.check_new_task();
 
-            //std::cout << "model part "<< model_task.model_part - 1 << " : received from " << model_task.client_id << std::endl;
+            std::cout << "model part "<< model_task.model_part - 1 << " : received from " << model_task.client_id << std::endl;
+            
             std::stringstream ss(std::string(model_task.model_parts.begin(), model_task.model_parts.end()));
             torch::load(sys_.parts[1].layers[model_task.model_part-2], ss);
             // wait for the task
@@ -124,11 +125,11 @@ int main(int argc, char **argv) {
             newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             sys_.my_network_layer.new_message(newAggTask,0);
 
-            for (int i = 2; i <= num_data_owners; i++) {
+            for (int i = 0; i < num_data_owners-1; i++) {
                 newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-                sys_.my_network_layer.new_message(newAggTask,i);
+                //std::cout << "send to " << i+1+num_compute_nodes << std::endl;
+                sys_.my_network_layer.new_message(newAggTask,i+1+num_compute_nodes);
             }
-
             newAggTask.model_part++;
         }
         
