@@ -67,7 +67,7 @@ void ComputeNode::task_operator(/*operation op*/) {
         auto timestamp2_ = std::chrono::steady_clock::now();
         auto __time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2_ - timestamp1_).count();
-        if(g_c % 200 == 0)
+        if(g_c % 50 == 0)
             std::cout << "Exec "  << operation_ << " " << __time << std::endl;
 
         if (task.type != noOp) {

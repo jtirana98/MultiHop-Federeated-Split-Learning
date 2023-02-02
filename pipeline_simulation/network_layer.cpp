@@ -701,7 +701,6 @@ void network_layer::receiver() {
                     torch::load(task.values, ss);
                     if(!is_data_owner) {
                         if((sim_forw && (operation)task.type == operation::forward_ ) || (sim_back && (operation)task.type == operation::backward_)){ 
-                            std::cout << "we will simulate" << std::endl;
                             auto p1 = std::chrono::system_clock::now();
                             auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch());
                             long real_duration = ((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000;
@@ -718,8 +717,7 @@ void network_layer::receiver() {
                             }
                             p_prev = p1;
                         }
-                        else {
-                            std::cout << "no need to simulate" << std::endl;
+                        else { // the compute nodes that communicate with each other, should not simulate the network delay
                             put_internal_task(task);
                         }
                     }

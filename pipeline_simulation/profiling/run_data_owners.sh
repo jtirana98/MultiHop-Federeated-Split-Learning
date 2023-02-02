@@ -1,16 +1,25 @@
 #!/bin/bash -xe
 
-mkdir -p /root/experiments/simulations_check2/dataowners_$1_
+# 1: num of data owners
+# 2: num of compute nodes
 
-declare -i y=0
-y=$((  $1 - 1))
+export LD_LIBRARY_PATH=/usr/local/lib:/usr/lib:/usr/local/lib64:/usr/lib64
 
-for i in $(seq 2 1 $1)
+mkdir -p /root/experiments/simulations_check/compute_nodes_$2_
+mkdir -p /root/experiments/simulations_check/compute_nodes_$2/dataowners_$1_
+
+declare -i start=0
+declare -i end=0
+declare -i port=0
+start=$((  $2 + 1 ))
+end=$(( $1-2 + $start ))
+
+for i in $(seq $start 1 $end)
 do
-    y=$(( 8081 + $i ))
-    sudo iptables -I INPUT -p tcp -m tcp --dport $y -j ACCEPT
-    ../../build/simulated_data_owner $i > /root/experiments/simulations_check2/dataowners_$1_/d$i.data &
+    port=$(( 8081 + $2 + $i ))
+    sudo iptables -I INPUT -p tcp -m tcp --dport $port -j ACCEPT
+    ../../build/simulated_data_owner $i > /root/experiments/simulations_check/compute_nodes_$2/dataowners_$1_/d$i.data &
 done
 
 sudo iptables -I INPUT -p tcp -m tcp --dport 8081 -j ACCEPT
-../../build/simulated_data_owner 0 $2 > /root/experiments/simulations_check2/dataowners_$1_/d0.data &
+../../build/simulated_data_owner 0 $1 $2  > /root/experiments/simulations_check/compute_nodes_$2/dataowners_$1_/d0.data &

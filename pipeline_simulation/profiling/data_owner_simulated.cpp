@@ -28,11 +28,19 @@ int main(int argc, char **argv) {
         sys_.my_network_layer.newPoint(INIT_START_MSG_PREP);
 
         auto cut_layers_ = "2,35";
-        auto data_owners_ = argv[2];  // CHANGE
+        //auto data_owners_ = argv[2];  // CHANGE
         int num_data_owners = atoi(argv[2]);
         //std::cout << data_owners_ << std::endl;
-        auto compute_nodes_ = "1"; // CHANGE
+        //auto compute_nodes_ = atoi(argv[3]);
+        int num_compute_nodes = 1;
 
+        if(argc >= 4)
+            num_compute_nodes = argv[3];
+
+        if (num_compute_nodes == 2)
+            cut_layers_ = "2,10,35";
+        if (num_compute_nodes == 3)
+            cut_layers_ = "2, 10, 20,35";
 
         const char separator = ',';
         std::string val;
@@ -45,27 +53,25 @@ int main(int argc, char **argv) {
             }
         }
 
-        data_owners.push_back(0);
-        for (int i = 0; i < num_data_owners-1; i++) {
-            data_owners.push_back(i+2);
-        }
         /*streamData = std::stringstream(data_owners_);
         while (std::getline(streamData, val, separator)) {
             if (val != "") {
                 data_owners.push_back(stoi(val));
             }
-        }*/
+        }*/ 
 
-        streamData  = std::stringstream(compute_nodes_);
-        while (std::getline(streamData, val, separator)) {
-            if (val != "") {
-                compute_nodes.push_back(stoi(val));
-            }
-        } 
+        data_owners.push_back(0);
+        for (int i = 0; i < num_data_owners-1; i++) {
+            data_owners.push_back(i+compute_nodes.size() +1);
+        }
+
+        for (int i = 1; i <= num_compute_nodes; i++) {
+            compute_nodes.push_back(i);
+        }
 
         int num_parts = compute_nodes.size() + 2;
 
-        std::cout << "found them" << std::endl; 
+        //std::cout << "found them" << std::endl; 
         //sleep(2);
 
         int data_onwer_end = 2;
@@ -89,10 +95,10 @@ int main(int argc, char **argv) {
         
         for (int i=1; i<data_owners.size(); i++) {
             //std::cout << data_owners[i] << std::endl;
-            if(data_owners[i] > 5) {
+            if(data_owners[i] >= sys_.my_network_layer.rooting_table.size()) {
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(5)->second;
                 int my_port = my_addr.second;
-                my_port = my_port + (data_owners[i] - 5);
+                my_port = my_port + (data_owners[i] - sys_.my_network_layer.rooting_table.size());
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
 
@@ -255,7 +261,7 @@ int main(int argc, char **argv) {
                 auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
                             (end_batch - init_batch).count();
                 
-                if (g_i % 200 == 0)
+                if (g_i % 50 == 0)
                     std::cout << "One batch: global epoch " << g_epoch_count+1 << " local epoch: " << epoch_count+1 <<" b: " << batch_index+1  << " is " << _time << std::endl;
                 
                 // end of batch

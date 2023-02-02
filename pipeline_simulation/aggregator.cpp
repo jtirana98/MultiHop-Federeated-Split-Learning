@@ -8,14 +8,15 @@
 
 int main(int argc, char **argv) {
     refactoring_data client_message;
-    systemAPI sys_(true, -1, "main_experiment");
+    int myid = atoi(argv[2]);
+    systemAPI sys_(true, myid, "main_experiment");
     int kTrainSize_10 = 1000;
     int train_samples = 100;
     
     client_message = sys_.my_network_layer.check_new_refactor_task();
     sys_.refactor(client_message);
 
-    std::cout << "Refactor ok" << std::endl;
+    //std::cout << "Refactor ok" << std::endl;
 
     int num_data_owners = atoi(argv[1]);
     while(true) {
@@ -25,7 +26,7 @@ int main(int argc, char **argv) {
         while (received < num_data_owners) {
             auto model_task = sys_.my_network_layer.check_new_task();
 
-            std::cout << "model part 1: received from " << model_task.client_id << std::endl;
+            //std::cout << "model part 1: received from " << model_task.client_id << std::endl;
             std::stringstream ss(std::string(model_task.model_parts.begin(), model_task.model_parts.end()));
             torch::load(sys_.parts_[0].layers[0]/*task.model_part_*/, ss);
             // wait for the task
@@ -59,7 +60,7 @@ int main(int argc, char **argv) {
         }
 
         // send to 0
-        auto newAggTask = Task(-1, operation::aggregation_, -1);
+        auto newAggTask = Task(myid, operation::aggregation_, myid);
         newAggTask.model_part = 1;
 
         // send aggregation task
@@ -79,7 +80,7 @@ int main(int argc, char **argv) {
         while (received1 + received2 < sum) {
             auto model_task = sys_.my_network_layer.check_new_task();
 
-            std::cout << "model part "<< model_task.model_part - 1 << " : received from " << model_task.client_id << std::endl;
+            //std::cout << "model part "<< model_task.model_part - 1 << " : received from " << model_task.client_id << std::endl;
             std::stringstream ss(std::string(model_task.model_parts.begin(), model_task.model_parts.end()));
             torch::load(sys_.parts[1].layers[model_task.model_part-2], ss);
             // wait for the task
@@ -116,7 +117,7 @@ int main(int argc, char **argv) {
         }
 
         // send to 0
-        newAggTask = Task(-1, operation::aggregation_, -1);
+        newAggTask = Task(myid, operation::aggregation_, myid);
         newAggTask.model_part = 2;
         for (int i = 0; i < sys_.parts[1].layers.size(); i++) {
             newAggTask.model_part_=sys_.parts[1].layers[newAggTask.model_part-2];
