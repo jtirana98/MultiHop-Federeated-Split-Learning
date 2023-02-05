@@ -97,10 +97,10 @@ int main(int argc, char **argv) {
         int size_table = (int)sys_.my_network_layer.rooting_table.size();
         for (int i=1; i<data_owners.size(); i++) {
             //std::cout << data_owners[i] << std::endl;
-            if(data_owners[i] > 2) {
+            if(data_owners[i] > 3) {
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(0)->second;
                 int my_port = my_addr.second;
-                my_port = my_port + (data_owners[i] +2);
+                my_port = my_port + (data_owners[i] +3);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
 
