@@ -545,16 +545,19 @@ void network_layer::receiver() {
     std::cout << "let's go " << myid << " " << rooting_table.size() << std::endl;
     sleep(1);
 
-    if(myid > 3) {
+    if(myid > 3 && myid < 28) {
         std::pair<std::string, int> my_addr = rooting_table.find(0)->second;
         my_port = my_addr.second;
         my_port = my_port + (myid +3);
     }
+    else if (myid > 28) {
+        std::pair<std::string, int> my_addr = rooting_table.find(28)->second;
+        my_port = my_addr.second;
+        my_port = my_port + (myid - 28);
+    }
     else{
-        std::cout << "ok2" << std::endl;
         std::pair<std::string, int> my_addr = rooting_table.find(myid)->second;
         my_port = my_addr.second;
-        std::cout << "ok2" << std::endl;
     }
     
     //std::cout << my_port << my_addr.first << std::endl;
@@ -849,6 +852,7 @@ void network_layer::sender() { // consumer -- new message
                 //exit(0);
             }
             int res=0;
+            int k = 0;
             do {
                 bzero((char *) &serv_addr, sizeof(serv_addr));
                 serv_addr.sin_family = AF_INET;
@@ -859,10 +863,11 @@ void network_layer::sender() { // consumer -- new message
 
                 res = connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
                 //std::cerr << "ERROR connecting";
-                if (res < 0) {
+                if (res < 0 && (k<100)) {
                     std::cout << "server not found (" << client_addr << "," << new_msg.dest << ")" << std::endl;
-                    sleep(2);
+                    sleep(4);
                 }
+                k++;
             } while (res<0);
 
             // POINT 3  Network layer: starts message transmission
