@@ -63,7 +63,8 @@ int main(int argc, char **argv) {
 
         data_owners.push_back(0);
         for (int i = 0; i < num_data_owners-1; i++) {
-            data_owners.push_back(i+num_compute_nodes +1);
+            data_owners.push_back(i+3 +1);
+            //std::cout << "d: " << i+num_compute_nodes +1 << std::endl;
         }
 
 
