@@ -436,7 +436,8 @@ Task network_layer::check_new_task(bool back) { //consumer
     }
     else {
         bool not_ready = false;
-        
+        auto ready_t = std::vector<int>();
+        auto ready_t_1 = std::vector<int>();
         while(!not_ready) {
             //std::vector<std::pair<long, Task>>::iterator it_best = pending_tasks.begin();
             int it_best;
@@ -452,38 +453,34 @@ Task network_layer::check_new_task(bool back) { //consumer
                     new_task = it->second;
                     pending_tasks.erase(pending_tasks.begin()+i);
 
-                    m_mutex_new_task.unlock();
+                    //m_mutex_new_task.unlock();
                     //std::cout << "-1 ready: " << std::endl;
-                    return new_task;
+                    
+                    //return new_task;
+                    ready_t_1.push_back(i);
                 }
 
                 if(my_time.count() >= it->first) {  
                     auto time_tmp = my_time.count() - it->first;
-                    if (best_time < time_tmp) {
+                    ready_t.push_back(i);
+                    /*if (best_time < time_tmp) {
                         //std::cout << "best is " << it->first << std::endl;
                         it_best = i;
                         best_time = time_tmp;
-                    }
+                        ready_t.push_back(i);
+                    }*/
                 }
                 i++;
             }
 
-            if (best_time != -1) {
-                //std::cout << "expired but ok " << best_time << " " << pending_tasks[it_best].first << " " << my_time.count() << std::endl;
+            /*if (best_time != -1) {
                 new_task = pending_tasks[it_best].second;
-                /*std::cout << "prin" << std::endl;
-                for (std::vector<std::pair<long, Task>>::iterator it = pending_tasks.begin(); it != pending_tasks.end(); it++) {
-                    std::cout << it->first << std::endl;
-                }
-
-                std::cout << "meta" << std::endl;
-                for (std::vector<std::pair<long, Task>>::iterator it = pending_tasks.begin(); it != pending_tasks.end(); it++) {
-                    std::cout << it->first << std::endl;
-                }*/
                 pending_tasks.erase(pending_tasks.begin()+it_best);
-                m_mutex_new_task.unlock();
-                return new_task;
-            }
+                //m_mutex_new_task.unlock();
+                
+                //return new_task;
+                ready_t.push_back(new_task);
+            }*/
             
             // case 2 - task that are near threadhold
             best_time = 3000000;
@@ -491,20 +488,50 @@ Task network_layer::check_new_task(bool back) { //consumer
             for (std::vector<std::pair<long, Task>>::iterator it = pending_tasks.begin(); it != pending_tasks.end(); it++) {
                 if((it->first > my_time.count()) && ((it->first - my_time.count()) <= min)) {  
                     auto time_tmp = it->first - my_time.count();
-                    if (best_time > time_tmp) {
+                    ready_t.push_back(i);
+                    /*if (best_time > time_tmp) {
                         it_best = i;
                         best_time = time_tmp;
-                    }
+                        ready_t.push_back(i);
+                    }*/
                 }
                 i++;
             }
 
-            if (best_time != 3000000) {
-                //std::cout << "in time " << best_time << " " << pending_tasks[it_best].first << " " << my_time.count() << std::endl;
+            /*if (best_time != 3000000) {
                 new_task = pending_tasks[it_best].second;
                 pending_tasks.erase(pending_tasks.begin()+it_best);
                 m_mutex_new_task.unlock();
-                return new_task;
+                
+                //return new_task;
+            }*/
+
+            for(int i = 0; i < ready_t.size(); i++) {
+                if (forward_step && pending_tasks[ready_t[i]].second.type == operation::forward_) {
+                    new_task = pending_tasks[ready_t[i]].second;
+                    pending_tasks.erase(pending_tasks.begin()+ready_t[i]);
+                    m_mutex_new_task.unlock();
+                    history++;
+                    if (history >= num_data_owners) {
+                        history = 0;
+                        forward_step = false;
+                    }
+
+                    return(new_task);
+                }
+
+                if (!forward_step && (pending_tasks[ready_t[i]].second.type == operation::backward_ || pending_tasks[ready_t[i]].second.type == operation::optimize_)) {
+                    new_task = pending_tasks[ready_t[i]].second;
+                    pending_tasks.erase(pending_tasks.begin()+ready_t[i]);
+                    m_mutex_new_task.unlock();
+                    history++;
+                    if (history >= 2*num_data_owners) {
+                        history = 0;
+                        forward_step = true;
+                    }
+
+                    return(new_task);
+                }
             }
 
             // case 3 - not ready yet sleep

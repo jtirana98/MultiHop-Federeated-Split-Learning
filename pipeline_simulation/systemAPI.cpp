@@ -244,6 +244,7 @@ void systemAPI::refactor(refactoring_data refactor_message) {
         clients.clear();
         clients = refactor_message.data_owners;
         init_state_vector(name, model_, num_class, start, end);
+        my_network_layer.num_data_owners = clients.size();
     }
 
 }

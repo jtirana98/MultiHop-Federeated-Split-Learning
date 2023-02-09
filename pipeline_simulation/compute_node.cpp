@@ -35,12 +35,12 @@ void ComputeNode::task_operator(/*operation op*/) {
 
     int g_c = 0;
     while (true) {
-        //auto timestamp1_ = std::chrono::steady_clock::now();
+        auto timestamp1 = std::chrono::steady_clock::now();
         next_task = sys_.my_network_layer.check_new_task(/*op==operation::backward_*/); // TODO: CHANGE THAT
-        //auto timestamp2_ = std::chrono::steady_clock::now();
-        /*auto __time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (timestamp2_ - timestamp1_).count();*/
-        //std::cout << "Waiting... " << __time << std::endl;
+        auto timestamp2 = std::chrono::steady_clock::now();
+        auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (timestamp2 - timestamp1).count();
+        std::cout << "Waiting... " << _time << std::endl;
 
         interval_type type_;
         std::string operation_;
@@ -67,8 +67,8 @@ void ComputeNode::task_operator(/*operation op*/) {
         auto timestamp2_ = std::chrono::steady_clock::now();
         auto __time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2_ - timestamp1_).count();
-        if(g_c % 50 == 0)
-            std::cout << "Exec "  << operation_ << " " << __time << std::endl;
+        //if(g_c % 50 == 0)
+        std::cout << "Exec "  << operation_ << " " << __time  << " client " << next_task.client_id << std::endl;
 
         if (task.type != noOp) {
             bool keep_connection = true;

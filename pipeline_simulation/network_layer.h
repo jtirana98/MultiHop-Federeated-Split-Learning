@@ -42,6 +42,9 @@ class network_layer {
     bool sim_forw = false;
     bool sim_back = false;
     rpi_stats my_rpi;
+    int num_data_owners;
+    int history = 0;
+    bool forward_step = true;
 
     // pending tasks for the APP
     //std::queue<Task> pending_tasks;
