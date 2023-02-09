@@ -451,13 +451,13 @@ Task network_layer::check_new_task(bool back) { //consumer
                 
                 if(it->first == -1) { // early exit
                     new_task = it->second;
-                    pending_tasks.erase(pending_tasks.begin()+i);
+                    //pending_tasks.erase(pending_tasks.begin()+i);
 
                     //m_mutex_new_task.unlock();
                     //std::cout << "-1 ready: " << std::endl;
                     
                     //return new_task;
-                    ready_t_1.push_back(i);
+                    //ready_t_1.push_back(i);
                 }
 
                 if(my_time.count() >= it->first) {  
