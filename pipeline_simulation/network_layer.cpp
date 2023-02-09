@@ -87,7 +87,7 @@ std::vector<std::string> my_receive(int socket_fd) {
 void network_layer::findPeers(int num, bool aggr) {
     int completed = num;
     // mulitcast address
-    std::string s = "230.0.0.0";
+    std::string s = "280.0.0.0";
     char group_[s.length() + 1];
     strcpy(group_, s.c_str());
     char *group = group_;
@@ -207,7 +207,7 @@ void network_layer::findPeers(int num, bool aggr) {
 
 void network_layer::findInit(bool aggr) {
     // mulitcast address
-    std::string s = "230.0.0.0";
+    std::string s = "280.0.0.0";
     char group_[s.length() + 1];
     strcpy(group_, s.c_str());
     char *group = group_;
@@ -572,15 +572,15 @@ void network_layer::receiver() {
     std::cout << "let's go " << myid << " " << rooting_table.size() << std::endl;
     sleep(1);
 
-    if(myid > 3 && myid < 23) {
+    if(myid > 3 && myid < 28) {
         std::pair<std::string, int> my_addr = rooting_table.find(0)->second;
         my_port = my_addr.second;
         my_port = my_port + (myid +3);
     }
-    else if (myid > 23) {
-        std::pair<std::string, int> my_addr = rooting_table.find(23)->second;
+    else if (myid > 28) {
+        std::pair<std::string, int> my_addr = rooting_table.find(28)->second;
         my_port = my_addr.second;
-        my_port = my_port + (myid - 23);
+        my_port = my_port + (myid - 28);
     }
     else{
         std::pair<std::string, int> my_addr = rooting_table.find(myid)->second;
