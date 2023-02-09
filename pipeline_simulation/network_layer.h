@@ -74,7 +74,7 @@ class network_layer {
         rooting_table.insert({-2, std::pair<std::string, int>("10.96.12.132", 8079)});
         rooting_table.insert({-1, std::pair<std::string, int>("10.96.12.136", 8080)});
         rooting_table.insert({0, std::pair<std::string, int>("10.96.12.138", 8081)});
-        rooting_table.insert({1, std::pair<std::string, int>("10.96.12.130", 8082)}); //cn1
+        rooting_table.insert({1, std::pair<std::string, int>("10.96.12.132", 8082)}); //cn1
         rooting_table.insert({2, std::pair<std::string, int>("10.96.12.131", 8083)}); //cn2
         rooting_table.insert({3, std::pair<std::string, int>("10.96.12.132", 8083)}); //cn3
         rooting_table.insert({28, std::pair<std::string, int>("10.96.12.139", 8081)});
