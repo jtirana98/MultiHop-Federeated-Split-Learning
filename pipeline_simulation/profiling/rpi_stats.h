@@ -15,11 +15,11 @@ class rpi_stats{
 
     rpi_stats(int i) {
         if(i == 1) {
-            rpi_fm1     = 236;
+            rpi_fm1     = 5164.7675;//236;
             rpi_fm1_v   = 2;
             rpi_fbm2    = 17;
             rpi_fbm2_v  = 6;
-            rpi_bm1     = 133;
+            rpi_bm1     = 17276.3924; //133;
             rpi_bm1_v   = 21;
         }
         else {
