@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
         // POINT 5 Initialization phase: init node starts preperation
         sys_.my_network_layer.newPoint(INIT_START_MSG_PREP);
 
-        auto cut_layers_ = "2,35";
+        auto cut_layers_ = "15,35";
         //auto data_owners_ = argv[2];  // CHANGE
         int num_data_owners = atoi(argv[2]);
         //std::cout << data_owners_ << std::endl;
@@ -105,10 +105,10 @@ int main(int argc, char **argv) {
                 my_port = my_port + (data_owners[i] +3);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
-            else if(data_owners[i] > 18) {
-                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(18)->second;
+            else if(data_owners[i] > 23) {
+                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(23)->second;
                 int my_port = my_addr.second;
-                my_port = my_port + (data_owners[i] - 18);
+                my_port = my_port + (data_owners[i] - 23);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
 
@@ -229,6 +229,7 @@ int main(int argc, char **argv) {
                 //std::cout << "f1-end: " << end_f1-send_activations.count() << std::endl;
                 // send task to next node
                 task.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                //usleep(myID*200);
                 sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
                 
 
@@ -254,6 +255,7 @@ int main(int argc, char **argv) {
                 
                 //task.t_start = send_gradients.count();
                 task.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                //usleep(myID*110);
                 sys_.my_network_layer.new_message(task, sys_.inference_path[1]);
                 //optimize task
                 
@@ -271,7 +273,7 @@ int main(int argc, char **argv) {
                 auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
                             (end_batch - init_batch).count();
                 
-                if (g_i % 50 == 0)
+                //if (g_i % 50 == 0)
                     std::cout << "One batch: global epoch " << g_epoch_count+1 << " local epoch: " << epoch_count+1 <<" b: " << batch_index+1  << " is " << _time << std::endl;
                 
                 // end of batch
