@@ -19,7 +19,7 @@ class rpi_stats{
             rpi_fm1_v   = 2;
             rpi_fbm2    = 17;
             rpi_fbm2_v  = 6;
-            rpi_bm1     = 37173.0124//17276.3924; //133;
+            rpi_bm1     = 37173.0124;//17276.3924; //133;
             rpi_bm1_v   = 21;
         }
         else {
