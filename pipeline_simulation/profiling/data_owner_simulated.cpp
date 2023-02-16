@@ -99,16 +99,22 @@ int main(int argc, char **argv) {
         for (int i=1; i<data_owners.size(); i++) {
 
             //add data owner to rooting table
-            if((data_owners[i] > 3) && (data_owners[i] < 18)) {
+            if((data_owners[i] > 3) && (data_owners[i] < 13)) {
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(0)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (data_owners[i] +3);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
-            else if(data_owners[i] > 13) {
+            else if(data_owners[i] > 13 && data_owners[i] < 23) {
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(13)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (data_owners[i] - 13);
+                sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
+            }
+            else {
+                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(23)->second;
+                int my_port = my_addr.second;
+                my_port = my_port + (data_owners[i] - 23);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
 
