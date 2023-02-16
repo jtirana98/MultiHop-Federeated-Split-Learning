@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
         // POINT 5 Initialization phase: init node starts preperation
         sys_.my_network_layer.newPoint(INIT_START_MSG_PREP);
 
-        auto cut_layers_ = "15,35";
+        auto cut_layers_ = "25,35";
         //auto data_owners_ = argv[2];  // CHANGE
         int num_data_owners = atoi(argv[2]);
         //std::cout << data_owners_ << std::endl;
@@ -111,10 +111,22 @@ int main(int argc, char **argv) {
                 my_port = my_port + (data_owners[i] - 13);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
-            else {
+            else if (data_owners[i] > 23 && data_owners[i] < 33){
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(23)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (data_owners[i] - 23);
+                sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
+            }
+            else if (data_owners[i] > 33 && data_owners[i] < 43) {
+                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(33)->second;
+                int my_port = my_addr.second;
+                my_port = my_port + (data_owners[i] - 33);
+                sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
+            }
+            else if (data_owners[i] > 43) {
+                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(43)->second;
+                int my_port = my_addr.second;
+                my_port = my_port + (data_owners[i] - 43);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
 

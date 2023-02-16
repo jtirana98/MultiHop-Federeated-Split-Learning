@@ -80,6 +80,7 @@ class network_layer {
         rooting_table.insert({13, std::pair<std::string, int>("10.96.12.139", 8081)});
         rooting_table.insert({23, std::pair<std::string, int>("10.96.12.133", 8081)});
         rooting_table.insert({33, std::pair<std::string, int>("10.96.12.132", 8081)});
+        rooting_table.insert({43, std::pair<std::string, int>("10.96.12.131", 8081)});
     }
 
     void findPeers(int num, bool aggr = false);
