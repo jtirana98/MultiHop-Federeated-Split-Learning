@@ -15,7 +15,7 @@ using torch::indexing::Ellipsis;
 namespace {
 // CIFAR10 dataset description can be found at https://www.cs.toronto.edu/~kriz/cifar.html.
 constexpr uint32_t kTrainSize = 50000;
-constexpr uint32_t k_temp = 1000;
+constexpr uint32_t k_temp = 500;
 constexpr uint32_t kTestSize = 10000;
 constexpr uint32_t kSizePerBatch = 10000;
 constexpr uint32_t kImageRows = 32;

@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
         // POINT 5 Initialization phase: init node starts preperation
         sys_.my_network_layer.newPoint(INIT_START_MSG_PREP);
 
-        auto cut_layers_ = "3,24";
+        auto cut_layers_ = "3,20";
         //auto data_owners_ = argv[2];  // CHANGE
         int num_data_owners = atoi(argv[2]);
         //std::cout << data_owners_ << std::endl;
@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
         for (int i=1; i<data_owners.size(); i++) {
 
             //add data owner to rooting table
-            if((data_owners[i] > 3) && (data_owners[i] < 28)) {
+            if((data_owners[i] > 3) && (data_owners[i] < 23)) {
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(0)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (data_owners[i] +3);
@@ -123,10 +123,10 @@ int main(int argc, char **argv) {
                 my_port = my_port + (data_owners[i] - 33);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }*/
-            else if (data_owners[i] > 28) {
-                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(28)->second;
+            else if (data_owners[i] >= 23) {
+                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(23)->second;
                 int my_port = my_addr.second;
-                my_port = my_port + (data_owners[i] - 28);
+                my_port = my_port + (data_owners[i] - 23);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
 
@@ -181,7 +181,7 @@ int main(int argc, char **argv) {
             std::move(train_dataset), sys_.batch_size);
 
     int num_classes = (type == CIFAR_10)? 10 : 100;
-    /*
+    
     std::cout << sys_.parts[0].layers.size() << std::endl;
     std::cout << sys_.parts[1].layers.size() << std::endl;
     for (int i = 0; i< sys_.parts[0].layers.size(); i++) {
@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i< sys_.parts[1].layers.size(); i++) {
         std::cout << "new layer: "<< i+1 << " "<< sys_.parts[1].layers[i] << std::endl;
     }
-    */
+    
     auto init_epoch = std::chrono::steady_clock::now();
     auto send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
     auto send_gradients = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
@@ -214,7 +214,7 @@ int main(int argc, char **argv) {
         //std::cout << c << std::endl;
         //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << std::endl;
         int g_i = 0;
-        for (int inter_batch = 0; inter_batch < 2; inter_batch++ ) {    
+        for (int inter_batch = 0; inter_batch < 4; inter_batch++ ) {    
             for (auto& batch : *train_dataloader) {
                 // create task with new batch
                 auto init_batch = std::chrono::steady_clock::now();
@@ -301,7 +301,7 @@ int main(int argc, char **argv) {
         }
         epoch_count++;
 
-        if(epoch_count <  2)
+        if(epoch_count <  4)
             continue;
         
         epoch_count = 0;
