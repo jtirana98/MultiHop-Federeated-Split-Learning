@@ -38,9 +38,9 @@ int main(int argc, char **argv) {
             num_compute_nodes = atoi(argv[3]);
 
         if (num_compute_nodes == 2)
-            cut_layers_ = "3,25,24";
+            cut_layers_ = "3,14,24";
         if (num_compute_nodes == 3)
-            cut_layers_ = "3,14,18,24";
+            cut_layers_ = "3,13,17,24";
         //if (num_compute_nodes == 4)
 
         const char separator = ',';
@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }*/
             else if (data_owners[i] > 28) {
-                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(10)->second;
+                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(28)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (data_owners[i] - 28);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
