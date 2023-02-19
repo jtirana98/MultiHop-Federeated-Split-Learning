@@ -242,18 +242,19 @@ std::vector<torch::nn::Sequential> vgg_part(vgg_model model, int num_classes, in
     auto parts = _vgg_split(cfg, false, num_classes, split_points);
     int sum=0;
     for (int i =0; i< parts.size(); i++) {
+        std::cout << "cool" << std::endl;
         sum = sum + parts[i]->size();
     }
     int first = 1;
     if (start == 0)
         first = 0;
-    
+    if (end == -1)
+        first = 2;
+    std::cout << end << " !!! " << sum  << start << std::endl;
     layers.push_back(parts[first]);
-    if (end < sum - 7 && end != -1) {
-        return layers;
+    if (end > 20 || (end == -1 && start <= 20)) {
+         layers.push_back(parts[first + 1]);
     }
-    else {
-        layers.push_back(parts[first + 1]);
-    }
+    
     return layers;
 }
