@@ -565,8 +565,8 @@ void network_layer::receiver() {
         my_port = my_addr.second;
         my_port = my_port + (myid - 33);
     }*/
-    else if (myid > 23) {
-        std::pair<std::string, int> my_addr = rooting_table.find(28)->second;
+    else if (myid >= 23) {
+        std::pair<std::string, int> my_addr = rooting_table.find(23)->second;
         my_port = my_addr.second;
         my_port = my_port + (myid - 23);
     }
