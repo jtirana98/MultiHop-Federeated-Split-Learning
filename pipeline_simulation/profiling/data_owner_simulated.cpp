@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
         // POINT 5 Initialization phase: init node starts preperation
         sys_.my_network_layer.newPoint(INIT_START_MSG_PREP);
 
-        auto cut_layers_ = "3,20";
+        auto cut_layers_ = "4,15";
         //auto data_owners_ = argv[2];  // CHANGE
         int num_data_owners = atoi(argv[2]);
         //std::cout << data_owners_ << std::endl;
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
             num_compute_nodes = atoi(argv[3]);
 
         if (num_compute_nodes == 2)
-            cut_layers_ = "3,14,24";
+            cut_layers_ = "3,14,34";
         if (num_compute_nodes == 3)
             cut_layers_ = "3,13,17,24";
         //if (num_compute_nodes == 4)
@@ -84,8 +84,8 @@ int main(int argc, char **argv) {
         int model_type = 3;
         
         client_message.dataset = CIFAR_10;
-        client_message.model_name_ = model_name::vgg;
-        client_message.model_type_ = vgg_model::v19;
+        client_message.model_name_ = model_name::vgg;//model_name::resnet;//model_name::vgg;
+        client_message.model_type_ = vgg_model::v11;//resnet_model::resnet101;//vgg_model::v19;
         client_message.end = cut_layers[0];
         client_message.start = cut_layers[cut_layers.size() - 1] + 1;
         client_message.next = compute_nodes[0];
@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
         for (int i=1; i<data_owners.size(); i++) {
 
             //add data owner to rooting table
-            if((data_owners[i] > 3) && (data_owners[i] < 23)) {
+            if((data_owners[i] > 3) && (data_owners[i] < 28)) {
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(0)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (data_owners[i] +3);
@@ -123,10 +123,10 @@ int main(int argc, char **argv) {
                 my_port = my_port + (data_owners[i] - 33);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }*/
-            else if (data_owners[i] >= 23) {
-                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(23)->second;
+            else if (data_owners[i] >= 28) {
+                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(28)->second;
                 int my_port = my_addr.second;
-                my_port = my_port + (data_owners[i] - 23);
+                my_port = my_port + (data_owners[i] - 28);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
 
@@ -248,6 +248,7 @@ int main(int argc, char **argv) {
                 // send task to next node
                 task.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
                 //usleep(myID*200);
+                std::cout << "Send forward task to C1 " << end_f1-send_activations.count() << std::endl;
                 sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
                 
 
@@ -274,6 +275,7 @@ int main(int argc, char **argv) {
                 //task.t_start = send_gradients.count();
                 task.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
                 //usleep(myID*110);
+                std::cout << "Send backprop task to C1 " << end_f1-send_activations.count() << std::endl;
                 sys_.my_network_layer.new_message(task, sys_.inference_path[1]);
                 //optimize task
                 
