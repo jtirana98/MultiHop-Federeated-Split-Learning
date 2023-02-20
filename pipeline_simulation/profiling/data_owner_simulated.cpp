@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
         // POINT 5 Initialization phase: init node starts preperation
         sys_.my_network_layer.newPoint(INIT_START_MSG_PREP);
 
-        auto cut_layers_ = "4,15";
+        auto cut_layers_ = "10,19";
         //auto data_owners_ = argv[2];  // CHANGE
         int num_data_owners = atoi(argv[2]);
         //std::cout << data_owners_ << std::endl;
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
             num_compute_nodes = atoi(argv[3]);
 
         if (num_compute_nodes == 2)
-            cut_layers_ = "3,14,34";
+            cut_layers_ = "5,14,34";
         if (num_compute_nodes == 3)
             cut_layers_ = "3,13,17,24";
         //if (num_compute_nodes == 4)
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
         
         client_message.dataset = CIFAR_10;
         client_message.model_name_ = model_name::vgg;//model_name::resnet;//model_name::vgg;
-        client_message.model_type_ = vgg_model::v11;//resnet_model::resnet101;//vgg_model::v19;
+        client_message.model_type_ = vgg_model::v19;//resnet_model::resnet101;//vgg_model::v19;
         client_message.end = cut_layers[0];
         client_message.start = cut_layers[cut_layers.size() - 1] + 1;
         client_message.next = compute_nodes[0];
