@@ -249,12 +249,12 @@ std::vector<torch::nn::Sequential> vgg_part(vgg_model model, int num_classes, in
         first = 0;
     
     std::cout << start << " " << end << " " << parts.size() << std::endl;
-    if (end > 12 || (end == -1 && start <= 12)) {
+    if (end > 20/*12*/ || (end == -1 && start <= 20/*12*/)) {
         layers.push_back(parts[first]);
         layers.push_back(parts[first + 1]);
     }
     else{
-        if (end == -1 && end < 12)
+        if (end == -1 && end < 20/*12*/)
             first = parts.size() - 1;
         layers.push_back(parts[first]);
     }
