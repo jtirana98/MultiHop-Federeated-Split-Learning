@@ -38,9 +38,9 @@ int main(int argc, char **argv) {
             num_compute_nodes = atoi(argv[3]);
 
         if (num_compute_nodes == 2)
-            cut_layers_ = "5,14,34";
+            cut_layers_ = "3,13,19";
         if (num_compute_nodes == 3)
-            cut_layers_ = "3,13,17,24";
+            cut_layers_ = "3,8,14,19";
         //if (num_compute_nodes == 4)
 
         const char separator = ',';
@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
         for (int i=1; i<data_owners.size(); i++) {
 
             //add data owner to rooting table
-            if((data_owners[i] > 3) && (data_owners[i] < 28)) {
+            if((data_owners[i] > 3) && (data_owners[i] < 23)) {
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(0)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (data_owners[i] +3);
@@ -123,10 +123,10 @@ int main(int argc, char **argv) {
                 my_port = my_port + (data_owners[i] - 33);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }*/
-            else if (data_owners[i] >= 28) {
-                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(28)->second;
+            else if (data_owners[i] >= 23) {
+                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(23)->second;
                 int my_port = my_addr.second;
-                my_port = my_port + (data_owners[i] - 28);
+                my_port = my_port + (data_owners[i] - 23);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
 
@@ -303,7 +303,7 @@ int main(int argc, char **argv) {
         }
         epoch_count++;
 
-        if(epoch_count <  4)
+        if(epoch_count <  2)
             continue;
         
         epoch_count = 0;
