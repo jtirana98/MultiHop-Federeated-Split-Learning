@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
         for (int i=1; i<data_owners.size(); i++) {
 
             //add data owner to rooting table
-            if((data_owners[i] > 3) && (data_owners[i] < 18)) {
+            if((data_owners[i] > 3) && (data_owners[i] < 13)) {
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(0)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (data_owners[i] +3);
@@ -123,10 +123,10 @@ int main(int argc, char **argv) {
                 my_port = my_port + (data_owners[i] - 33);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }*/
-            else if (data_owners[i] >= 18) {
-                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(28)->second;
+            else if (data_owners[i] >= 13) {
+                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(13)->second;
                 int my_port = my_addr.second;
-                my_port = my_port + (data_owners[i] - 18);
+                my_port = my_port + (data_owners[i] - 13);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
 
@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
     auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
     auto datasets = data_owners_data(path_selection, 1, type, false);
     auto train_dataset = datasets[0]
-                                    .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2018, 0.1994, 0.2010}))
+                                    .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2013, 0.1994, 0.2010}))
                                     .map(ConstantPad(4))
                                     .map(RandomHorizontalFlip())
                                     .map(RandomCrop({32, 32}))
