@@ -219,7 +219,7 @@ void systemAPI::refactor(refactoring_data refactor_message) {
                 continue;
             }*/
 
-            if((addr.first > 3) && (addr.first < 28)) {
+            if((addr.first > 3) && (addr.first < 18)) {
                 std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(0)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (addr.first + 3);
@@ -243,10 +243,10 @@ void systemAPI::refactor(refactoring_data refactor_message) {
                 my_port = my_port + (addr.first-33);
                 my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
             }*/
-            else if (addr.first >= 28) {
-                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(28)->second;
+            else if (addr.first >= 18) {
+                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(18)->second;
                 int my_port = my_addr.second;
-                my_port = my_port + (addr.first-28);
+                my_port = my_port + (addr.first-18);
                 my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
             }
             else {
