@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
         if (num_compute_nodes == 2)
             cut_layers_ = "3,13,19";
         if (num_compute_nodes == 3)
-            cut_layers_ = "3,8,14,19";
+            cut_layers_ = "2,15,25,35";//"3,8,14,19";
         //if (num_compute_nodes == 4)
 
         const char separator = ',';
@@ -84,8 +84,8 @@ int main(int argc, char **argv) {
         int model_type = 3;
         
         client_message.dataset = CIFAR_10;
-        client_message.model_name_ = model_name::vgg;//model_name::resnet;//model_name::vgg;
-        client_message.model_type_ = vgg_model::v19;//resnet_model::resnet101;//vgg_model::v19;
+        client_message.model_name_ = model_name::resnet;//model_name::vgg;
+        client_message.model_type_ =resnet_model::resnet101;//vgg_model::v19;
         client_message.end = cut_layers[0];
         client_message.start = cut_layers[cut_layers.size() - 1] + 1;
         client_message.next = compute_nodes[0];
@@ -99,22 +99,22 @@ int main(int argc, char **argv) {
         for (int i=1; i<data_owners.size(); i++) {
 
             //add data owner to rooting table
-            if((data_owners[i] > 3) && (data_owners[i] < 23)) {
+            if((data_owners[i] > 3) && (data_owners[i] < 18)) {
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(0)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (data_owners[i] +3);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
-            /*else if(data_owners[i] > 13 && data_owners[i] < 23) {
+            /*else if(data_owners[i] > 13 && data_owners[i] < 18) {
                 std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(13)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (data_owners[i] - 13);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
-            else if (data_owners[i] > 23 && data_owners[i] < 33){
-                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(23)->second;
+            else if (data_owners[i] > 18 && data_owners[i] < 33){
+                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(18)->second;
                 int my_port = my_addr.second;
-                my_port = my_port + (data_owners[i] - 23);
+                my_port = my_port + (data_owners[i] - 18);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
             else if (data_owners[i] > 33 && data_owners[i] < 43) {
@@ -123,10 +123,10 @@ int main(int argc, char **argv) {
                 my_port = my_port + (data_owners[i] - 33);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }*/
-            else if (data_owners[i] >= 23) {
-                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(23)->second;
+            else if (data_owners[i] >= 18) {
+                std::pair<std::string, int> my_addr = sys_.my_network_layer.rooting_table.find(18)->second;
                 int my_port = my_addr.second;
-                my_port = my_port + (data_owners[i] - 23);
+                my_port = my_port + (data_owners[i] - 18);
                 sys_.my_network_layer.rooting_table.insert({data_owners[i], std::pair<std::string, int>(my_addr.first, my_port)});
             }
 
@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
     auto path_selection = (type == CIFAR_10)? CIFAR10_data_path : CIFAR100_data_path;
     auto datasets = data_owners_data(path_selection, 1, type, false);
     auto train_dataset = datasets[0]
-                                    .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2023, 0.1994, 0.2010}))
+                                    .map(torch::data::transforms::Normalize<>({0.4914, 0.4822, 0.4465}, {0.2018, 0.1994, 0.2010}))
                                     .map(ConstantPad(4))
                                     .map(RandomHorizontalFlip())
                                     .map(RandomCrop({32, 32}))

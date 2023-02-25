@@ -14,12 +14,12 @@ class rpi_stats{
     int vm_to_rpi = 8;
 
     rpi_stats(int i) {
-        if(i == 1) {
-            rpi_fm1     = 3377.8;//1156.2;//9040.7665;//5164.7675;//236;
+        if(i == 1) {  //d2
+            rpi_fm1     = 290.5;
             rpi_fm1_v   = 2;
-            rpi_fbm2    = 909;//17;
+            rpi_fbm2    = 43.8;
             rpi_fbm2_v  = 6;
-            rpi_bm1     = 13454.23;//10434.69;//37173.0124;//17276.3924; //133;
+            rpi_bm1     = 299.66;
             rpi_bm1_v   = 21;
         }
         else {
