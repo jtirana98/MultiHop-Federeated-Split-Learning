@@ -23,11 +23,11 @@ class rpi_stats{
             rpi_bm1_v   = 21;
         }
         else {
-            rpi_fm1     = 291;
+            rpi_fm1     = 242.58;
             rpi_fm1_v   = 38;
-            rpi_fbm2    = 25;
+            rpi_fbm2    = 29;
             rpi_fbm2_v  = 7;
-            rpi_bm1     = 265;
+            rpi_bm1     = 174.25;
             rpi_bm1_v   = 28;
         }
     }

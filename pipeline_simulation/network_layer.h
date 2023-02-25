@@ -71,6 +71,12 @@ class network_layer {
     logger_thread(&logger::logger_, &mylogger) ,
     my_rpi(1)
     {   
+
+        if(myid <= 22)
+            my_rpi = rpi_stats(1);
+        else
+            my_rpi = rpi_stats(2);
+
         rooting_table.insert({-2, std::pair<std::string, int>("10.96.12.132", 8079)});
         rooting_table.insert({-1, std::pair<std::string, int>("10.96.12.136", 8080)});
         rooting_table.insert({0, std::pair<std::string, int>("10.96.12.138", 8081)});

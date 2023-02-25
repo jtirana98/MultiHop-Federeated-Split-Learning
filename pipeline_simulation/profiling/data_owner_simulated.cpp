@@ -18,7 +18,11 @@ int main(int argc, char **argv) {
 
     int myID = conv;
     std::string log_dir = "main_experiment";
-    rpi_stats my_rpi = rpi_stats(1);
+    rpi_stats my_rpi(1);
+    if(myID <= 22)
+        my_rpi = rpi_stats(1);
+    else
+        my_rpi = rpi_stats(2);
 
     systemAPI sys_(true, myID, log_dir);
     refactoring_data client_message;
