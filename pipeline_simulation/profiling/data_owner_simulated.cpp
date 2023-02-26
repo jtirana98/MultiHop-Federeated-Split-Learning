@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
     int myID = conv;
     std::string log_dir = "main_experiment";
     rpi_stats my_rpi(1);
-    if(myID <= 22)
+    if(myID <= 12)
         my_rpi = rpi_stats(1);
     else
         my_rpi = rpi_stats(2);
