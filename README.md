@@ -53,11 +53,11 @@ In order to compile the framework just use the Makefile.
 
   - To compile run the commands below:
         
-        > source /filepath/to/python/environment %Activate python environment.
-        > mkdir build 
-        > cd build
-        > cmake -DCMAKE_PREFIX_PATH=`python -c 'import torch;print(torch.utils.cmake_prefix_path)'` ..
-        > cmake --build . --config Release
+        $ source /filepath/to/python/environment %Activate python environment.
+        $ mkdir build 
+        $ cd build
+        $ cmake -DCMAKE_PREFIX_PATH=`python -c 'import torch;print(torch.utils.cmake_prefix_path)'` ..
+        $ cmake --build . --config Release
 
 
 Running SplitPipe in a distributed manner:
