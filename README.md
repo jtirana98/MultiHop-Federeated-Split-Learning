@@ -1,4 +1,4 @@
-# Profiling Environment for Deep Neural Networks using pytorch C++ Frontend
+# Pipelines federated split learning with multiple hops
 
 This repository contains:
 - *`main.cpp`*: Main code that implements testing environments. It contains two modes: 
