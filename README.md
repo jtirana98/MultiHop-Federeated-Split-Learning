@@ -63,6 +63,6 @@ In order to compile the framework just use the Makefile.
 Running SplitPipe in a distributed manner:
 
 - configuring root-table
-
 - enable mulit-task (if applicable)
-
+- parameters for each entity.
+- include a figure of the structure.
