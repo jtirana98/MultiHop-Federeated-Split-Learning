@@ -43,15 +43,13 @@ The repository structure:
 
 How to run program and connect Libtorch:
 
-In order to compile the framework just use the Makefile.
-
    - Requirments:
     
         - Create python environment for package managment with python version $\geq 3.7$
             - For example you can use [Python Virtual Environments](https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/26/python-virtual-env/)
         - Install pytorch from [Pytorch website](https://pytorch.org/get-started/locally/).
 
-  - To compile run the commands below:
+  - In order to compile the framework just use the Makefile, and follow the steps below:
         
         $ source /filepath/to/python/environment %Activate python environment.
         $ mkdir build 
