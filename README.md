@@ -1,11 +1,6 @@
-# Pipelines federated split learning with multiple hops
+# Pipelined federated split learning with multiple hops
 
-This repository contains:
-- *`main.cpp`*: Main code that implements testing environments. It contains two modes: 
-
-    *(i)* conventional trainining: in which we run the model as one,
-
-    *(ii)* Split Learning: the model is split into parts and is trained in a way to simulate a split learning environmet.
+The repository structure:
     
 - directory *`datasets/`* :
     Contains source code to load a dataset into a dataloader.
@@ -35,7 +30,20 @@ This repository contains:
             - `model_option`: value from `resnet_model` enum to select the ResNet model: resnet18, resnet34, resnet50, resnet101, resenet152.
             - `split`: *true* if you want to profile upon the split mode.
             - `split_points`: optional parameter (no impact if `split == `*`false`*). It is the vector with cut layers.
-How to run program:
+
+- *`main.cpp`*: Main code that is used to profile the model. It contains two modes: 
+
+    *(i)* conventional trainining: in which we run the model as one,
+
+    *(ii)* Split Learning: the model is split into parts and is trained in a way to simulate a split learning environmet. We use this mode for a per-layer analysis of the model.
+    
+- directory *`utils`*: Contains the libraries for logging and split learning training.
+
+- directory *`pipeline_simulation`*: Here we implement SplitPipe's compoments. ADD DESCRIPTION HERE
+
+How to run program and connect Libtorch:
+
+In order to compile the framework just use the Makefile.
 
    - Requirments:
     
@@ -51,5 +59,10 @@ How to run program:
         > cmake -DCMAKE_PREFIX_PATH=`python -c 'import torch;print(torch.utils.cmake_prefix_path)'` ..
         > cmake --build . --config Release
 
-What we measure:
+
+Running SplitPipe in a distributed manner:
+
+- configuring root-table
+
+- enable mulit-task (if applicable)
 
