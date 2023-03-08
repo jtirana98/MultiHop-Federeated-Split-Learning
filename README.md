@@ -64,3 +64,4 @@ Running SplitPipe in a distributed manner:
 - enable mulit-task (if applicable)
 - parameters for each entity.
 - include a figure of the structure.
+- emulated version.
