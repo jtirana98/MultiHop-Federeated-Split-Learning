@@ -24,4 +24,8 @@ using transform::RandomHorizontalFlip;
 const double r_learning_rate = 0.01;
 const size_t r_num_epochs = 30;
 
+<<<<<<< HEAD
 void train_resnet(dataset dataset_option, resnet_model model_option, bool split, int batch_size = 128, const std::vector<int>& split_points = std::vector<int>(), bool test = false);
+=======
+void train_resnet(dataset dataset_option, resnet_model model_option, bool split, int batch_size = 128, const std::vector<int>& split_points = std::vector<int>(), bool test = false);
+>>>>>>> main

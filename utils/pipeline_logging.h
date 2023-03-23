@@ -117,7 +117,7 @@ class logger {
  public:
     int node_id;
     int fd_logs;
-    std::string const parent_dir = "logs";
+    std::string const parent_dir = "/Users/joanatirana/Documents/git_repos/testing_environment/build/logs";
     std::string dir_name;
     std::string f_name, interval1, interval2, interval3;
 

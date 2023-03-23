@@ -36,7 +36,11 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     if (type == CIFAR_10) {
         num_samples = kTrainSize_10;
     }
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> main
     val_samples = num_samples*(10.0/100);
 
     auto datasets = data_owners_data(path_selection, 1, type, false);
@@ -223,30 +227,33 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
         torch::NoGradGuard no_grad;
         model->eval();
 
-        double running_loss = 0.0;
-        size_t num_correct = 0;
+        double running_loss_ = 0.0;
+        double num_correct_ = 0;
         for (const auto& batch : *test_loader) {
             auto data = batch.data;
             auto target = batch.target;
-
             auto output = model->forward(data);
 
             auto loss = torch::nn::functional::cross_entropy(output, target);
-            running_loss += loss.template item<double>() * data.size(0);
+            running_loss_ += loss.template item<double>() * data.size(0);
 
             auto prediction = output.argmax(1);
-            num_correct += prediction.eq(target).sum().template item<int64_t>();
+            num_correct_ += prediction.eq(target).sum().template item<int64_t>();
         }
         
         std::cout << "Testing finished!\n";
 
-        auto test_accuracy = static_cast<double>(num_correct) / num_test_samples;
-        auto test_sample_mean_loss = running_loss / num_test_samples;
+        auto test_accuracy = static_cast<double>(num_correct_) / num_test_samples;
+        auto test_sample_mean_loss = running_loss_ / num_test_samples;
 
         std::cout << "Testset - Loss: " << test_sample_mean_loss << ", Accuracy: " << test_accuracy << '\n';
     }
+<<<<<<< HEAD
 
 //    #endif 
+=======
+    //#endif 
+>>>>>>> main
     
 }
 #ifdef COMMENT
