@@ -58,6 +58,7 @@ set(SOURCE_FILES
 )
 
 add_executable("${CMAKE_PROJECT_NAME}"  ${SOURCE_FILES} main.cpp)
+<<<<<<< HEAD
 add_executable(compute_node  ${SOURCE_FILES} pipeline_simulation/compute_node.cpp)
 add_executable(data_owner  ${SOURCE_FILES} pipeline_simulation/data_owner.cpp)
 add_executable(profile_data_owner  ${SOURCE_FILES} pipeline_simulation/profiling/data_owner_saturation.cpp)
@@ -78,3 +79,25 @@ set_property(TARGET data_owner PROPERTY CXX_STANDARD 17)
 set_property(TARGET profile_data_owner PROPERTY CXX_STANDARD 17)
 set_property(TARGET simulated_data_owner PROPERTY CXX_STANDARD 17)
 set_property(TARGET aggregator PROPERTY CXX_STANDARD 17)
+=======
+#add_executable(compute_node  ${SOURCE_FILES} pipeline_simulation/compute_node.cpp)
+#add_executable(data_owner  ${SOURCE_FILES} pipeline_simulation/data_owner.cpp)
+#add_executable(profile_data_owner  ${SOURCE_FILES} pipeline_simulation/profiling/data_owner_saturation.cpp)
+#add_executable(simulated_data_owner  ${SOURCE_FILES} pipeline_simulation/profiling/data_owner_simulated.cpp)
+#add_executable(aggregator  ${SOURCE_FILES} pipeline_simulation/aggregator.cpp)
+#add_library(MyLib SHARED ${SOURCE_FILES})
+
+target_link_libraries("${CMAKE_PROJECT_NAME}" ${TORCH_LIBRARIES})
+#target_link_libraries(compute_node ${TORCH_LIBRARIES})
+#target_link_libraries(data_owner ${TORCH_LIBRARIES})
+#target_link_libraries(profile_data_owner ${TORCH_LIBRARIES})
+#target_link_libraries(simulated_data_owner ${TORCH_LIBRARIES})
+#target_link_libraries(aggregator ${TORCH_LIBRARIES})
+
+set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+#set_property(TARGET compute_node PROPERTY CXX_STANDARD 17)
+#set_property(TARGET data_owner PROPERTY CXX_STANDARD 17)
+#set_property(TARGET profile_data_owner PROPERTY CXX_STANDARD 17)
+#set_property(TARGET simulated_data_owner PROPERTY CXX_STANDARD 17)
+#set_property(TARGET aggregator PROPERTY CXX_STANDARD 17)
+>>>>>>> vm_version

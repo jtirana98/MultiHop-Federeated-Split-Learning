@@ -327,13 +327,13 @@ void vgg_cifar(vgg_model model_option, int type, int batch_size, bool test) {
     if (test)
         stop_epochs = num_epochs;
 
-
-    for (size_t epoch = 0; epoch != stop_epochs; ++epoch) {
+    batch_index = 0;
+    for (size_t epoch = 0; epoch != 5; ++epoch) {
         // Initialize running metrics
         double running_loss = 0.0;
         double num_correct = 0;
 
-        batch_index = 0;
+        
         for (auto& batch : *train_dataloader) {
             start_batch = Event(measure_type::start_batch, "", -1);
             optimizer.zero_grad();

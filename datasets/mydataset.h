@@ -11,7 +11,7 @@
 // root files
 
 const std::string MNIST_data_path = "/Users/joanatirana/Documents/coding/datasets/MNIST/";
-const std::string CIFAR10_data_path = "/Users/joanatirana/Documents/coding/datasets/cifar/cifar-10-batches-bin/";
+const std::string CIFAR10_data_path = "/root/cifar/cifar-10-batches-bin/";
 const std::string CIFAR100_data_path = "/Users/joanatirana/Documents/coding/datasets/cifar/cifar-100-binary/";
 
 enum dataset{

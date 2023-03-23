@@ -36,7 +36,6 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     if (type == CIFAR_10) {
         num_samples = kTrainSize_10;
     }
-
     val_samples = num_samples*(10.0/100);
 
     auto datasets = data_owners_data(path_selection, 1, type, false);
@@ -103,7 +102,6 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
             // Transfer images and target labels to device
             auto data = batch.data;
             auto target = batch.target;
-
             // Forward
             if (!test)
                 start_forward = Event(forward, "", -1);
@@ -248,7 +246,7 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     //#endif 
     
 }
-
+#endif 
 /*template <typename Block>*/
 void resnet_split_cifar(resnet_model model_option, int type, int batch_size, const std::vector<int>& split_points) { 
     auto layers_ = getLayers(model_option);
@@ -282,24 +280,29 @@ void train_resnet(dataset dataset_option, resnet_model model_option, bool split,
             }
         }
     else {
-        switch (dataset_option) {
-        case MNIST:
-            //vgg_mnist(model_option, batch_size, test);
-            break;
-        case CIFAR_10:
-            if (model_option <= 2)
-                resnet_cifar/*<ResidualBlock>*/(model_option, CIFAR_10, batch_size, test);
-            else
-                resnet_cifar/*<ResidualBottleneckBlock>*/(model_option, CIFAR_10, batch_size, test);
-            break;
-        case CIFAR_100:
-            if (model_option <= 2)
-                resnet_cifar/*<ResidualBlock>*/(model_option, CIFAR_100, batch_size, test);
-            else
-                resnet_cifar/*<ResidualBottleneckBlock>*/(model_option, CIFAR_100, batch_size, test);
-            break;
-        default:
-            break;
-        }
+        //if (fl) {
+        //    resnet_cifar_FL/*<ResidualBlock>*/(model_option, CIFAR_10, batch_size, 5);
+        //}
+        //else {
+            switch (dataset_option) {
+            case MNIST:
+                //vgg_mnist(model_option, batch_size, test);
+                break;
+            case CIFAR_10:
+                if (model_option <= 2)
+                    resnet_cifar/*<ResidualBlock>*/(model_option, CIFAR_10, batch_size, test);
+                else
+                    resnet_cifar/*<ResidualBottleneckBlock>*/(model_option, CIFAR_10, batch_size, test);
+                break;
+            case CIFAR_100:
+                if (model_option <= 2)
+                    resnet_cifar/*<ResidualBlock>*/(model_option, CIFAR_100, batch_size, test);
+                else
+                    resnet_cifar/*<ResidualBottleneckBlock>*/(model_option, CIFAR_100, batch_size, test);
+                break;
+            default:
+                break;
+            }
+        //}
     }
 }
