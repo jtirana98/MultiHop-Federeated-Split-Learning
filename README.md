@@ -1,6 +1,7 @@
 # Pipelined federated split learning with multiple hops
 
 The repository structure:
+
 For a more detailed discription of the documentation follow this [link](https://docs.google.com/document/d/1DaWOX27c4_4_VUT-l_UrgUV-zFa8UsIZ5zUv06pgc0s/edit?usp=sharing)    
 - directory *datasets/* :
     Contains source code to load a dataset into a dataloader.
