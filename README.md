@@ -1,45 +1,39 @@
 # Pipelined federated split learning with multiple hops
 
 The repository structure:
-    
-- directory *`datasets/`* :
+For a more detailed discription of the documentation follow this [link](https://docs.google.com/document/d/1DaWOX27c4_4_VUT-l_UrgUV-zFa8UsIZ5zUv06pgc0s/edit?usp=sharing)    
+- directory *datasets/* :
     Contains source code to load a dataset into a dataloader.
 
     **NOTE1**: The pytorch C++ Frontend at this point does not support an API for dataset downloda like the torchvision.dataset does. So, make sure you have downloaded the datasets locally and provide the corresponding directories before start training.
 
     **NOTE2**: Inside the file `datasets\mydataset.h` we define the file path that lead to the dataset's files. Please change this path accordintly to where you aim to store the datasets on your machine.
 
-    we declare the enum `mydataset::dataset` to use one of the options below:
+    we declare the enum mydataset::dataset to use one of the options below:
     - 'MNIST': you can use this script to [download MNIST dataset](https://gist.github.com/goldsborough/6dd52a5e01ed73a642c1e772084bcd03)
     - 'CIFAR-10' or 'CIFAR-100': [source files](http://www.cs.toronto.edu/~kriz/cifar.html)
 
-- directory *`models/`* : implementation of state-of-the-art neural networks in pytorch C++ Frontend.
-    - VGG models (VGG11, VG13, VGG16, VGG19) following the implementation from: [PyTorch: Source Code For torchvision.models.VGG
-](https://pytorch.org/vision/stable/_modules/torchvision/models/vgg.html).
-         - to select the VGG model for profiling, use function:
-        `train_vgg(dataset dataset_option, vgg_model model_option, bool split, vector<int> split_points)`
-            - `dataset_option`: select dataset
-            - `model_option`: value from `vgg::vgg_model` enum to select the vgg model: v11, v11_bn, v13, v13_bn, v16, v16_bn, v19, v19_bn.
-            - `split`: *true* if you want to profile upon the split mode.
-            - `split_points`: optional parameter (no impact if `split == `*`false`*). It is the vector with cut layers.
-    - ResNet models (resnet18, resnet34, resnet50, resnet101, resenet152) following the implementation from: [Github: ResNet_PyTorch.ipynb
-](https://github.com/liao2000/ML-Notebook/blob/main/ResNet/ResNet_PyTorch.ipynb).
-         - to select the ResNet model for profiling, use function:
-        `train_resnet(dataset dataset_option, resnet_model model_option, bool split, int batch_size = 64, const std::vector<int>& split_points)`
-            - `dataset_option`: select dataset
-            - `model_option`: value from `resnet_model` enum to select the ResNet model: resnet18, resnet34, resnet50, resnet101, resenet152.
-            - `split`: *true* if you want to profile upon the split mode.
-            - `split_points`: optional parameter (no impact if `split == `*`false`*). It is the vector with cut layers.
+- directory *models/* : implementation of state-of-the-art neural networks in pytorch C++ Frontend.
 
-- *`main.cpp`*: Main code that is used to profile the model. It contains two modes: 
+- *main.cpp*
+- directory *utils/*: Contains the libraries for logging and split learning training.
 
-    *(i)* conventional trainining: in which we run the model as one,
+- directory *pipeline_simulation/*: Here we implement SplitPipe's compoments.
+    - module: Split Learning engine consist of:
+        -   State.h
+        -   Task.h
+        -   systemAPI.cpp
+        -   systemAPI.h: contains the API of the module.
+    -   module Task delivery: 
+        - Message.h
+        - network_layer.cpp
+        - network_layer.h: contains the API of the module.
+    - Main Entities:
+        - compute_node.cpp
+        - data_owner.cpp
+        - aggregator.cpp
+    - directory *profiling/*: Is used to emulate data owners and run experiments with a large number of data owners. 
 
-    *(ii)* Split Learning: the model is split into parts and is trained in a way to simulate a split learning environmet. We use this mode for a per-layer analysis of the model.
-    
-- directory *`utils`*: Contains the libraries for logging and split learning training.
-
-- directory *`pipeline_simulation`*: Here we implement SplitPipe's compoments. ADD DESCRIPTION HERE
 
 How to run program and connect Libtorch:
 
@@ -61,7 +55,7 @@ How to run program and connect Libtorch:
 Running SplitPipe in a distributed manner:
 
 - configuring root-table
-- enable mulit-task (if applicable)
+    - enable mulit-task (if applicable)
 - parameters for each entity.
 - include a figure of the structure.
 - emulated version.
