@@ -6,7 +6,7 @@ std::queue<Message> pending_messages;
 int my_send(int socket_fd, std::string& data, int dest) {
     const char* data_ptr  = data.data();
     int data_size = data.size();
-    std::cout << "--> " << data_size << std::endl;
+    //std::cout << "--> " << data_size << std::endl;
     if (data_size < 1000)
         std::cout << "-->" << data << std::endl;
     
@@ -87,7 +87,7 @@ std::vector<std::string> my_receive(int socket_fd) {
 void network_layer::findPeers(int num, bool aggr) {
     int completed = num;
     // mulitcast address
-    std::string s = "230.0.0.0";
+    std::string s = "130.0.0.0";
     char group_[s.length() + 1];
     strcpy(group_, s.c_str());
     char *group = group_;
@@ -207,7 +207,7 @@ void network_layer::findPeers(int num, bool aggr) {
 
 void network_layer::findInit(bool aggr) {
     // mulitcast address
-    std::string s = "230.0.0.0";
+    std::string s = "130.0.0.0";
     char group_[s.length() + 1];
     strcpy(group_, s.c_str());
     char *group = group_;
@@ -223,7 +223,7 @@ void network_layer::findInit(bool aggr) {
         perror("socket");
         return ;
     }
-    std::cout << port << std::endl;
+
     // set up destination address
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
@@ -281,10 +281,8 @@ void network_layer::findInit(bool aggr) {
     
     itr = rooting_table.find(id_);
     int port_n = itr->second.second;
-    rooting_table[0] = std::pair<std::string, int>(str, port_n);
-    
-    itr = rooting_table.find(id_);
-    std::cout << "addr " << itr->second.first << " " << id_ << std::endl;
+    itr->second = std::pair<std::string, int>(str, port_n);
+    std::cout << "addr " << str << std::endl;
     char buffer[256];
     send(newsockfd, buffer, 10, 0);
 
@@ -547,21 +545,36 @@ void network_layer::receiver() {
     std::cout << "let's go " << myid << " " << rooting_table.size() << std::endl;
     sleep(1);
 
-    if(myid > 3 && myid < 28) {
+    if(myid > 3 && myid < 18) {
         std::pair<std::string, int> my_addr = rooting_table.find(0)->second;
         my_port = my_addr.second;
         my_port = my_port + (myid +3);
     }
-    else if (myid > 28) {
-        std::pair<std::string, int> my_addr = rooting_table.find(28)->second;
+    /*else if (myid > 13 && myid < 23) {
+        std::pair<std::string, int> my_addr = rooting_table.find(13)->second;
         my_port = my_addr.second;
-        my_port = my_port + (myid - 28);
+        my_port = my_port + (myid - 13);
+    }
+    else if (myid > 23 && myid < 33) {
+        std::pair<std::string, int> my_addr = rooting_table.find(23)->second;
+        my_port = my_addr.second;
+        my_port = my_port + (myid - 23);
+    }
+    else if (myid > 33 && myid < 43) {
+        std::pair<std::string, int> my_addr = rooting_table.find(33)->second;
+        my_port = my_addr.second;
+        my_port = my_port + (myid - 33);
+    }*/
+    else if (myid >= 18) {
+        std::pair<std::string, int> my_addr = rooting_table.find(18)->second;
+        my_port = my_addr.second;
+        my_port = my_port + (myid - 18);
     }
     else{
         std::pair<std::string, int> my_addr = rooting_table.find(myid)->second;
         my_port = my_addr.second;
     }
-    std::cout << "let's go " << myid << " " << rooting_table.size() << my_port << std::endl;
+    
     //std::cout << my_port << my_addr.first << std::endl;
     my_socket =  socket(AF_INET, SOCK_STREAM, 0);
     if (my_socket < 0) 
@@ -690,7 +703,7 @@ void network_layer::receiver() {
 
                     auto p1 = std::chrono::system_clock::now();
                     auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch());
-                    long real_duration = ((load_received* 0.000008)/8)*1000;
+                    long real_duration = ((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000;
 
                     if (my_time.count()-task.t_start > real_duration) {
                         std::cout << "Network: Cannot Simulate " << (my_time.count()-task.t_start - real_duration) << std::endl;
@@ -710,7 +723,7 @@ void network_layer::receiver() {
                         if((sim_forw && (operation)task.type == operation::forward_ ) || (sim_back && (operation)task.type == operation::backward_)){ 
                             auto p1 = std::chrono::system_clock::now();
                             auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch());
-                            long real_duration = ((load_received* 0.000008)/8)*1000;
+                            long real_duration = ((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000;
                             
                             if (my_time.count()-task.t_start > real_duration) {
                                 std::cout << "Network: Cannot Simulate for " << (my_time.count()-task.t_start - real_duration) << std::endl;
@@ -731,7 +744,7 @@ void network_layer::receiver() {
                     else{ // data owner -- simulate transfer
                         auto p1 = std::chrono::system_clock::now();
                         auto my_time = std::chrono::duration_cast<std::chrono::milliseconds>(p1.time_since_epoch());
-                        long real_duration = ((load_received* 0.000008)/8)*1000;
+                        long real_duration = ((load_received* 0.000008)/my_rpi.rpi_to_vm)*1000;
 
                         if (my_time.count()-task.t_start > real_duration) {
                             std::cout << "Network: Cannot Simulate " << (my_time.count()-task.t_start - real_duration) << std::endl;

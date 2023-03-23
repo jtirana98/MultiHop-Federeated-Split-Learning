@@ -107,23 +107,14 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                     parts[1].activations[0].backward(detached_grad);
                 }
 
-                // DRAFT 
-                if (batch_index % 15 == 0) {
-                    std::cout << /*"Epoch: " << epoch << */"Batch: " << batch_index
-                        << " | Loss: " << loss.item<float>() << "| Acc: " << corr_ << std::endl;
-                }
-                // DRAFT 
-
                 values = parts[1].received_activation.grad().clone().detach();
                 Task opt(client_id, optimize_, prev_node);
                 my_network_layer.put_internal_task(opt);
             }
         }
-        else {
+        else { // compute node
             values = task.values;
-            std::cout << "here" << std::endl;
             auto client_state = &(clients_state.find(client_id)->second);
-            std::cout << "here2" << std::endl;
             client_state->received_activation = values;
             client_state->activations.clear();
             client_state->detached_activations.clear();
@@ -155,7 +146,7 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
             nextOp = noOp; // end of batch
             
         }
-        else {
+        else { // compute node
             values = task.values;
             auto client_state = &clients_state.find(client_id)->second;
             for (int i=client_state->layers.size()-1; i>=0; i--) {
@@ -201,41 +192,69 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
 void systemAPI::refactor(refactoring_data refactor_message) {
     inference_path.clear();
     inference_path.push_back(refactor_message.next);
+    
+    if(refactor_message.next == -1) {
+        my_network_layer.sim_back = true;
+    }
+
     inference_path.push_back(refactor_message.prev);
+
+    if(refactor_message.prev == -1) {
+        my_network_layer.sim_forw = true;
+    }
+
     model_name name = (model_name) refactor_message.model_name_;
     int model_ = refactor_message.model_type_;
     int num_class = refactor_message.num_class;
     int start = refactor_message.start;
     int end = refactor_message.end;
     
+    //std::cout << "TABLE: " << refactor_message.rooting_table.size() << std::endl;
     if (refactor_message.rooting_table.size() > 0) {
-        for (int i=1; i < refactor_message.rooting_table.size(); i++) {
+        for (int i=0; i < refactor_message.rooting_table.size(); i++) {
             std::pair<int, std::string> addr = refactor_message.rooting_table[i];
-            if(addr.first == 0)
-                continue;
+            
             // In VM version we do not have node search
             /*if(addr.first == 0) {
                 continue;
-            }
+            }*/
 
-            if((addr.first > 3) && (addr.first < 28)) {
+            if((addr.first > 3) && (addr.first < 18)) {
                 std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(0)->second;
                 int my_port = my_addr.second;
                 my_port = my_port + (addr.first + 3);
                 my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
             }
-            else if (addr.first > 28) {
-                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(28)->second;
+            /*else if (addr.first > 18 && addr.first < 23) {
+                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(18)->second;
                 int my_port = my_addr.second;
-                my_port = my_port + (addr.first-28);
+                my_port = my_port + (addr.first-18);
                 my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
             }
-            else {*/
-            std::cout << "copy " << addr.first << std::endl;
+            else if (addr.first > 23 && addr.first < 33){
+                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(23)->second;
+                int my_port = my_addr.second;
+                my_port = my_port + (addr.first-23);
+                my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
+            }
+            else if (addr.first > 33 && addr.first < 43) {
+                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(33)->second;
+                int my_port = my_addr.second;
+                my_port = my_port + (addr.first-33);
+                my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
+            }*/
+            else if (addr.first >= 18) {
+                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(18)->second;
+                int my_port = my_addr.second;
+                my_port = my_port + (addr.first-18);
+                my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
+            }
+            else {
                 my_network_layer.rooting_table[addr.first].first = addr.second; 
-            //}
+            }
         }
     }
+
     if (is_data_owner) 
         init_model_sate(name, model_, num_class, start, end);
     else {
@@ -243,6 +262,7 @@ void systemAPI::refactor(refactoring_data refactor_message) {
         clients.clear();
         clients = refactor_message.data_owners;
         init_state_vector(name, model_, num_class, start, end);
+        my_network_layer.num_data_owners = clients.size();
     }
 
 }

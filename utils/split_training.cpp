@@ -37,12 +37,11 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
         }
     }
     //std::cout << avg_point << " " <<  avg_point_ << " !!" << std::endl;
-    for (size_t epoch = 0; epoch != 1; ++epoch) {
+    int batch_index = 0;
+    for (size_t epoch = 0; epoch != 15; ++epoch) {
         // Initialize running metrics
         double running_loss = 0.0;
         size_t num_correct = 0;
-
-        int batch_index = 0;
         for (auto& batch : *train_dataloader) {
             for (int i=0; i<optimizers.size(); i++) {
                 optimizers[i].zero_grad();
@@ -142,10 +141,10 @@ void split_cifar(std::vector<torch::nn::Sequential> layers, int type, int batch_
                 std::cout << "Epoch: " << epoch << " | Batch: " << batch_index
                           << " | Loss: " << loss.item<float>() << std::endl;
                 
-                if (epoch == 0) {
+                //if (epoch == 0) {
                     totaltimes.printRes_intervals();
                     break;
-                }
+                //}
             }
         }
 

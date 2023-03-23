@@ -1,7 +1,7 @@
 #include <type_traits>
 #include <stdlib.h>
 #include <thread>
-#include <argparse/argparse.hpp> //https://github.com/p-ranav/argparse
+//#include <argparse/argparse.hpp> //https://github.com/p-ranav/argparse
 
 #include "systemAPI.h"
 #include "mydataset.h"
@@ -12,56 +12,22 @@ using transform::RandomCrop;
 using transform::RandomHorizontalFlip;
 
 int main(int argc, char **argv) {
-    argparse::ArgumentParser program("data_owner");
     pid_t pid = getpid();
 
     printf("pid: %lu\n", pid);
-    
-    program.add_argument("-i", "--id")
-        .help("The node's id")
-        .required()
-        .nargs(1)
-        .scan<'i', int>();
 
-    program.add_argument("-l", "--log_directory")
-        .help("The directory name to store looging info")
-        .default_value(std::string("main_experiment"))
-        .nargs(1);
+    char *p;
+    long conv = strtol(argv[1], &p, 10);
 
-    program.add_argument("-s", "--splits")
-        .help("The splits")
-        .default_value(std::string("2,35"))
-        .nargs(1);
-
-    program.add_argument("-d", "--data_owners")
-        .help("The list of data owners")
-        .default_value(std::string("0"))
-        .nargs(1);
-
-    program.add_argument("-c", "--compute_nodes")
-        .help("The list of compute nodes")
-        .default_value(std::string("1"))
-        .nargs(1);
-
-    try {
-        program.parse_args(argc, argv);
-    }
-    catch (const std::runtime_error& err) {
-        std::cerr << err.what() << std::endl;
-        std::cerr << program;
-        std::exit(1);
-    }
-
-    auto myID = program.get<int>("-i");
-    std::cout << "myid " << myID << std::endl;
-    auto log_dir = program.get<std::string>("-l");
+    int myID = conv;
+    std::string log_dir = "main_experiment";
 
     systemAPI sys_(true, myID, log_dir);
     refactoring_data client_message;
 
-    auto cut_layers_ = program.get<std::string>("-s");
-    auto data_owners_ = program.get<std::string>("-d");
-    auto compute_nodes_ = program.get<std::string>("-c");
+    auto cut_layers_ = "2,35";
+    auto data_owners_ = "0";
+    auto compute_nodes_ = "1";
 
     const char separator = ',';
     std::string val;
@@ -74,12 +40,13 @@ int main(int argc, char **argv) {
         }
     }
 
-    streamData = std::stringstream(data_owners_);
+    /*streamData = std::stringstream(data_owners_);
     while (std::getline(streamData, val, separator)) {
         if (val != "") {
             data_owners.push_back(stoi(val));
         }
-    }
+    }*/
+    data_owners.push_back(myID);
 
     streamData  = std::stringstream(compute_nodes_);
     while (std::getline(streamData, val, separator)) {
@@ -123,6 +90,19 @@ int main(int argc, char **argv) {
    
     }
 
+    std::cout << sys_.parts[0].layers.size() << std::endl;
+    std::cout << sys_.parts[1].layers.size() << std::endl;
+    for (int i = 0; i< sys_.parts[0].layers.size(); i++) {
+        std::cout << "new layer: "<< i+1 << " "<< sys_.parts[0].layers[i] << std::endl;
+    }
+   
+    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
+    
+    for (int i = 0; i< sys_.parts[1].layers.size(); i++) {
+        std::cout << "new layer: "<< i+1 << " "<< sys_.parts[1].layers[i] << std::endl;
+    }
+
+
     // change to compute node
     sys_.is_data_owner = false;
     sys_.myid = 1;
@@ -151,6 +131,9 @@ int main(int argc, char **argv) {
 
     int num_classes = (type == CIFAR_10)? 10 : 100;
     
+    
+    
+    std::vector<int> f1, fb2, b1;
     Task task_forw_c, task_back_c, task_1, task_2;
     bool first = true;
     for (size_t round = 0; round != sys_.rounds; ++round) {
@@ -158,8 +141,12 @@ int main(int argc, char **argv) {
         sys_.zero_metrics();
         int total_num = 0;
         for (auto& batch : *train_dataloader) {
+
             // create task with new batch
             while(batch_index < 150) {
+                //auto t1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+                //std::cout << t1.count() << std::endl;
+
                 auto init_batch = std::chrono::steady_clock::now();
                 Task task(sys_.myid, forward_, -1);
                 task.size_ = batch.data.size(0);
@@ -180,8 +167,8 @@ int main(int argc, char **argv) {
 
                 auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
                             (timestamp2 - init_batch).count();
-                std::cout << "Forward Model Part 1: " << _time << std::endl;
-                
+                //std::cout << "Forward Model Part 1: " << _time << std::endl;
+                f1.push_back(_time);
 
                 // ---------------- wait for next forward task
                 // change to compute node
@@ -199,15 +186,17 @@ int main(int argc, char **argv) {
 
                 auto timestamp1 = std::chrono::steady_clock::now();
                 task = sys_.exec(task_forw_c, batch.target);
+                
+                timestamp2 = std::chrono::steady_clock::now();
+                _time = std::chrono::duration_cast<std::chrono::milliseconds>
+                            (timestamp2 - timestamp1).count();
+                //std::cout << "Forward and BackProp Model Part 2: " << _time << std::endl;
+                fb2.push_back(_time);
+
                 //std::cout << "do optimize" << std::endl;
                 // optimize task
                 auto task1 = sys_.my_network_layer.check_new_task();
                 task1 = sys_.exec(task1, batch.target); // optimize
-
-                timestamp2 = std::chrono::steady_clock::now();
-                _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                            (timestamp2 - timestamp1).count();
-                std::cout << "Forward and BackProp Model Part 2: " << _time << std::endl;
 
                 // -------------------- wait for next backward task
                 
@@ -228,24 +217,41 @@ int main(int argc, char **argv) {
                 timestamp2 = std::chrono::steady_clock::now();
                 _time = std::chrono::duration_cast<std::chrono::milliseconds>
                             (timestamp2 - timestamp1).count();
-                std::cout << "BackProp Model Part 1: " << _time << std::endl;
-
+                //std::cout << "BackProp Model Part 1: " << _time << std::endl;
+                b1.push_back(_time);
                 _time = std::chrono::duration_cast<std::chrono::milliseconds>
                             (timestamp2 - init_batch).count();
                 std::cout << "One batch " << _time << std::endl;
                 // end of batch
                 batch_index++;
                 first = 0;
+
+                //auto t2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch());
+                //std::cout << "T2:" << t2.count() << std::endl;
+
+                //std::cout << "diafora:" << t2.count()-t1.count() << std::endl;
+                
             }
             break;
         }
-        break;
-        auto sample_mean_loss = sys_.running_loss / batch_index;
-        auto accuracy = sys_.num_correct / total_num;
+        std::cout << "Forward model part 1" << std::endl;
+        for (int i=0; i < f1.size(); i++) {
+            std::cout << f1[i] << std::endl;
+        }
+
+        std::cout << "Forward and Backpro model part p" << std::endl;
+        for (int i=0; i < fb2.size(); i++) {
+            std::cout << fb2[i] << std::endl;
+        }
+
+        std::cout << "Backpro model part 1" << std::endl;
+        for (int i=0; i < b1.size(); i++) {
+            std::cout << b1[i] << std::endl;
+        }
 
             
-        std::cout << "Epoch [" << (round + 1) << "/" << sys_.rounds << "], Trainset - Loss: "
-                << sample_mean_loss << ", Accuracy: " << accuracy << " " << sys_.num_correct << std::endl;
+        //std::cout << "Epoch [" << (round + 1) << "/" << sys_.rounds << "], Trainset - Loss: "
+        //        << sample_mean_loss << ", Accuracy: " << accuracy << " " << sys_.num_correct << std::endl;
 
         break;
     }

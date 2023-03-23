@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
     client_message = sys_.my_network_layer.check_new_refactor_task();
     sys_.refactor(client_message);
 
-    std::cout << "Refactor ok" << std::endl;
+    //std::cout << "Refactor ok" << std::endl;
 
     int num_data_owners = atoi(argv[1]);
     int num_compute_nodes = atoi(argv[3]);
@@ -37,7 +37,6 @@ int main(int argc, char **argv) {
             auto params = model->named_parameters(true /*recurse*/);
             auto buffers = model->named_buffers(true /*recurse*/);
             //std::cout << "size " << model->named_parameters().size() << " " << model_2->named_parameters().size() << std::endl;
-            auto timestamp1 = std::chrono::steady_clock::now(); 
             for (int j = 0; j < model->named_parameters().size(); j++) {
                 auto p_g = model->named_parameters()[j];
                 auto p_ = model_2->named_parameters()[j]; //model->named_parameters()[j]; //THIS SHOULD BE THE RECEIVED
@@ -57,13 +56,10 @@ int main(int argc, char **argv) {
             }
             
             torch::autograd::GradMode::set_enabled(true);
-            auto timestamp2 = std::chrono::steady_clock::now(); 
-            auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (timestamp2 - timestamp1).count();
-            std::cout << "for the Model Part 1: " << _time << std::endl;
 
             received++;
         }
+
         // send to 0
         auto newAggTask = Task(myid, operation::aggregation_, myid);
         newAggTask.model_part = 1;
@@ -76,7 +72,6 @@ int main(int argc, char **argv) {
             newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
             sys_.my_network_layer.new_message(newAggTask,i+num_compute_nodes+1);
         }
-        std::cout << "COOL" << std::endl;
         // the same for last model part
         int received1 = 0, received2=0;
         int sum = num_data_owners*sys_.parts[1].layers.size();
@@ -96,7 +91,6 @@ int main(int argc, char **argv) {
             auto params = model->named_parameters(true /*recurse*/);
             auto buffers = model->named_buffers(true /*recurse*/);
             //std::cout << "size " << model->named_parameters().size() << " " << model_2->named_parameters().size() << std::endl;
-            auto timestamp1 = std::chrono::steady_clock::now(); 
             for (int j = 0; j < model->named_parameters().size(); j++) {
                 auto p_g = model->named_parameters()[j];
                 auto p_ = model_2->named_parameters()[j]; //model->named_parameters()[j]; //THIS SHOULD BE THE RECEIVED
@@ -116,10 +110,6 @@ int main(int argc, char **argv) {
             }
             
             torch::autograd::GradMode::set_enabled(true);
-            auto timestamp2 = std::chrono::steady_clock::now(); 
-            auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (timestamp2 - timestamp1).count();
-            std::cout << "for the Model Part last: " << _time << std::endl;
 
             if(model_task.model_part == 2) 
                 received1++;
