@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
 
         /*sys_.my_network_layer.findPeers(data_owners.size() 
                                             + compute_nodes.size() - 1);*/
-        std::cout << "found them" << std::endl; 
+        //std::cout << "found them" << std::endl; 
         sleep(2);
 
         int data_onwer_end = 2;
@@ -173,9 +173,6 @@ int main(int argc, char **argv) {
        
     }
 
-    // find aggregator
-    //sys_.my_network_layer.findInit(true);
-
     std::cout << "loading data..." << std::endl;
     // load dataset
     int type = client_message.dataset;
@@ -193,38 +190,7 @@ int main(int argc, char **argv) {
             std::move(train_dataset), sys_.batch_size);
 
     int num_classes = (type == CIFAR_10)? 10 : 100;
-    /*
-    std::cout << sys_.parts[0].layers.size() << std::endl;
-    std::cout << sys_.parts[1].layers.size() << std::endl;
-    for (int i = 0; i< sys_.parts[0].layers.size(); i++) {
-        std::cout << "new layer: "<< i+1 << " "<< sys_.parts[0].layers[i] << std::endl;
-    }
-   
-    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-    
-    for (int i = 0; i< sys_.parts[1].layers.size(); i++) {
-        std::cout << "new layer: "<< i+1 << " "<< sys_.parts[1].layers[i] << std::endl;
-    }
-    
-    // send aggregation task:
-    //auto newAggTask = Task(myID, operation::aggregation_, -1);
-    //newAggTask.model_part = 1;
 
-    for (int i = 0; i < 15; i++) {
-        auto timestamp1_ = std::chrono::steady_clock::now();
-        // send aggregation task
-        newAggTask.model_part_=sys_.parts[0].layers[0];
-        sys_.my_network_layer.new_message(newAggTask,-1);
-        // wait for updated model
-
-        auto next_task = sys_.my_network_layer.check_new_task();
-
-        auto timestamp2_ = std::chrono::steady_clock::now();
-        auto __time = std::chrono::duration_cast<std::chrono::milliseconds>
-                            (timestamp2_ - timestamp1_).count();
-            std::cout << "RTT: " << __time << std::endl;
-    }
-    */
     // POINT 12 Initialization phase: completed
     sys_.my_network_layer.newPoint(INIT_END_INIT);
     
@@ -247,20 +213,6 @@ int main(int argc, char **argv) {
 
             // send task to next node
             sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
-            
-            /* CODE FOR MEASURING RTT - COMMENT */
-            /*for(int i = 0; i < 15 ; i ++ ){
-                auto timestamp_1 = std::chrono::steady_clock::now();
-                sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
-                auto task_ = sys_.my_network_layer.check_new_task();
-                auto timestamp_2 = std::chrono::steady_clock::now();
-
-                auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (timestamp_2 - timestamp_1).count();
-                std::cout << "RTT: " << _time << std::endl;
-            }
-            /* CODE FOR MEASURING RTT - COMMENT */
-
             
             auto timestamp2 = std::chrono::steady_clock::now();
 
