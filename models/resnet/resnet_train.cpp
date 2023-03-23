@@ -246,7 +246,6 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     //#endif 
     
 }
-#endif 
 /*template <typename Block>*/
 void resnet_split_cifar(resnet_model model_option, int type, int batch_size, const std::vector<int>& split_points) { 
     auto layers_ = getLayers(model_option);
