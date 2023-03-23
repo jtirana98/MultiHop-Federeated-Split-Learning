@@ -11,6 +11,7 @@ include_directories(models/vgg/)
 include_directories(models/resnet/)
 include_directories(models/lenet5/)
 include_directories(pipeline_simulation/)
+include_directories(pipeline_simulation/profiling/)
 include_directories(third_party/argparse/include/)
 
 
@@ -55,18 +56,21 @@ set(SOURCE_FILES
                 pipeline_simulation/systemAPI.cpp
 )
 
-add_executable("${CMAKE_PROJECT_NAME}"  ${SOURCE_FILES} main.cpp)
+#add_executable("${CMAKE_PROJECT_NAME}"  ${SOURCE_FILES} main.cpp)
 add_executable(compute_node  ${SOURCE_FILES} pipeline_simulation/compute_node.cpp)
-add_executable(data_owner  ${SOURCE_FILES} pipeline_simulation/data_owner.cpp)
-add_executable(aggregator  ${SOURCE_FILES} pipeline_simulation/aggregator.cpp)
+#add_executable(data_owner  ${SOURCE_FILES} pipeline_simulation/data_owner.cpp)
+#add_executable(aggregator  ${SOURCE_FILES} pipeline_simulation/aggregator.cpp)
+#add_executable(profile_data_owner  ${SOURCE_FILES} pipeline_simulation/profiling/data_owner_saturation.cpp)
 #add_library(MyLib SHARED ${SOURCE_FILES})
 
-target_link_libraries("${CMAKE_PROJECT_NAME}" ${TORCH_LIBRARIES})
+#target_link_libraries("${CMAKE_PROJECT_NAME}" ${TORCH_LIBRARIES})
 target_link_libraries(compute_node ${TORCH_LIBRARIES})
-target_link_libraries(data_owner ${TORCH_LIBRARIES})
-target_link_libraries(aggregator ${TORCH_LIBRARIES})
+#target_link_libraries(data_owner ${TORCH_LIBRARIES})
+#target_link_libraries(aggregator ${TORCH_LIBRARIES})
+#target_link_libraries(profile_data_owner ${TORCH_LIBRARIES})
 
-set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+#set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 set_property(TARGET compute_node PROPERTY CXX_STANDARD 17)
-set_property(TARGET data_owner PROPERTY CXX_STANDARD 17)
-set_property(TARGET aggregator PROPERTY CXX_STANDARD 17)
+#set_property(TARGET data_owner PROPERTY CXX_STANDARD 17)
+#set_property(TARGET aggregator PROPERTY CXX_STANDARD 17)
+#set_property(TARGET profile_data_owner PROPERTY CXX_STANDARD 17)

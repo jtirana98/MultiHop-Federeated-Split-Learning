@@ -38,6 +38,7 @@ class systemAPI  {
     // apply for data owner 
     int batch_size=128, rounds=50;
     std::vector<State> parts;
+    std::vector<State> parts_;
     double learning_rate = 0.01;
     double running_loss = 0.0;
     double num_correct = 0;

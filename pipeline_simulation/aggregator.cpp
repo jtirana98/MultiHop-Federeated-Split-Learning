@@ -3,41 +3,145 @@
 #include <stdlib.h>
 #include <thread>
 
-#include <argparse/argparse.hpp> //https://github.com/p-ranav/argparse
+//#include <argparse/argparse.hpp> //https://github.com/p-ranav/argparse
+#include "systemAPI.h"
 
 int main(int argc, char **argv) {
-    argparse::ArgumentParser program("aggregator");
+    refactoring_data client_message;
+    int myid = atoi(argv[2]);
+    systemAPI sys_(true, myid, "main_experiment");
+    int kTrainSize_10 = 1000;
+    int train_samples = 100;
+    
+    client_message = sys_.my_network_layer.check_new_refactor_task();
+    sys_.refactor(client_message);
 
-    program.add_argument("-d", "--data_owners")
-        .help("The number of data owners")
-        .required()
-        .nargs(1)
-        .scan<'d', int>();
+    std::cout << "Refactor ok" << std::endl;
 
-    try {
-        program.parse_args(argc, argv);
-    }
-    catch (const std::runtime_error& err) {
-        std::cerr << err.what() << std::endl;
-        std::cerr << program;
-        std::exit(1);
-    }
+    int num_data_owners = atoi(argv[1]);
+    int num_compute_nodes = atoi(argv[3]);
+    while(true) {
+        int received = 0;
 
-    auto num_clients = program.get<int>("-d");
+        //model part 1
+        while (received < num_data_owners) {
+            auto model_task = sys_.my_network_layer.check_new_task();
 
-    systemAPI sys_(false, -1, "main_experiment");
-    sys_.my_network_layer.findPeers(num_clients, true);
+            std::cout << "model part 1: received from " << model_task.client_id << std::endl;
+            std::stringstream ss(std::string(model_task.model_parts.begin(), model_task.model_parts.end()));
+            torch::load(sys_.parts_[0].layers[0]/*task.model_part_*/, ss);
+            // wait for the task
+            torch::autograd::GradMode::set_enabled(false);
+            auto model = sys_.parts[0].layers[0];
+            auto model_2 = sys_.parts_[0].layers[0];
+            auto params = model->named_parameters(true /*recurse*/);
+            auto buffers = model->named_buffers(true /*recurse*/);
+            //std::cout << "size " << model->named_parameters().size() << " " << model_2->named_parameters().size() << std::endl;
+            auto timestamp1 = std::chrono::steady_clock::now(); 
+            for (int j = 0; j < model->named_parameters().size(); j++) {
+                auto p_g = model->named_parameters()[j];
+                auto p_ = model_2->named_parameters()[j]; //model->named_parameters()[j]; //THIS SHOULD BE THE RECEIVED
+                p_g.value() = (p_g.value()+p_.value());
+                p_g.value() = torch::div(p_g.value(), kTrainSize_10);
+                
+                auto name = p_g.key();
+                auto* t = params.find(name);
+                if (t != nullptr) {
+                    t->copy_(p_g.value());
+                } else {
+                    t = buffers.find(name);
+                    if (t != nullptr) {
+                        t->copy_(p_g.value());
+                    }
+                }
+            }
+            
+            torch::autograd::GradMode::set_enabled(true);
+            auto timestamp2 = std::chrono::steady_clock::now(); 
+            auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (timestamp2 - timestamp1).count();
+            std::cout << "for the Model Part 1: " << _time << std::endl;
 
-    std::cout << "found them" << std::endl;    
-    sleep(2);
+            received++;
+        }
+        // send to 0
+        auto newAggTask = Task(myid, operation::aggregation_, myid);
+        newAggTask.model_part = 1;
 
-    while (true) {
-        auto next_task = sys_.my_network_layer.check_new_task();
-        std::cout << next_task.model_part_->size() << std::endl;
-        auto client = next_task.client_id;
-        next_task.check_ = true;
-        sys_.my_network_layer.new_message(next_task,client);
+        // send aggregation task
+        newAggTask.model_part_=sys_.parts[0].layers[0];
+        newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        sys_.my_network_layer.new_message(newAggTask,0);
+        for (int i = 0; i < num_data_owners-1; i++) {
+            newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            sys_.my_network_layer.new_message(newAggTask,i+num_compute_nodes+1);
+        }
+        std::cout << "COOL" << std::endl;
+        // the same for last model part
+        int received1 = 0, received2=0;
+        int sum = num_data_owners*sys_.parts[1].layers.size();
+        std::cout << sum << std::endl;
+        //model part 1
+        while (received1 + received2 < sum) {
+            auto model_task = sys_.my_network_layer.check_new_task();
+
+            std::cout << "model part "<< model_task.model_part - 1 << " : received from " << model_task.client_id << std::endl;
+            
+            std::stringstream ss(std::string(model_task.model_parts.begin(), model_task.model_parts.end()));
+            torch::load(sys_.parts[1].layers[model_task.model_part-2], ss);
+            // wait for the task
+            torch::autograd::GradMode::set_enabled(false);
+            auto model = sys_.parts[1].layers[model_task.model_part-2];
+            auto model_2 = sys_.parts_[1].layers[model_task.model_part-2];
+            auto params = model->named_parameters(true /*recurse*/);
+            auto buffers = model->named_buffers(true /*recurse*/);
+            //std::cout << "size " << model->named_parameters().size() << " " << model_2->named_parameters().size() << std::endl;
+            auto timestamp1 = std::chrono::steady_clock::now(); 
+            for (int j = 0; j < model->named_parameters().size(); j++) {
+                auto p_g = model->named_parameters()[j];
+                auto p_ = model_2->named_parameters()[j]; //model->named_parameters()[j]; //THIS SHOULD BE THE RECEIVED
+                p_g.value() = (p_g.value()+p_.value());
+                p_g.value() = torch::div(p_g.value(), kTrainSize_10);
+                
+                auto name = p_g.key();
+                auto* t = params.find(name);
+                if (t != nullptr) {
+                    t->copy_(p_g.value());
+                } else {
+                    t = buffers.find(name);
+                    if (t != nullptr) {
+                        t->copy_(p_g.value());
+                    }
+                }
+            }
+            
+            torch::autograd::GradMode::set_enabled(true);
+            auto timestamp2 = std::chrono::steady_clock::now(); 
+            auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
+                        (timestamp2 - timestamp1).count();
+            std::cout << "for the Model Part last: " << _time << std::endl;
+
+            if(model_task.model_part == 2) 
+                received1++;
+            else
+                received2++;
+        }
+
+        // send to 0
+        newAggTask = Task(myid, operation::aggregation_, myid);
+        newAggTask.model_part = 2;
+        for (int i = 0; i < sys_.parts[1].layers.size(); i++) {
+            newAggTask.model_part_=sys_.parts[1].layers[newAggTask.model_part-2];
+            newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            sys_.my_network_layer.new_message(newAggTask,0);
+
+            for (int i = 0; i < num_data_owners-1; i++) {
+                newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                //std::cout << "send to " << i+1+num_compute_nodes << std::endl;
+                sys_.my_network_layer.new_message(newAggTask,i+1+num_compute_nodes);
+            }
+            newAggTask.model_part++;
+        }
         
     }
-
 }

@@ -314,13 +314,15 @@ void vgg_cifar(vgg_model model_option, int type, int batch_size, bool test) {
     
     // Initilize optimizer
     double weight_decay = 0.0001;  // regularization parameter
-    torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(learning_rate));
+    torch::optim::SGD optimizer(model->parameters(), 
+                torch::optim::SGDOptions(0.1).momentum(0.9).weight_decay(weight_decay));
     //torch::optim::SGD optimizer(model->parameters(), torch::optim::SGDOptions(0.001).momentum(0.9));
 
     Total totaltimes = Total();
     int batch_index = 0;
     Event start_forward, start_backprop, start_optim, end_batch;
-
+    Event start_batch, end_batch_;
+    
     int stop_epochs = 1;
     if (test)
         stop_epochs = num_epochs;
@@ -333,6 +335,7 @@ void vgg_cifar(vgg_model model_option, int type, int batch_size, bool test) {
 
         batch_index = 0;
         for (auto& batch : *train_dataloader) {
+            start_batch = Event(measure_type::start_batch, "", -1);
             optimizer.zero_grad();
 
             // Transfer images and target labels to device
@@ -340,9 +343,10 @@ void vgg_cifar(vgg_model model_option, int type, int batch_size, bool test) {
             auto target = batch.target;
 
             // Forward
-            if (!test)
+            if (!test) {
                 start_forward = Event(forward, "", -1);
-            
+            }
+
             torch::Tensor output = model->forward(batch.data);
 
             if (!test)
@@ -371,8 +375,10 @@ void vgg_cifar(vgg_model model_option, int type, int batch_size, bool test) {
                 totaltimes.addNew(start_forward, start_backprop, start_optim, end_batch);
 
             batch_index = batch_index + 1;
+            end_batch_ = Event(measure_type::end_batch, "", -1);
+            totaltimes.addNew(start_batch, end_batch_);
             if (!test && (batch_index % 15 == 0)) {
-                    totaltimes.printRes();
+                    totaltimes.printRes(-1);
                     break;
             }
             

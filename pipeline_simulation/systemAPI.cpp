@@ -30,6 +30,11 @@ void systemAPI::init_model_sate(model_name name, int model_, int num_class, int 
     parts.push_back(part_first);
     State part_last(myid, last_.layers, optimizers_last);
     parts.push_back(part_last);
+
+    if(myid == -1) {
+        parts_.push_back(part_first);
+        parts_.push_back(part_last);
+    }
 }
 
 Task systemAPI::exec(Task task, torch::Tensor& target) {
@@ -116,7 +121,9 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
         }
         else {
             values = task.values;
+            std::cout << "here" << std::endl;
             auto client_state = &(clients_state.find(client_id)->second);
+            std::cout << "here2" << std::endl;
             client_state->received_activation = values;
             client_state->activations.clear();
             client_state->detached_activations.clear();
@@ -201,17 +208,34 @@ void systemAPI::refactor(refactoring_data refactor_message) {
     int start = refactor_message.start;
     int end = refactor_message.end;
     
-    std::cout << "TABLE: " << refactor_message.rooting_table.size() << std::endl;
     if (refactor_message.rooting_table.size() > 0) {
-        for (int i=0; i < refactor_message.rooting_table.size(); i++) {
+        for (int i=1; i < refactor_message.rooting_table.size(); i++) {
             std::pair<int, std::string> addr = refactor_message.rooting_table[i];
-            if(addr.first == 0) {
+            if(addr.first == 0)
+                continue;
+            // In VM version we do not have node search
+            /*if(addr.first == 0) {
                 continue;
             }
-            my_network_layer.rooting_table[addr.first].first = addr.second; 
+
+            if((addr.first > 3) && (addr.first < 28)) {
+                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(0)->second;
+                int my_port = my_addr.second;
+                my_port = my_port + (addr.first + 3);
+                my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
+            }
+            else if (addr.first > 28) {
+                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(28)->second;
+                int my_port = my_addr.second;
+                my_port = my_port + (addr.first-28);
+                my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
+            }
+            else {*/
+            std::cout << "copy " << addr.first << std::endl;
+                my_network_layer.rooting_table[addr.first].first = addr.second; 
+            //}
         }
     }
-
     if (is_data_owner) 
         init_model_sate(name, model_, num_class, start, end);
     else {

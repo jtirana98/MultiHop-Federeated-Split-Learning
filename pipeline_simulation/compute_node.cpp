@@ -40,7 +40,8 @@ int main(int argc, char **argv) {
     sys_.my_network_layer.newPoint(INIT_WAIT_FOR_REFACTOR);
     
     // wait for init refactoring
-    sys_.my_network_layer.findInit();
+    //sys_.my_network_layer.findInit();
+    std::cout << "wait client" << std::endl;
     auto refactor_message = sys_.my_network_layer.check_new_refactor_task();
     // POINT 11 Initialization phase: do/cn end waiting for refactor message
     sys_.my_network_layer.newPoint(INIT_END_W_REFACTOR);
@@ -51,13 +52,13 @@ int main(int argc, char **argv) {
     // ----------- TEST ------------
     //sys_.init_state(vgg, vgg_model::v11, 10, 1, 3);
     //sys_.init_state_vector(resnet, resnet_model::resnet18, 10, 9, 13);
-    /*
+    
     auto layers = sys_.clients_state.find(0)->second.layers;
-    std::cout << sys_.clients_state.find(1)->second.client_id << std::endl;
+    std::cout << "MY CLIENT" << std::endl;
     for (int i = 0; i< layers.size(); i++) {
         std::cout << "new layer: "<< i+1 << " "<< layers[i] << std::endl;
     }
-    */
+    
     // -------- TEST ------------
 
     // POINT 12 Initialization phase: completed
@@ -95,8 +96,9 @@ int main(int argc, char **argv) {
         // POINT 14 Execution phase: CN starts executing task
         auto point1 = sys_.my_network_layer.newPoint(CN_START_EXEC, next_task.client_id, operation);
         auto timestamp1 = std::chrono::steady_clock::now();
+        std::cout << "ok" << std::endl;
         auto task = sys_.exec(next_task, tmp); 
-
+        std::cout << "okk" << std::endl;
         if (task.type != noOp) {
             bool keep_connection = true;
             next_node = (next_task.type == forward_) ? sys_.inference_path[0] : sys_.inference_path[1];

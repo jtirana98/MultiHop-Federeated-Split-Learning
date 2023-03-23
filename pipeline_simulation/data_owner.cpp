@@ -91,8 +91,8 @@ int main(int argc, char **argv) {
 
         int num_parts = compute_nodes.size() + 2;
 
-        sys_.my_network_layer.findPeers(data_owners.size() 
-                                            + compute_nodes.size() - 1);
+        //sys_.my_network_layer.findPeers(data_owners.size() 
+        //                                    + compute_nodes.size() - 1);
         std::cout << "found them" << std::endl; 
         sleep(2);
 
@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
            sys_.my_network_layer.new_message(client_message, data_owners[i], false, true);
 
         }
-
+        sys_.my_network_layer.new_message(client_message, -1, false, true);
         // POINT 7 Initialization phase: bcast to do completed - start refactoring
         sys_.my_network_layer.newPoint(INIT_END_BCAST_START_REFACTOR);
         sys_.refactor(client_message);
@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
         client_message.to_data_onwer = false;
         client_message.data_owners = data_owners;
         
-        for (int i=0; i<compute_nodes.size(); i++) {
+        /*for (int i=0; i<compute_nodes.size(); i++) {
             
             client_message.start = cut_layers[i] + 1;
             client_message.end = cut_layers[i+1];
@@ -144,15 +144,15 @@ int main(int argc, char **argv) {
                 client_message.prev = compute_nodes[i-1];
 
            sys_.my_network_layer.new_message(client_message, compute_nodes[i], false, true);
-        }
-
+        }*/
+        
         // POINT 9 Initialization phase: bcast to cn completed
         sys_.my_network_layer.newPoint(INIT_END_BCAST_CN);
     }
     else { // if not wait for init refactoring
         // POINT 10 Initialization phase: do/cn waiting for refactor message
         sys_.my_network_layer.newPoint(INIT_WAIT_FOR_REFACTOR);
-        sys_.my_network_layer.findInit();
+        //sys_.my_network_layer.findInit();
         client_message = sys_.my_network_layer.check_new_refactor_task();
         // POINT 11 Initialization phase: do/cn end waiting for refactor message
         sys_.my_network_layer.newPoint(INIT_END_W_REFACTOR);
@@ -180,46 +180,15 @@ int main(int argc, char **argv) {
             std::move(train_dataset), sys_.batch_size);
 
     int num_classes = (type == CIFAR_10)? 10 : 100;
-    /*
-    std::cout << sys_.parts[0].layers.size() << std::endl;
-    std::cout << sys_.parts[1].layers.size() << std::endl;
-    for (int i = 0; i< sys_.parts[0].layers.size(); i++) {
-        std::cout << "new layer: "<< i+1 << " "<< sys_.parts[0].layers[i] << std::endl;
-    }
-   
-    std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
     
-    for (int i = 0; i< sys_.parts[1].layers.size(); i++) {
-        std::cout << "new layer: "<< i+1 << " "<< sys_.parts[1].layers[i] << std::endl;
-    }
-    */
-    // send aggregation task:
-    //auto newAggTask = Task(myID, operation::aggregation_, -1);
-    //newAggTask.model_part = 1;
-
-    for (int i = 0; i < 15; i++) {
-        auto timestamp1_ = std::chrono::steady_clock::now();
-        // send aggregation task
-        newAggTask.model_part_=sys_.parts[0].layers[0];
-        sys_.my_network_layer.new_message(newAggTask,-1);
-        // wait for updated model
-
-        auto next_task = sys_.my_network_layer.check_new_task();
-
-        auto timestamp2_ = std::chrono::steady_clock::now();
-        auto __time = std::chrono::duration_cast<std::chrono::milliseconds>
-                            (timestamp2_ - timestamp1_).count();
-            std::cout << "RTT: " << __time << std::endl;
-    }
-
     // POINT 12 Initialization phase: completed
     sys_.my_network_layer.newPoint(INIT_END_INIT);
     
-    for (size_t round = 0; round != sys_.rounds; ++round) {
+    for (size_t round = 0; round != 15; ++round) {
         int batch_index = 0;
         sys_.zero_metrics();
         int total_num = 0;
-        for (auto& batch : *train_dataloader) {
+        /*for (auto& batch : *train_dataloader) {
             // create task with new batch
 
             // POINT 16 Execution phase: DO starts new batch
@@ -290,8 +259,41 @@ int main(int argc, char **argv) {
 
             // 20 - 21 interval backward and optimize
             sys_.my_network_layer.mylogger.add_interval(point20, point21, bwd_opz);
+        }*/
+
+        // aggregation
+        std::cout << "sending to the aggegator" << std::endl;
+        auto newAggTask = Task(myID, operation::aggregation_, -1);
+        newAggTask.model_part = 1;
+
+        // send aggregation task
+        newAggTask.model_part_=sys_.parts[0].layers[0];
+        newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        sys_.my_network_layer.new_message(newAggTask,-1);
+        auto next_task = sys_.my_network_layer.check_new_task();
+        std::stringstream ss(std::string(next_task.model_parts.begin(), next_task.model_parts.end()));
+        torch::load(sys_.parts[0].layers[0], ss);
+
+        std::cout << "received global firt part model" << std::endl;
+
+        newAggTask.model_part = 2;
+        for (int i = 0; i < sys_.parts[1].layers.size(); i++) {
+            std::cout << newAggTask.model_part << std::endl;
+            newAggTask.model_part_=sys_.parts[1].layers[i];
+            newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            sys_.my_network_layer.new_message(newAggTask,-1);
+
+            newAggTask.model_part++;
         }
-        
+
+        for (int i = 0; i < sys_.parts[1].layers.size(); i++) {
+            std::cout << "wait " << i << " " << sys_.parts[1].layers.size() << std::endl;
+            std::cout << "received " << next_task.model_part << std::endl;
+            next_task = sys_.my_network_layer.check_new_task();
+            std::stringstream sss(std::string(next_task.model_parts.begin(), next_task.model_parts.end()));
+            torch::load(sys_.parts[1].layers[next_task.model_part-2], sss);
+        }
+        std::cout << "received global last part model" << std::endl;
         auto sample_mean_loss = sys_.running_loss / batch_index;
         auto accuracy = sys_.num_correct / total_num;
 
