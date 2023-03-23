@@ -1,6 +1,6 @@
 # Pipelined federated split learning with multiple hops
 
-The repository structure:
+Directory structure of repository:
 
 For a more detailed discription of the documentation follow this [link](https://docs.google.com/document/d/1DaWOX27c4_4_VUT-l_UrgUV-zFa8UsIZ5zUv06pgc0s/edit?usp=sharing)    
 - directory *datasets/* :
@@ -20,12 +20,12 @@ For a more detailed discription of the documentation follow this [link](https://
 - directory *utils/*: Contains the libraries for logging and split learning training.
 
 - directory *pipeline_simulation/*: Here we implement SplitPipe's compoments.
-    - module: Split Learning engine consist of:
+    - module: *Split Learning engine*:
         -   State.h
         -   Task.h
         -   systemAPI.cpp
         -   systemAPI.h: contains the API of the module.
-    -   module Task delivery: 
+    -   module *Task delivery*: 
         - Message.h
         - network_layer.cpp
         - network_layer.h: contains the API of the module.
@@ -43,6 +43,9 @@ How to run program and connect Libtorch:
         - Create python environment for package managment with python version $\geq 3.7$
             - For example you can use [Python Virtual Environments](https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/26/python-virtual-env/)
         - Install pytorch from [Pytorch website](https://pytorch.org/get-started/locally/).
+        - cmake > 3.
+        - c++17 and gcc > 8.
+        - Create a directory *third_party/* and git clone the code for [argparse](https://github.com/p-ranav/argparsehttps://github.com/p-ranav/argparse).
 
   - In order to compile the framework just use the Makefile, and follow the steps below:
         
