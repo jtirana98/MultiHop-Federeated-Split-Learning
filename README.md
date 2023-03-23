@@ -16,7 +16,7 @@ For a more detailed discription of the documentation follow this [link](https://
 
 - directory *models/* : implementation of state-of-the-art neural networks in pytorch C++ Frontend.
 
-- *main.cpp*
+- *main.cpp* : Main code that is used to profile or train the models.
 - directory *utils/*: Contains the libraries for logging and split learning training.
 
 - directory *pipeline_simulation/*: Here we implement SplitPipe's compoments.
