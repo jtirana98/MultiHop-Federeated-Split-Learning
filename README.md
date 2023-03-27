@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./logo.pdf" alt="Sublime's custom image"/>
+  <img src="./logo.png" alt="Sublime's custom image"/>
 </p>
 
 --------------------------------------------------------------------------------
