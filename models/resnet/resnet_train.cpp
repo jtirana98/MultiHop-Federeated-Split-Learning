@@ -36,11 +36,7 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
     if (type == CIFAR_10) {
         num_samples = kTrainSize_10;
     }
-<<<<<<< HEAD
     
-=======
-
->>>>>>> main
     val_samples = num_samples*(10.0/100);
 
     auto datasets = data_owners_data(path_selection, 1, type, false);
@@ -248,12 +244,8 @@ void resnet_cifar(resnet_model model_option, int type, int batch_size, bool test
 
         std::cout << "Testset - Loss: " << test_sample_mean_loss << ", Accuracy: " << test_accuracy << '\n';
     }
-<<<<<<< HEAD
 
 //    #endif 
-=======
-    //#endif 
->>>>>>> main
     
 }
 #ifdef COMMENT
