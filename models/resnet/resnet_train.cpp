@@ -379,8 +379,7 @@ void resnet_cifar_FL(resnet_model model_option, int type, int batch_size, int da
 
             }
         }
-        
-        // fucking aggregation:  
+         
         // iterating model from: https://stackoverflow.com/questions/54317378/set-neural-network-initial-weight-values-in-c-torch
         
         
