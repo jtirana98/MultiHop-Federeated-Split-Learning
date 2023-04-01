@@ -3,23 +3,55 @@
 #include <stdlib.h>
 #include <thread>
 
-//#include <argparse/argparse.hpp> //https://github.com/p-ranav/argparse
+#include <argparse/argparse.hpp> //https://github.com/p-ranav/argparse
 #include "systemAPI.h"
 
 int main(int argc, char **argv) {
     refactoring_data client_message;
-    int myid = atoi(argv[2]);
+    argparse::ArgumentParser program("data_owner");
+    
+    program.add_argument("-i", "--id")
+        .help("The node's id")
+        .required()
+        .nargs(1)
+        .default_value(-1)
+        .scan<'i', int>();
+
+    program.add_argument("-d", "--data_owners")
+        .help("Number of data owners")
+        .required()
+        .nargs(1)
+        .default_value(1)
+        .scan<'i', int>();
+    
+    program.add_argument("-c", "--compute_nodes")
+        .help("Number of compute nodes")
+        .required()
+        .nargs(1)
+        .default_value(1)
+        .scan<'i', int>();
+
+    try {
+        program.parse_args(argc, argv);
+    }
+    catch (const std::runtime_error& err) {
+        std::cerr << err.what() << std::endl;
+        std::cerr << program;
+        std::exit(1);
+    }
+    
+    auto myid = program.get<int>("-i");
+    auto num_data_owners = program.get<int>("-d");
+    auto num_compute_nodes = program.get<int>("-c");
+
     systemAPI sys_(true, myid, "main_experiment");
     int kTrainSize_10 = 1000;
     int train_samples = 100;
     
+    sys_.my_network_layer.findInit();
     client_message = sys_.my_network_layer.check_new_refactor_task();
     sys_.refactor(client_message);
 
-    //std::cout << "Refactor ok" << std::endl;
-
-    int num_data_owners = atoi(argv[1]);
-    int num_compute_nodes = atoi(argv[3]);
     while(true) {
         int received = 0;
 

@@ -3,12 +3,12 @@
 
 class rpi_stats{
  public:
-    int rpi_fm1;   
-    int rpi_fm1_v; 
-    int rpi_fbm2;  
-    int rpi_fbm2_v;
-    int rpi_bm1;   
-    int rpi_bm1_v; 
+    double rpi_fm1;   
+    double rpi_fm1_v; 
+    double rpi_fbm2;  
+    double rpi_fbm2_v;
+    double rpi_bm1;   
+    double rpi_bm1_v; 
 
     int rpi_to_vm = 8;
     int vm_to_rpi = 8;

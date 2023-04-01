@@ -28,9 +28,7 @@ int main(int argc, char **argv) {
     refactoring_data client_message;
     // check if you are the init
     if (myID == 0) {
-        // POINT 5 Initialization phase: init node starts preperation
-        sys_.my_network_layer.newPoint(INIT_START_MSG_PREP);
-
+       
         auto cut_layers_ = "10,19";
         //auto data_owners_ = argv[2];  // CHANGE
         int num_data_owners = atoi(argv[2]);

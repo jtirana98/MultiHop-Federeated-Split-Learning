@@ -6,11 +6,11 @@ std::queue<Message> pending_messages;
 int my_send(int socket_fd, std::string& data, int dest) {
     const char* data_ptr  = data.data();
     int data_size = data.size();
-    //std::cout << "--> " << data_size << std::endl;
+   
     if (data_size < 1000)
         std::cout << "-->" << data << std::endl;
     
-    //std::cout << "sending: " << data_size << " to: " << dest << std::endl;
+
     auto timestamp1 = std::chrono::steady_clock::now();
     std::string len = std::to_string(data_size);
     send(socket_fd, &data_size, sizeof(int), 0);
@@ -27,7 +27,6 @@ int my_send(int socket_fd, std::string& data, int dest) {
     auto optim_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2 - timestamp1).count();
 
-    //std::cout << " time sending " << optim_time << std::endl;
     return 1;
 }
 
@@ -39,7 +38,6 @@ std::vector<std::string> my_receive(int socket_fd) {
     std::vector<std::string> to_return;
 
     read(socket_fd,&expected_input,sizeof(int));
-    //std::cout << "I expect: " << expected_input << std::endl;
     to_return.push_back(std::to_string(expected_input));
     auto timestamp1 = std::chrono::steady_clock::now();
     if (expected_input == 0){
@@ -53,11 +51,8 @@ std::vector<std::string> my_receive(int socket_fd) {
     }
     auto buffer_ptr = buffer;
     while(bytes_recv < expected_input) {
-        /*if(expected_input - bytes_recv <= max) {
-            len = expected_input - bytes_recv;
-        }*/
+
         len = expected_input - bytes_recv;
-        //std::vector<char> leader_board_buffer(len);
         n = read(socket_fd, buffer_ptr, len);
         bytes_recv = bytes_recv + n;
         buffer_ptr = buffer_ptr + n;
@@ -66,17 +61,11 @@ std::vector<std::string> my_receive(int socket_fd) {
             to_return.push_back("");
             return to_return;
         }
-        /*else {
-            for (int i =0; i<n; i++) {
-                leader_board_package = leader_board_package + leader_board_buffer[i];
-            }
-        */  
     }
     leader_board_package.assign(buffer, expected_input);
     auto timestamp2 = std::chrono::steady_clock::now();
     auto optim_time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2 - timestamp1).count();
-    //std::cout << "time receive " << optim_time /*<< std::endl*/;
 
     delete[] buffer;
     
@@ -87,7 +76,7 @@ std::vector<std::string> my_receive(int socket_fd) {
 void network_layer::findPeers(int num, bool aggr) {
     int completed = num;
     // mulitcast address
-    std::string s = "130.0.0.0";
+    std::string s = "224.0.0.0";
     char group_[s.length() + 1];
     strcpy(group_, s.c_str());
     char *group = group_;
@@ -132,7 +121,7 @@ void network_layer::findPeers(int num, bool aggr) {
     if (
         setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*) &mreq, sizeof(mreq)) < 0
     ){
-        perror("setsockopt");
+        perror("setsockopt1");
         return ;
     }
 
@@ -200,14 +189,14 @@ void network_layer::findPeers(int num, bool aggr) {
         close(sockfd);
         num--;
     }
-    if(aggr)
-        put_internal_task(Task());
+    
+    put_internal_task(Task());
 
 }
 
 void network_layer::findInit(bool aggr) {
     // mulitcast address
-    std::string s = "130.0.0.0";
+    std::string s = "224.0.0.0";
     char group_[s.length() + 1];
     strcpy(group_, s.c_str());
     char *group = group_;
@@ -295,10 +284,10 @@ void network_layer::findInit(bool aggr) {
 
     close(newsockfd);
     close(my_socket);
-    if(!is_data_owner || (is_data_owner && aggr)){
-        std::cout << "free" << std::endl;
-        put_internal_task(Task());
-    }
+    //if(!is_data_owner || (is_data_owner && aggr)){
+    std::cout << "free" << std::endl;
+    put_internal_task(Task());
+    //}
 }
 
 void network_layer::new_message(Task task, int send_to, bool compute_to_compute) { // produce -- new message
@@ -381,18 +370,13 @@ void network_layer::new_message(refactoring_data task, int send_to, bool compute
 }
 
 void network_layer::put_internal_task(Task task, long timestamp, bool back) {
-   /* if(back) {
-        {
-        std::unique_lock<std::mutex> lock(m_mutex_new_task_);
-        pending_tasks_.push(task);
-        }
-        m_cv_new_task_.notify_one();
-    }*/
+  
     {
     std::unique_lock<std::mutex> lock(m_mutex_new_task);
     pending_tasks.push_back(std::pair<long, Task>(timestamp, task));
     }
     m_cv_new_task.notify_one();
+
 }
 
 void network_layer::put_internal_task(refactoring_data task) {
@@ -407,17 +391,6 @@ void network_layer::put_internal_task(refactoring_data task) {
 
 Task network_layer::check_new_task(bool back) { //consumer
     Task new_task;
-
-    /*if(back) {
-        std::unique_lock<std::mutex> lock(m_mutex_new_task_);
-        while (pending_tasks_.empty()) {
-            m_cv_new_task_.wait(lock, [&](){ return !pending_tasks_.empty(); });
-        }
-        
-        new_task = pending_tasks_.front();
-        pending_tasks_.pop();
-    }*/
-    
     
     {
     std::unique_lock<std::mutex> lock(m_mutex_new_task);
@@ -438,7 +411,6 @@ Task network_layer::check_new_task(bool back) { //consumer
         bool not_ready = false;
         
         while(!not_ready) {
-            //std::vector<std::pair<long, Task>>::iterator it_best = pending_tasks.begin();
             int it_best;
             long best_time=-1, min=100;
             auto p1 = std::chrono::system_clock::now();
@@ -453,14 +425,14 @@ Task network_layer::check_new_task(bool back) { //consumer
                     pending_tasks.erase(pending_tasks.begin()+i);
 
                     m_mutex_new_task.unlock();
-                    //std::cout << "-1 ready: " << std::endl;
+                    
                     return new_task;
                 }
 
                 if(my_time.count() >= it->first) {  
                     auto time_tmp = my_time.count() - it->first;
                     if (best_time < time_tmp) {
-                        //std::cout << "best is " << it->first << std::endl;
+                        
                         it_best = i;
                         best_time = time_tmp;
                     }
@@ -469,17 +441,8 @@ Task network_layer::check_new_task(bool back) { //consumer
             }
 
             if (best_time != -1) {
-                //std::cout << "expired but ok " << best_time << " " << pending_tasks[it_best].first << " " << my_time.count() << std::endl;
                 new_task = pending_tasks[it_best].second;
-                /*std::cout << "prin" << std::endl;
-                for (std::vector<std::pair<long, Task>>::iterator it = pending_tasks.begin(); it != pending_tasks.end(); it++) {
-                    std::cout << it->first << std::endl;
-                }
-
-                std::cout << "meta" << std::endl;
-                for (std::vector<std::pair<long, Task>>::iterator it = pending_tasks.begin(); it != pending_tasks.end(); it++) {
-                    std::cout << it->first << std::endl;
-                }*/
+                
                 pending_tasks.erase(pending_tasks.begin()+it_best);
                 m_mutex_new_task.unlock();
                 return new_task;
@@ -500,7 +463,6 @@ Task network_layer::check_new_task(bool back) { //consumer
             }
 
             if (best_time != 3000000) {
-                //std::cout << "in time " << best_time << " " << pending_tasks[it_best].first << " " << my_time.count() << std::endl;
                 new_task = pending_tasks[it_best].second;
                 pending_tasks.erase(pending_tasks.begin()+it_best);
                 m_mutex_new_task.unlock();
@@ -541,7 +503,7 @@ void network_layer::receiver() {
     fd_set readset;
     auto p_prev = std::chrono::system_clock::now();
     // lock
-    //auto dump = check_new_task();
+    auto dump = check_new_task();
     std::cout << "let's go " << myid << " " << rooting_table.size() << std::endl;
     sleep(1);
 
@@ -575,7 +537,6 @@ void network_layer::receiver() {
         my_port = my_addr.second;
     }
     
-    //std::cout << my_port << my_addr.first << std::endl;
     my_socket =  socket(AF_INET, SOCK_STREAM, 0);
     if (my_socket < 0) 
         perror("ERROR opening socket");
@@ -625,17 +586,9 @@ void network_layer::receiver() {
                     task.t_start = new_msg.t_start;
                     task.batch0 = new_msg.batch0;
 
-                    /*if((operation)new_msg.type_op == operation::aggregation_) {
-                        std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
-                        torch::load(task.values, ss);
-                        task.model_parts = new_msg.values;
-                    }
-                    else{*/
                     std::stringstream ss(std::string(new_msg.values.begin(), new_msg.values.end()));
                     torch::load(task.values, ss);
-                    //}
                     
-                    newPoint(NT_RECEIVED_MSG, task.client_id);
                     put_internal_task(task);
                 }
                 else {
@@ -655,9 +608,6 @@ void network_layer::receiver() {
                     if(new_msg.read_table == 1) {
                         refactor_obj.rooting_table = new_msg.rooting_table;
                      }
-                    
-                    // POINT Network layer: received message
-                    newPoint(NT_RECEIVED_MSG);
 
                     put_internal_task(refactor_obj);
                 }
@@ -730,7 +680,7 @@ void network_layer::receiver() {
                                 put_internal_task(task);
                             }
                             else {
-                                /* my_time.count() + (real_duration-(my_time.count()-task.t_start))*/
+                              
                                 auto prev = std::chrono::duration_cast<std::chrono::milliseconds>(p_prev.time_since_epoch());
                                 //std::cout << "received task for " << task.t_start+real_duration  << " " << my_time.count()-prev.count() << " " << real_duration - (my_time.count() - task.t_start) << std::endl;
                                 put_internal_task(task, task.t_start+real_duration);
@@ -750,18 +700,12 @@ void network_layer::receiver() {
                             std::cout << "Network: Cannot Simulate " << (my_time.count()-task.t_start - real_duration) << std::endl;
                         } 
                         else{
-                            //std::cout << "go to sleep " << real_duration-(my_time.count()-task.t_start) << std::endl;
-                            
                             usleep(real_duration-(my_time.count()-task.t_start));
                         }
 
                         put_internal_task(task);
                     }
                 }
-                
-                newPoint(NT_RECEIVED_MSG, task.client_id);
-                
-                
             }
             else {
                 // from message to refactor object
@@ -781,9 +725,6 @@ void network_layer::receiver() {
                         refactor_obj.rooting_table = new_msg.rooting_table;
                      }
                 
-                // POINT Network layer: received message
-                newPoint(NT_RECEIVED_MSG);
-
                 put_internal_task(refactor_obj);
             }
 
@@ -819,9 +760,6 @@ void network_layer::sender() { // consumer -- new message
         pending_messages.pop();
         new_msg.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
-        // POINT 2 Network layer: preparing to send
-        newPoint(NT_PREPARE_MSG, new_msg.dest);
-
         // message to json
         Json::Value jsonMsg = toJson(new_msg);
         // json to string
@@ -832,19 +770,11 @@ void network_layer::sender() { // consumer -- new message
             int client_sock = it->second;
             // TODO: check mipws to connection exei kleisei
             
-            // POINT 3 Network layer: starts message transmission
-            newPoint(NT_START_SENDING, new_msg.dest);
-
             n = my_send(client_sock, data, new_msg.dest);
-            
-            // POINT 4 Network layer: completes message transmission
-            newPoint(NT_STOP_SENDING, new_msg.dest);
-            
         }
         else{
             auto client_addr = rooting_table.find(new_msg.dest)->second;
             portno = client_addr.second;
-            //std::cout << "sending: " << client_addr << " " << portno << std::endl;
             while(true) {
                 sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -885,13 +815,7 @@ void network_layer::sender() { // consumer -- new message
                 k++;
             } while (res<0);
 
-            // POINT 3  Network layer: starts message transmission
-            newPoint(NT_START_SENDING, new_msg.dest);
-
             n = my_send(sockfd, data, new_msg.dest);
-            
-            // POINT 4 Network layer: completes message transmission
-            newPoint(NT_STOP_SENDING, new_msg.dest);
             
             if (new_msg.save_connection) {
                 open_connections.insert({new_msg.dest, sockfd});

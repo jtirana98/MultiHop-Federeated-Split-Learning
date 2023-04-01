@@ -62,13 +62,13 @@ class network_layer {
     std::mutex m_mutex_new_refactor_task;
     std::condition_variable m_cv_new_refactor_task;
 
-    logger mylogger;
-    std::thread logger_thread;
+    //logger mylogger;
+    //std::thread logger_thread;
 
     network_layer(int myid, std::string log_dir, bool is_data_owner) : myid(myid), 
     is_data_owner(is_data_owner),
-    mylogger(myid, log_dir),
-    logger_thread(&logger::logger_, &mylogger) ,
+    //mylogger(myid, log_dir),
+    //logger_thread(&logger::logger_, &mylogger) ,
     my_rpi(1)
     {   
 
@@ -77,17 +77,13 @@ class network_layer {
         else
             my_rpi = rpi_stats(2);
 
-        rooting_table.insert({-2, std::pair<std::string, int>("10.96.12.132", 8079)});
-        rooting_table.insert({-1, std::pair<std::string, int>("10.96.12.136", 8080)});
-        rooting_table.insert({0, std::pair<std::string, int>("10.96.12.138", 8081)});
-        rooting_table.insert({1, std::pair<std::string, int>("10.96.12.130", 8082)}); //cn1
-        rooting_table.insert({2, std::pair<std::string, int>("10.96.12.131", 8083)}); //cn2
-        rooting_table.insert({3, std::pair<std::string, int>("10.96.12.132", 8083)}); //cn3
-        rooting_table.insert({18, std::pair<std::string, int>("10.96.12.139", 8081)});
-        //rooting_table.insert({13, std::pair<std::string, int>("10.96.12.139", 8081)});
-        //rooting_table.insert({23, std::pair<std::string, int>("10.96.12.133", 8081)});
-        //rooting_table.insert({33, std::pair<std::string, int>("10.96.12.132", 8081)});
-        //rooting_table.insert({43, std::pair<std::string, int>("10.96.12.131", 8081)});
+        rooting_table.insert({-2, std::pair<std::string, int>("localhost", 8079)});
+        rooting_table.insert({-1, std::pair<std::string, int>("localhost", 8080)});
+        rooting_table.insert({0, std::pair<std::string, int>("localhost", 8081)});
+        rooting_table.insert({1, std::pair<std::string, int>("localhost", 8082)}); //cn1
+        rooting_table.insert({2, std::pair<std::string, int>("localhost", 8083)}); //cn2
+        rooting_table.insert({3, std::pair<std::string, int>("localhost", 8083)}); //cn3
+        rooting_table.insert({18, std::pair<std::string, int>("localhost", 8081)});
     }
 
     void findPeers(int num, bool aggr = false);
@@ -107,7 +103,7 @@ class network_layer {
     void receiver(); // producer -- new task
     void sender(); // consumer -- new message
 
-    Point newPoint(int point_code, int id=-1, std::string op="n/a") {
+    /*Point newPoint(int point_code, int id=-1, std::string op="n/a") {
         Point point(myid, point_code);
         this->mylogger.add_point(point);
 
@@ -116,7 +112,7 @@ class network_layer {
     
     void terminate() {
         logger_thread.join();
-    }
+    }*/
 
 };
 

@@ -12,7 +12,7 @@ using transform::RandomCrop;
 using transform::RandomHorizontalFlip;
 
 int main(int argc, char **argv) {
-    argparse::ArgumentParser program("data_owner");
+    argparse::ArgumentParser program("aggregator");
 
     program.add_argument("-i", "--id")
         .help("The node's id")
@@ -57,9 +57,6 @@ int main(int argc, char **argv) {
     refactoring_data client_message;
     // check if you are the init
     if (myID == 0) {
-        // POINT 5 Initialization phase: init node starts preperation
-        sys_.my_network_layer.newPoint(INIT_START_MSG_PREP);
-
         auto cut_layers_ = program.get<std::string>("-s");
         auto data_owners_ = program.get<std::string>("-d");
         auto compute_nodes_ = program.get<std::string>("-c");
@@ -91,17 +88,11 @@ int main(int argc, char **argv) {
 
         int num_parts = compute_nodes.size() + 2;
 
-        //sys_.my_network_layer.findPeers(data_owners.size() 
-        //                                    + compute_nodes.size() - 1);
+        sys_.my_network_layer.findPeers(data_owners.size() 
+                                            + compute_nodes.size());
         std::cout << "found them" << std::endl; 
         sleep(2);
 
-        int data_onwer_end = 2;
-        int data_owner_beg = 8;
-
-        int model_name = 2;
-        int model_type = 3;
-        
         client_message.dataset = CIFAR_10;
         client_message.model_name_ = model_name::resnet;
         client_message.model_type_ = resnet_model::resnet101;
@@ -111,20 +102,15 @@ int main(int argc, char **argv) {
         client_message.prev = compute_nodes[compute_nodes.size() -1];
         client_message.num_class = 10;
         
-        // POINT 6 Initialization phase: init node completes preperation - start bcast to dataowners
-        sys_.my_network_layer.newPoint(INIT_END_PREP_START_DO_BCAST);
-
         for (int i=1; i<data_owners.size(); i++) {
            sys_.my_network_layer.new_message(client_message, data_owners[i], false, true);
 
         }
-        sys_.my_network_layer.new_message(client_message, -1, false, true);
-        // POINT 7 Initialization phase: bcast to do completed - start refactoring
-        sys_.my_network_layer.newPoint(INIT_END_BCAST_START_REFACTOR);
         sys_.refactor(client_message);
+
+        // send to aggregator:
+        sys_.my_network_layer.new_message(client_message, -1, false, true);
         
-        // POINT 8 Initialization phase: completes refactoring - start bcast to cn
-        sys_.my_network_layer.newPoint(INIT_END_REFACTOR_START_CN_BCAST);
         client_message.to_data_onwer = false;
         client_message.data_owners = data_owners;
         
@@ -145,23 +131,14 @@ int main(int argc, char **argv) {
 
            sys_.my_network_layer.new_message(client_message, compute_nodes[i], false, true);
         }
-        
-        // POINT 9 Initialization phase: bcast to cn completed
-        sys_.my_network_layer.newPoint(INIT_END_BCAST_CN);
     }
     else { // if not wait for init refactoring
-        // POINT 10 Initialization phase: do/cn waiting for refactor message
-        sys_.my_network_layer.newPoint(INIT_WAIT_FOR_REFACTOR);
-        //sys_.my_network_layer.findInit();
+        sys_.my_network_layer.findInit();
         client_message = sys_.my_network_layer.check_new_refactor_task();
-        // POINT 11 Initialization phase: do/cn end waiting for refactor message
-        sys_.my_network_layer.newPoint(INIT_END_W_REFACTOR);
+        
         sys_.refactor(client_message);
        
     }
-
-    // find aggregator
-    //sys_.my_network_layer.findInit(true);
 
     std::cout << "loading data..." << std::endl;
     // load dataset
@@ -181,89 +158,99 @@ int main(int argc, char **argv) {
 
     int num_classes = (type == CIFAR_10)? 10 : 100;
 
-    // POINT 12 Initialization phase: completed
-    sys_.my_network_layer.newPoint(INIT_END_INIT);
-    
-    for (size_t round = 0; round != sys_.rounds; ++round) {
+    int r_local_epochs = 2;
+    for(size_t round = 0; round != sys_.rounds; round++) {
         int batch_index = 0;
         sys_.zero_metrics();
         int total_num = 0;
-        for (auto& batch : *train_dataloader) {
-            // create task with new batch
+        for(int internal_round=0; internal_round != r_local_epochs; internal_round++){    
+            for (auto& batch : *train_dataloader) {          
 
-            // POINT 16 Execution phase: DO starts new batch
-            auto point16 = sys_.my_network_layer.newPoint(DO_START_BATCH);
+                auto init_batch = std::chrono::steady_clock::now();
+                Task task(sys_.myid, forward_, -1);
+                task.size_ = batch.data.size(0);
+                task.values = batch.data;
+                task = sys_.exec(task, batch.target);
+                total_num += task.size_; 
 
-            auto init_batch = std::chrono::steady_clock::now();
-            Task task(sys_.myid, forward_, -1);
-            task.size_ = batch.data.size(0);
-            task.values = batch.data;
-            task = sys_.exec(task, batch.target);
-            total_num += task.size_; 
+                // send task to next node
+                sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
+                
+                auto timestamp2 = std::chrono::steady_clock::now();
 
-            // send task to next node
-            sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
+                auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
+                            (timestamp2 - init_batch).count();
+                std::cout << "Forward Model Part 1: " << _time << std::endl;
+
+                // wait for next forward task
+                task = sys_.my_network_layer.check_new_task();
+
+                auto timestamp1 = std::chrono::steady_clock::now();
+                task = sys_.exec(task, batch.target); // forward and backward
+                // send task - backward
+                sys_.my_network_layer.new_message(task, sys_.inference_path[1]);
+                //optimize task
+                auto task1 = sys_.my_network_layer.check_new_task();
+                task1 = sys_.exec(task1, batch.target); // optimize
+
             
-            auto timestamp2 = std::chrono::steady_clock::now();
+                timestamp2 = std::chrono::steady_clock::now();
+                _time = std::chrono::duration_cast<std::chrono::milliseconds>
+                            (timestamp2 - timestamp1).count();
+                std::cout << "Forward and BackProp Model Part 2: " << _time << std::endl;
 
-            auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (timestamp2 - init_batch).count();
-            std::cout << "Forward Model Part 1: " << _time << std::endl;
-            // POINT 17 Execution phase: DO produced activations from first part
-            auto point17 = sys_.my_network_layer.newPoint(DO_FRWD_FIRST_PART);
-           
-            // 16 - 17 interval forward_part
-            sys_.my_network_layer.mylogger.add_interval(point16, point17, fwd_only);
+                // wait for next backward task
+                task = sys_.my_network_layer.check_new_task();
+                
+                timestamp1 = std::chrono::steady_clock::now();
+                task = sys_.exec(task, batch.target); //backward and optimize
+                timestamp2 = std::chrono::steady_clock::now();
+                _time = std::chrono::duration_cast<std::chrono::milliseconds>
+                            (timestamp2 - timestamp1).count();
+                std::cout << "BackProp Model Part 1: " << _time << std::endl;
 
-            // wait for next forward task
-            task = sys_.my_network_layer.check_new_task();
-            // POINT 18 Execution phase: DO received activations from CN
-            auto point18 = sys_.my_network_layer.newPoint(DO_END_WAIT);
-
-            auto timestamp1 = std::chrono::steady_clock::now();
-            task = sys_.exec(task, batch.target); // forward and backward
-            // send task - backward
-            sys_.my_network_layer.new_message(task, sys_.inference_path[1]);
-            //optimize task
-            auto task1 = sys_.my_network_layer.check_new_task();
-            task1 = sys_.exec(task1, batch.target); // optimize
-
-            // POINT 19 Execution phase: DO completed training of last part
-            auto point19 = sys_.my_network_layer.newPoint(DO_FRWD_BCKWD_SECOND_PART);
-            // 18 - 19 interval forward - backward - optimize
-            timestamp2 = std::chrono::steady_clock::now();
-            _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (timestamp2 - timestamp1).count();
-            std::cout << "Forward and BackProp Model Part 2: " << _time << std::endl;
-            sys_.my_network_layer.mylogger.add_interval(point18, point19, fwd_bwd_opz);
-
-            // wait for next backward task
-            task = sys_.my_network_layer.check_new_task();
-            
-            // POINT 20 Execution phase: DO received gradients
-            auto point20 = sys_.my_network_layer.newPoint(DO_END_WAIT2);
-            timestamp1 = std::chrono::steady_clock::now();
-            task = sys_.exec(task, batch.target); //backward and optimize
-            timestamp2 = std::chrono::steady_clock::now();
-            _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (timestamp2 - timestamp1).count();
-            std::cout << "BackProp Model Part 1: " << _time << std::endl;
-
-            _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (timestamp2 - init_batch).count();
-            std::cout << "One batch " << _time << std::endl;
-            // end of batch
-            batch_index++;
-            // POINT 21 Execution phase: DO completed training for first part
-            auto point21 = sys_.my_network_layer.newPoint(DO_END_BATCH);
-
-            // 20 - 21 interval backward and optimize
-            sys_.my_network_layer.mylogger.add_interval(point20, point21, bwd_opz);
+                _time = std::chrono::duration_cast<std::chrono::milliseconds>
+                            (timestamp2 - init_batch).count();
+                std::cout << "One batch " << _time << std::endl;
+                // end of batch
+                batch_index++;
+            }
         }
         
         auto sample_mean_loss = sys_.running_loss / batch_index;
         auto accuracy = sys_.num_correct / total_num;
 
+
+        std::cout << "sending to the aggegator" << std::endl;
+        auto newAggTask = Task(myID, operation::aggregation_, -1);
+        newAggTask.model_part = 1;
+
+        // send aggregation task
+        newAggTask.model_part_=sys_.parts[0].layers[0];
+        newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        sys_.my_network_layer.new_message(newAggTask,-1);
+        auto next_task = sys_.my_network_layer.check_new_task();
+        std::stringstream ss(std::string(next_task.model_parts.begin(), next_task.model_parts.end()));
+        torch::load(sys_.parts[0].layers[0], ss);
+
+        std::cout << "received global firt part model" << std::endl;
+
+        newAggTask.model_part = 2;
+        for (int i = 0; i < sys_.parts[1].layers.size(); i++) {
+            // << newAggTask.model_part << std::endl;
+            newAggTask.model_part_=sys_.parts[1].layers[i];
+            newAggTask.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+            sys_.my_network_layer.new_message(newAggTask,-1);
+
+            newAggTask.model_part++;
+        }
+
+        for (int i = 0; i < sys_.parts[1].layers.size(); i++) {
+            //std::cout << "wait " << i << " " << sys_.parts[1].layers.size() << std::endl;
+            next_task = sys_.my_network_layer.check_new_task();
+            std::stringstream sss(std::string(next_task.model_parts.begin(), next_task.model_parts.end()));
+            torch::load(sys_.parts[1].layers[next_task.model_part-2], sss);
+        }
             
         std::cout << "Epoch [" << (round + 1) << "/" << sys_.rounds << "], Trainset - Loss: "
                 << sample_mean_loss << ", Accuracy: " << accuracy << " " << sys_.num_correct << std::endl;

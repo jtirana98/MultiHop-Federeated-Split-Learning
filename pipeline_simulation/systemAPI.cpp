@@ -3,7 +3,7 @@
 void systemAPI::init_state_vector(model_name name, int model_, int num_class, int start, int end) {
     for (int i=0; i<clients.size() ; i++) {
         ModelPart part(name, model_, start, end, num_class);
-        //std::vector<torch::optim::Adam *> optimizers(part.layers.size(), nullptr);
+
         std::vector<torch::optim::SGD *> optimizers(part.layers.size(), nullptr);
          
         for (int i = 0; i < part.layers.size(); i++) {

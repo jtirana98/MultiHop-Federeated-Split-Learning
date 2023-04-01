@@ -63,7 +63,7 @@ class systemAPI  {
     void terminate() {
         rcv_thread.join();
         snd_thread.join();
-        my_network_layer.terminate();
+        //my_network_layer.terminate();
     }
 
  private:    
