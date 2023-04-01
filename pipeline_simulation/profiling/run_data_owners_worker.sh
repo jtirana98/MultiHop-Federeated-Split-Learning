@@ -11,7 +11,7 @@ mkdir -p /root/experiments/simulations_check/compute_nodes_$2/dataowners_$1_
 declare -i start=0
 declare -i end=0
 declare -i port=0
-declare -i port_start=0
+declare -i port_start=3
 start=$((  18 ))
 end=$(( $1 + $start -1))
 

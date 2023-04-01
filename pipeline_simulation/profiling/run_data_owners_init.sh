@@ -11,12 +11,12 @@ mkdir -p /root/experiments/simulations_check/compute_nodes_$2/dataowners_$1_
 declare -i start=0
 declare -i end=0
 declare -i port=0
-start=$((  $2 + 1 ))
+start=$((  3 + 1 ))
 end=$(( $1-2 + $start ))
 
 for i in $(seq $start 1 $end)
 do
-    port=$(( 8081 + $2 + $i ))
+    port=$(( 8081 + 3 + $i ))
     sudo iptables -I INPUT -p tcp -m tcp --dport $port -j ACCEPT
     ../../build/simulated_data_owner $i > "/root/experiments/simulations_check/compute_nodes_$2/dataowners_$1_/d$i.data" &
 done
