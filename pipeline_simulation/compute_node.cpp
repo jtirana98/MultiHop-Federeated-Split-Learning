@@ -94,8 +94,6 @@ int main(int argc, char **argv) {
 
     systemAPI sys_(false, myID, log_dir);
     
-    // wait for init refactoring
-    //sys_.my_network_layer.findInit();
     auto refactor_message = sys_.my_network_layer.check_new_refactor_task();
     sys_.refactor(refactor_message);
     ComputeNode the_cnode = ComputeNode(myID, sys_);

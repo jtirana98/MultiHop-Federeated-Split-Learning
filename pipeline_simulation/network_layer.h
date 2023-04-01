@@ -62,13 +62,13 @@ class network_layer {
     std::mutex m_mutex_new_refactor_task;
     std::condition_variable m_cv_new_refactor_task;
 
-    logger mylogger;
-    std::thread logger_thread;
+    //logger mylogger;
+    //std::thread logger_thread;
 
     network_layer(int myid, std::string log_dir, bool is_data_owner) : myid(myid), 
     is_data_owner(is_data_owner),
-    mylogger(myid, log_dir),
-    logger_thread(&logger::logger_, &mylogger) ,
+    //mylogger(myid, log_dir),
+    //logger_thread(&logger::logger_, &mylogger) ,
     my_rpi(1)
     {   
 
@@ -107,7 +107,7 @@ class network_layer {
     void receiver(); // producer -- new task
     void sender(); // consumer -- new message
 
-    Point newPoint(int point_code, int id=-1, std::string op="n/a") {
+    /*Point newPoint(int point_code, int id=-1, std::string op="n/a") {
         Point point(myid, point_code);
         this->mylogger.add_point(point);
 
@@ -116,7 +116,7 @@ class network_layer {
     
     void terminate() {
         logger_thread.join();
-    }
+    }*/
 
 };
 

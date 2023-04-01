@@ -28,14 +28,8 @@ int main(int argc, char **argv) {
     refactoring_data client_message;
     // check if you are the init
     if (myID == 0) {
-        // POINT 5 Initialization phase: init node starts preperation
-        sys_.my_network_layer.newPoint(INIT_START_MSG_PREP);
-
         auto cut_layers_ = "10,19";
-        //auto data_owners_ = argv[2];  // CHANGE
         int num_data_owners = atoi(argv[2]);
-        //std::cout << data_owners_ << std::endl;
-        //auto compute_nodes_ = atoi(argv[3]);
         int num_compute_nodes = 1;
 
         if(argc >= 4)
@@ -45,7 +39,6 @@ int main(int argc, char **argv) {
             cut_layers_ = "3,13,19";
         if (num_compute_nodes == 3)
             cut_layers_ = "2,15,25,35";//"3,8,14,19";
-        //if (num_compute_nodes == 4)
 
         const char separator = ',';
         std::string val;
@@ -57,13 +50,6 @@ int main(int argc, char **argv) {
                 cut_layers.push_back(stoi(val));
             }
         }
-
-        /*streamData = std::stringstream(data_owners_);
-        while (std::getline(streamData, val, separator)) {
-            if (val != "") {
-                data_owners.push_back(stoi(val));
-            }
-        }*/ 
 
         data_owners.push_back(0);
         for (int i = 0; i < num_data_owners-1; i++) {
@@ -77,16 +63,7 @@ int main(int argc, char **argv) {
         }
 
         int num_parts = compute_nodes.size() + 2;
-
-        //std::cout << "found them" << std::endl; 
-        //sleep(2);
-
-        int data_onwer_end = 2;
-        int data_owner_beg = 8;
-
-        int model_name = 2;
-        int model_type = 3;
-        
+      
         client_message.dataset = CIFAR_10;
         client_message.model_name_ = model_name::resnet;//model_name::vgg;
         client_message.model_type_ =resnet_model::resnet101;//vgg_model::v19;
@@ -203,20 +180,16 @@ int main(int argc, char **argv) {
     auto send_gradients = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
     int epoch_count = 0, g_epoch_count = 0; // communication round
     bool new_r = true;
-    for (size_t round = 0; round != sys_.rounds; ++round) {
+    for (size_t round = 0; round != sys_.rounds; round++) {
         int batch_index = 0;
         sys_.zero_metrics();
         int total_num = 0;
         if (new_r) {
-            //std::cout << "New round " << std::endl;
             init_epoch = std::chrono::steady_clock::now();
             new_r = false;
         }
 
         send_activations = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-        //long c = send_activations.count();
-        //std::cout << c << std::endl;
-        //std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() << std::endl;
         int g_i = 0;
         for (int inter_batch = 0; inter_batch < 4; inter_batch++ ) {    
             for (auto& batch : *train_dataloader) {
@@ -227,8 +200,7 @@ int main(int argc, char **argv) {
                 task.size_ = batch.data.size(0);
                 task.values = batch.data;
                 task = sys_.exec(task, batch.target);
-                //task.t_start = send_activations.count();
-                //std::cout << task.t_start << std::endl;
+                
                 total_num += task.size_; 
                 task.batch0 = batch_index;
                 auto end_f1 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
@@ -251,7 +223,7 @@ int main(int argc, char **argv) {
                 //std::cout << "f1-end: " << end_f1-send_activations.count() << std::endl;
                 // send task to next node
                 task.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-                //usleep(myID*200);
+                
                 std::cout << "Send forward task to C1 " << end_f1-send_activations.count() << std::endl;
                 sys_.my_network_layer.new_message(task, sys_.inference_path[0]);
                 
@@ -263,7 +235,7 @@ int main(int argc, char **argv) {
                 task = sys_.exec(task, batch.target); // forward and backward
                 // send task - backward
                 auto end_m2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-                //std::cout << "m2-end: " << end_m2-send_gradients.count() << std::endl;
+               
                 
                 real_duration = 0;
                 real_duration = my_rpi.rpi_fbm2;
@@ -276,13 +248,13 @@ int main(int argc, char **argv) {
                     usleep(real_duration-(end_m2-send_gradients.count()));
                 }
                 
-                //task.t_start = send_gradients.count();
+                
                 task.t_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-                //usleep(myID*110);
+               
                 std::cout << "Send backprop task to C1 " << end_f1-send_activations.count() << std::endl;
                 sys_.my_network_layer.new_message(task, sys_.inference_path[1]);
-                //optimize task
                 
+                //optimize task
                 auto task1 = sys_.my_network_layer.check_new_task();
 
                 task1 = sys_.exec(task1, batch.target); // optimize
@@ -299,8 +271,7 @@ int main(int argc, char **argv) {
                 
                 //if (g_i % 50 == 0)
                     std::cout << "One batch: global epoch " << g_epoch_count+1 << " local epoch: " << epoch_count+1 <<" b: " << batch_index+1  << " is " << _time << std::endl;
-                
-                // end of batch
+     
                 batch_index++;
                 g_i++;
             }
