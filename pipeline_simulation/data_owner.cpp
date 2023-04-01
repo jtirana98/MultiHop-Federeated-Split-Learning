@@ -24,9 +24,9 @@ int main(int argc, char **argv) {
     
     // check if you are the init
     if (myID == 0) {
-        auto cut_layers_ = "2,35";
+        auto cut_layers_ = "2,10,35";
         auto data_owners_ = "0";
-        auto compute_nodes_ = "1";
+        auto compute_nodes_ = "1,2";
 
 
         const char separator = ',';
@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
         int batch_index = 0;
         sys_.zero_metrics();
         int total_num = 0;
-        for(int internal_round; internal_round != r_local_epochs; internal_round++){    
+        for(int internal_round=0; internal_round != r_local_epochs; internal_round++){    
             for (auto& batch : *train_dataloader) {
                 
                 // create task with new batch
