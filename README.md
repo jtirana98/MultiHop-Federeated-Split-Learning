@@ -4,7 +4,7 @@
 
 --------------------------------------------------------------------------------
 
-For a more detailed discription of the documentation follow this [link](https://docs.google.com/document/d/1DaWOX27c4_4_VUT-l_UrgUV-zFa8UsIZ5zUv06pgc0s/edit?usp=sharing)  
+For a more detailed discription of the documentation follow this [link](https://docs.google.com/document/d/1DaWOX27c4_4_VUT-l_UrgUV-zFa8UsIZ5zUv06pgc0s/edit?usp=sharing)  or check the wiki.
 
 
 Repository structure:
@@ -65,8 +65,46 @@ How to run program and connect Libtorch:
 
 Running SplitPipe in a distributed manner:
 
-- configuring root-table
-    - enable mulit-task (if applicable)
-- parameters for each entity.
-- include a figure of the structure.
-- emulated version.
+*Case 0: Model profiling*
+An example code is in main, you can either get the delay for each batch or get the per-layer delay.
+
+*Case 1: Real system*
+
+In this case you will run the data owners as real devices. You can run all entities in one machine or use different devices (within the same network)
+
+- If you cannot use multicast:
+    - comment the following parts in the code:
+        - in data_owner.cpp: Comment the findPeers() call and the findInit()
+        - in compute_node.cpp: Comment the findInit()
+        - in aggregator.cpp: Comment the findInit()
+        - in network_layer.cpp: comment the line 506 of versio 1.0.0
+    - update the rooting table in pipeline_simulation/network_layer.h
+
+For each data owner device call: 
+
+    $ ./data_owner -i id -d <number-of-data-owners> -c <number-of-compute-nodes> -s <split-rule>
+
+If not an init data owner you just give the node's id
+
+For each compute node device call:
+
+    $ ./compute_node -i id
+
+or use script run_cn.sh in pipeline_simulation/profiling
+
+For the aggregator:
+
+    $ ./aggregator -i id -d <number-of-data-owners> -c <number-of-compute-nodes>
+
+or use script run_aggr.sh in pipeline_simulation/profiling
+
+NOTE: There is support for logging and checkpoining but this feature is deactivated for this version. You can use the utils/pipeline_logging.sh to do so.
+
+*Case 3: Emulated environment*
+
+In this case the data owners are running in an emulated environmet. Note that this version does not supprt multicast. 
+You can add in the pipeline_simulation/profiling/rpi_stat.h the device characteristics and use the script run_data_owners_init.sh and run_data_owners_worker.sh in 
+pipeline_simulation/profiling. 
+The results are stored to logging files as are indicated in the script files (change them accordingly)
+
+The code for the emulated data owner is in pipeline_simulation/profiling/data_owner_simulatede.cpp
