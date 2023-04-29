@@ -155,6 +155,16 @@ std::vector<torch::nn::Sequential> resnet_part(resnet_model model_option, int64_
     
     std::vector<torch::nn::Sequential> layers;
     std::vector<int> split_points;
+    usebottleneck = false;
+
+    if (start == -1 && end == -1) {
+        split_points.push_back(36);
+        auto parts = resnet_split(layers_, num_classes, usebottleneck, split_points);
+        for (int i =0; i< parts.size(); i++) {
+            layers.push_back(parts[i]);
+        }
+        return layers;
+    }
 
     if (start == 0) {
         split_points.push_back(end);
@@ -166,7 +176,7 @@ std::vector<torch::nn::Sequential> resnet_part(resnet_model model_option, int64_
         split_points.push_back(start);
         split_points.push_back(end);
     }
-    usebottleneck = false;
+    
     auto parts = resnet_split(layers_, num_classes, usebottleneck, split_points);
     
     int sum = 0;

@@ -69,5 +69,5 @@ class systemAPI  {
  private:    
     void init_state_vector(model_name name, int model_, int num_class, int start, int end);
     void init_model_sate(model_name name, int model_, int num_class, int start, int end);
-
+    void init_model_sate_temp(model_name name, int model_, int num_class, int start, int end);
 };

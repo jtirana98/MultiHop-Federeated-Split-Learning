@@ -37,6 +37,19 @@ void systemAPI::init_model_sate(model_name name, int model_, int num_class, int 
     }
 }
 
+void systemAPI::init_model_sate_temp(model_name name, int model_, int num_class, int start, int end) {
+    
+    ModelPart first_(name, model_, start+1, end, num_class);
+    std::vector<torch::optim::SGD *> optimizers_first(first_.layers.size(), nullptr);
+    
+    for (int i = 0; i < first_.layers.size(); i++) {
+        optimizers_first[i] = new torch::optim::SGD(first_.layers[i]->parameters(), torch::optim::SGDOptions(learning_rate).momentum(0.9).weight_decay(0.0001));
+    }
+
+    State part_first(myid, first_.layers, optimizers_first);
+    parts.push_back(part_first);
+}
+
 Task systemAPI::exec(Task task, torch::Tensor& target) {
     int client_id, prev_node;
     operation type;
@@ -73,27 +86,28 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
             }
             else {
                 values = task.values;
-                parts[1].received_activation = values;
-                parts[1].activations.clear();
-                parts[1].detached_activations.clear();
-                for (int i=0; i<parts[1].layers.size(); i++) {
-                    parts[1].optimizers[i]->zero_grad();
-                    output = parts[1].layers[i]->forward(values);
+                parts[parts.size()-1].received_activation = values;
+                parts[parts.size()-1].activations.clear();
+                parts[parts.size()-1].detached_activations.clear();
 
-                    if (i != parts[1].layers.size() - 1) {
+                for (int i=0; i<parts[parts.size()-1].layers.size(); i++) {
+                    parts[parts.size()-1].optimizers[i]->zero_grad();
+                    output = parts[parts.size()-1].layers[i]->forward(values);
+                    
+                    if (i != parts[parts.size()-1].layers.size() - 1) {
                         output = output.view({task.size_, -1});
-                        parts[1].activations.push_back(output);
+                        parts[parts.size()-1].activations.push_back(output);
                         values = output.clone().detach().requires_grad_(true);
-                        parts[1].detached_activations.push_back(values);
+                        parts[parts.size()-1].detached_activations.push_back(values);
                     }
                         
                 }
-
+                std::cout << "here my friend-1" << std::endl;
                 nextOp = backward_;
                 // compute loss 
                 torch::Tensor loss =
                    torch::nn::functional::cross_entropy(output, target);
-
+                std::cout << "here my friend-1" << std::endl;
                 running_loss += loss.item<double>();
                 auto prediction = output.argmax(1);
                 auto corr = prediction.eq(target).sum().item<int64_t>();
@@ -102,12 +116,15 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                 
                 loss.backward();
 
-                if (parts[1].activations.size() >= 1) {
-                    auto detached_grad = parts[1].detached_activations[0].grad().clone().detach();
-                    parts[1].activations[0].backward(detached_grad);
+                if (parts[parts.size()-1].activations.size() >= 1) {
+                    std::cout << "okk " << parts[parts.size()-1].activations.size() << std::endl;
+                    auto detached_grad = parts[parts.size()-1].detached_activations[0].grad().clone().detach();
+                    parts[parts.size()-1].activations[0].backward(detached_grad);
+                    std::cout << "here my friend-2" << std::endl;
                 }
-
-                values = parts[1].received_activation.grad().clone().detach();
+                
+                //values = parts[parts.size()-1].received_activation.grad().clone().detach(); //SOS-NOTE: THIS IS JUST FOR THE TESTS
+                std::cout << "here my friend-1" << std::endl;
                 Task opt(client_id, optimize_, prev_node);
                 my_network_layer.put_internal_task(opt);
             }
@@ -170,8 +187,8 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
     case optimize_:
         nextOp = noOp;
         if (is_data_owner) {
-            for (int i=0; i<parts[1].layers.size(); i++) {
-                parts[1].optimizers[i]->step();
+            for (int i=0; i<parts[parts.size()-1].layers.size(); i++) {
+                parts[parts.size()-1].optimizers[i]->step();
             }
         }
         else {
@@ -255,8 +272,12 @@ void systemAPI::refactor(refactoring_data refactor_message) {
         }
     }
 
-    if (is_data_owner) 
-        init_model_sate(name, model_, num_class, start, end);
+    if (is_data_owner) {
+        if (start == -1 && end == -1) // take all model
+            init_model_sate_temp(name, model_, num_class, start, end);
+        else
+            init_model_sate(name, model_, num_class, start, end);
+    }
     else {
         clients_state.clear();
         clients.clear();

@@ -503,7 +503,7 @@ void network_layer::receiver() {
     fd_set readset;
     auto p_prev = std::chrono::system_clock::now();
     // lock
-    auto dump = check_new_task();
+    //auto dump = check_new_task();  //SOS-NOTE: THIS IS JUST FOR THE TESTS
     std::cout << "let's go " << myid << " " << rooting_table.size() << std::endl;
     sleep(1);
 
