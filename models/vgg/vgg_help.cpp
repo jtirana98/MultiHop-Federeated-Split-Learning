@@ -212,15 +212,17 @@ std::vector<torch::nn::Sequential> vgg_part(vgg_model model, int num_classes, in
     std::vector<torch::nn::Sequential> layers;
     std::vector<int> split_points;
 
-    if (start == 0) {
-        split_points.push_back(end);
-    }
-    else if (end == -1) {
-        split_points.push_back(start);
-    }
-    else{
-        split_points.push_back(start);
-        split_points.push_back(end);
+    if (start != -1 && end != -1) {
+        if (start == 0) {
+            split_points.push_back(end);
+        }
+        else if (end == -1) {
+            split_points.push_back(start);
+        }
+        else{
+            split_points.push_back(start);
+            split_points.push_back(end);
+        }
     }
 
     switch (model) {
@@ -240,6 +242,14 @@ std::vector<torch::nn::Sequential> vgg_part(vgg_model model, int num_classes, in
     }
 
     auto parts = _vgg_split(cfg, false, num_classes, split_points);
+
+    if (start == -1 && end == -1) {
+        for (int i =0; i< parts.size(); i++) {
+            layers.push_back(parts[i]);
+        }
+        return layers;
+    }
+
     int sum=0;
     for (int i =0; i< parts.size(); i++) {
         sum = sum + parts[i]->size();
