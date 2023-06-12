@@ -13,7 +13,7 @@ include_directories(models/lenet5/)
 include_directories(pipeline_simulation/)
 include_directories(pipeline_simulation/profiling/)
 include_directories(third_party/argparse/include/)
-
+include_directories(memcheck/)
 
 set(SOURCE_FILES 
                 datasets/mydataset.h
@@ -62,15 +62,18 @@ add_executable(compute_node  ${SOURCE_FILES} pipeline_simulation/compute_node.cp
 add_executable(data_owner  ${SOURCE_FILES} pipeline_simulation/data_owner.cpp)
 add_executable(simulated_data_owner  ${SOURCE_FILES} pipeline_simulation/profiling/data_owner_simulated.cpp)
 add_executable(aggregator  ${SOURCE_FILES} pipeline_simulation/aggregator.cpp)
+add_executable(memcheck  ${SOURCE_FILES} memcheck/main.cpp)
 
 target_link_libraries("${CMAKE_PROJECT_NAME}" ${TORCH_LIBRARIES})
 target_link_libraries(compute_node ${TORCH_LIBRARIES})
 target_link_libraries(data_owner ${TORCH_LIBRARIES})
 target_link_libraries(simulated_data_owner ${TORCH_LIBRARIES})
 target_link_libraries(aggregator ${TORCH_LIBRARIES})
+target_link_libraries(memcheck ${TORCH_LIBRARIES})
 
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 set_property(TARGET compute_node PROPERTY CXX_STANDARD 17)
 set_property(TARGET data_owner PROPERTY CXX_STANDARD 17)
 set_property(TARGET simulated_data_owner PROPERTY CXX_STANDARD 17)
 set_property(TARGET aggregator PROPERTY CXX_STANDARD 17)
+set_property(TARGET memcheck PROPERTY CXX_STANDARD 17)

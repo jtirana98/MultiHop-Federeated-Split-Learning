@@ -453,6 +453,16 @@ void vgg_split_cifar(vgg_model model_option, int type, int batch_size, const std
     int num_classes = (type == CIFAR_10)? 10 : 100;
     auto layers = getSplitModel(model_option, num_classes, split_points);
 
+    /*for (int i = 0; i< layers.size(); i++) {
+
+        std::stringstream s;
+        torch::save(layers[i], s);
+        std::string s_str = s.str();
+
+        std::cout << "new layer: " << i+1 << "weight size " << s_str.size() << std::endl;
+
+    }*/
+
     split_cifar(layers, type, batch_size, 7, learning_rate, num_epochs);
 }
 

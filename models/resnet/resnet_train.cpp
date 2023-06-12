@@ -253,6 +253,17 @@ void resnet_split_cifar(resnet_model model_option, int type, int batch_size, con
     usebottleneck = false;
     int num_classes = (type == CIFAR_10)? 10 : 100;
     auto layers =  resnet_split(layers_, num_classes, usebottleneck, split_points);
+
+    for (int i = 0; i< layers.size(); i++) {
+
+        std::stringstream s;
+        torch::save(layers[i], s);
+        std::string s_str = s.str();
+
+        std::cout << "new layer: " << i+1 << "weight size " << s_str.size() << std::endl;
+
+    }
+
     split_cifar(layers, type, batch_size, 1, r_learning_rate, r_num_epochs);
 }
 
