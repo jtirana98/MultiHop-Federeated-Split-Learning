@@ -1,49 +1,49 @@
 
 #include "vgg_train.h"
 
-VGG getModel(vgg_model model_option, int num_classes) {
+VGG getModel(vgg_model model_option, int num_classes, int in_channels=3) {
     switch (model_option) {
     case v11:
-        return vgg11(num_classes);
+        return vgg11(num_classes, in_channels);
         break;
     case v11_bn:
-        return vgg11_bn(num_classes);
+        return vgg11_bn(num_classes, in_channels);
         break;
     case v13:
-        return vgg13(num_classes);
+        return vgg13(num_classes, in_channels);
         break;
     case v13_bn:
-        return vgg13_bn(num_classes);
+        return vgg13_bn(num_classes, in_channels);
         break;
     case v16:
-        return vgg16(num_classes);
+        return vgg16(num_classes, in_channels);
         break;
     case v16_bn:
-        return vgg16_bn(num_classes);
+        return vgg16_bn(num_classes, in_channels);
         break;
     case v19:
-        return vgg19(num_classes);
+        return vgg19(num_classes, in_channels);
         break;
     case v19_bn:
-        return vgg19_bn(num_classes);
+        return vgg19_bn(num_classes, in_channels);
     default:
         break;
     }
 }
 
-std::vector<torch::nn::Sequential> getSplitModel(vgg_model model_option, int num_classes, std::vector<int> split_points) {
+std::vector<torch::nn::Sequential> getSplitModel(vgg_model model_option, int num_classes, std::vector<int> split_points, int in_channels=3) {
     switch (model_option) {
     case v11:
-        return vgg11_split(num_classes, split_points);
+        return vgg11_split(num_classes, split_points, in_channels);
         break;
     case v13:
-        return vgg13_split(num_classes, split_points);
+        return vgg13_split(num_classes, split_points, in_channels);
         break;
     case v16:
-        return vgg16_split(num_classes, split_points);
+        return vgg16_split(num_classes, split_points, in_channels);
         break;
     case v19:
-        return vgg19_split(num_classes, split_points);
+        return vgg19_split(num_classes, split_points, in_channels);
     default:
         break;
     }
@@ -78,7 +78,7 @@ void vgg_mnist(vgg_model model_option, int batch_size, bool test) {
                 std::move(train_dataset), batch_size);
 
     int num_classes = 10;
-    auto model = getModel(model_option, num_classes);
+    auto model = getModel(model_option, num_classes, 1);
 
     printModelsParameters(model);
 
@@ -134,7 +134,7 @@ void vgg_mnist(vgg_model model_option, int batch_size, bool test) {
     }
 
 }
-
+/*
 void vgg_split_mnist(vgg_model model_option, int batch_size, const std::vector<int>& split_points = std::vector<int>()) {
     std::vector<gatherd_data> all_measures;
 
@@ -288,8 +288,24 @@ void vgg_split_mnist(vgg_model model_option, int batch_size, const std::vector<i
     for (int i = data_loads.gradients.size() - 1; i>0; i--) {
         std::cout << data_loads.gradients[i].data_load << "\t";
     }
+}
+*/
 
+void vgg_split_mnist(vgg_model model_option, int batch_size, const std::vector<int>& split_points = std::vector<int>()) {
+    int num_classes = 10;
+    auto layers = getSplitModel(model_option, num_classes, split_points, 1);
 
+    for (int i = 0; i< layers.size(); i++) {
+
+        std::stringstream s;
+        torch::save(layers[i], s);
+        std::string s_str = s.str();
+
+        std::cout << "new layer: " << i+1 << "weight size " << s_str.size() << std::endl;
+
+    }
+
+    split_mnist(layers, batch_size, 7, learning_rate, num_epochs);
 }
 
 // CIFAR

@@ -1,9 +1,8 @@
 #include "vgg_help.h"
 #include <typeinfo>
 
-torch::nn::Sequential make_layers(std::string cfg, bool batch_norm) {
+torch::nn::Sequential make_layers(std::string cfg, bool batch_norm, int in_channels=3) {
     auto layers = torch::nn::Sequential();
-    int in_channels = 3;
     auto description = table.find(cfg)->second;
 
     for(int d : description) {
@@ -24,51 +23,50 @@ torch::nn::Sequential make_layers(std::string cfg, bool batch_norm) {
 }
 
 
-VGG _vgg(std::string cfg, bool batch_norm, int num_classes) {
-    auto features = make_layers(cfg, batch_norm);
+VGG _vgg(std::string cfg, bool batch_norm, int num_classes, int in_channels=3) {
+    auto features = make_layers(cfg, batch_norm, in_channels);
     auto model =  VGG(features, num_classes, 0.5);
     return model;
 }
 
 // model types
-VGG vgg11(int num_classes) {
-    return _vgg("A", false, num_classes);
+VGG vgg11(int num_classes, int in_channels) {
+    return _vgg("A", false, num_classes, in_channels);
 }
 
-VGG vgg11_bn(int num_classes) {
-    return _vgg("A", true, num_classes);
+VGG vgg11_bn(int num_classes, int in_channels) {
+    return _vgg("A", true, num_classes, in_channels);
 }
 
-VGG vgg13(int num_classes) {
-    return _vgg("B", false, num_classes);
+VGG vgg13(int num_classes, int in_channels) {
+    return _vgg("B", false, num_classes, in_channels);
 }
 
-VGG vgg13_bn(int num_classes) {
-    return _vgg("B", true, num_classes);
+VGG vgg13_bn(int num_classes, int in_channels) {
+    return _vgg("B", true, num_classes, in_channels);
 }
 
-VGG vgg16(int num_classes) {
-    return _vgg("D", false, num_classes);
+VGG vgg16(int num_classes, int in_channels) {
+    return _vgg("D", false, num_classes, in_channels);
 }
 
-VGG vgg16_bn(int num_classes) {
-    return _vgg("D", true, num_classes);
+VGG vgg16_bn(int num_classes, int in_channels) {
+    return _vgg("D", true, num_classes, in_channels);
 }
 
-VGG vgg19(int num_classes) {
-    return _vgg("E", false, num_classes);
+VGG vgg19(int num_classes, int in_channels) {
+    return _vgg("E", false, num_classes, in_channels);
 }
 
-VGG vgg19_bn(int num_classes) {
-    return _vgg("E", true, num_classes);
+VGG vgg19_bn(int num_classes, int in_channels) {
+    return _vgg("E", true, num_classes, in_channels);
 }
 
 // split models
 
 
-std::vector<torch::nn::Sequential> _vgg_split(std::string cfg, bool batch_norm, int num_classes, const std::vector<int>& split_points) {
+std::vector<torch::nn::Sequential> _vgg_split(std::string cfg, bool batch_norm, int num_classes, const std::vector<int>& split_points, int in_channels) {
     std::vector<torch::nn::Sequential> layers;
-    int in_channels = 3;
     auto description = table.find(cfg)->second;
     double dropout = 0.5;
     bool split_every_point = false, at_end=false;
@@ -188,25 +186,25 @@ std::vector<torch::nn::Sequential> _vgg_split(std::string cfg, bool batch_norm, 
     return layers;
 }
 
-std::vector<torch::nn::Sequential> vgg11_split(int num_classes, const std::vector<int>& split_points) {
-    return _vgg_split("A", false, num_classes, split_points);
+std::vector<torch::nn::Sequential> vgg11_split(int num_classes, const std::vector<int>& split_points, int in_channels) {
+    return _vgg_split("A", false, num_classes, split_points, in_channels);
 }
 
 
-std::vector<torch::nn::Sequential> vgg13_split(int num_classes, const std::vector<int>& split_points) {
-    return _vgg_split("B", false, num_classes, split_points);
+std::vector<torch::nn::Sequential> vgg13_split(int num_classes, const std::vector<int>& split_points, int in_channels) {
+    return _vgg_split("B", false, num_classes, split_points, in_channels);
 }
 
-std::vector<torch::nn::Sequential> vgg16_split(int num_classes, const std::vector<int>& split_points) {
-    return _vgg_split("D", false, num_classes, split_points);
+std::vector<torch::nn::Sequential> vgg16_split(int num_classes, const std::vector<int>& split_points, int in_channels) {
+    return _vgg_split("D", false, num_classes, split_points, in_channels);
 }
 
-std::vector<torch::nn::Sequential> vgg19_split(int num_classes, const std::vector<int>& split_points) {
-    return _vgg_split("E", false, num_classes, split_points);
+std::vector<torch::nn::Sequential> vgg19_split(int num_classes, const std::vector<int>& split_points, int in_channels) {
+    return _vgg_split("E", false, num_classes, split_points, in_channels);
 }
 
 
-std::vector<torch::nn::Sequential> vgg_part(vgg_model model, int num_classes, int start, int end) {
+std::vector<torch::nn::Sequential> vgg_part(vgg_model model, int num_classes, int start, int end, int in_channels) {
     std::string cfg;
     bool batch_norm = false;
     std::vector<torch::nn::Sequential> layers;
@@ -239,7 +237,7 @@ std::vector<torch::nn::Sequential> vgg_part(vgg_model model, int num_classes, in
         break;
     }
 
-    auto parts = _vgg_split(cfg, false, num_classes, split_points);
+    auto parts = _vgg_split(cfg, false, num_classes, split_points, in_channels);
     int sum=0;
     for (int i =0; i< parts.size(); i++) {
         sum = sum + parts[i]->size();

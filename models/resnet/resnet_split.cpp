@@ -24,10 +24,10 @@ std::array<int64_t, 4> getLayers(resnet_model model_option) {
 }
 
 std::vector<torch::nn::Sequential> resnet_split(const std::array<int64_t, 4>& layers, int64_t num_classes, 
-    bool usebottleneck, const std::vector<int>& split_points) {
+    bool usebottleneck, const std::vector<int>& split_points, int in_channels) {
 
     bool downsample = false;
-    int in_channels, out_channels, blocks, stride;
+    int out_channels, blocks, stride;
     std::vector<torch::nn::Sequential> parts;
     bool split_every_point = (split_points.size() == 0), at_end = false;
 
@@ -42,7 +42,7 @@ std::vector<torch::nn::Sequential> resnet_split(const std::array<int64_t, 4>& la
     bool new_split = false;
 
     // layer 0
-    part->push_back(torch::nn::Conv2d(torch::nn::Conv2dOptions(3, 64, 7).stride(2).padding(3)));
+    part->push_back(torch::nn::Conv2d(torch::nn::Conv2dOptions(in_channels, 64, 7).stride(2).padding(3)));
 
     if (split_every_point || (!split_every_point && !at_end && split_points[l] == k)) {
         parts.push_back(part);
@@ -149,7 +149,7 @@ std::vector<torch::nn::Sequential> resnet_split(const std::array<int64_t, 4>& la
     return parts;
 }
 
-std::vector<torch::nn::Sequential> resnet_part(resnet_model model_option, int64_t num_classes, int start, int end) {
+std::vector<torch::nn::Sequential> resnet_part(resnet_model model_option, int64_t num_classes, int start, int end, int in_channels) {
     auto layers_ = getLayers(model_option);
     bool usebottleneck = (model_option <=2) ? false : true;
     
@@ -167,7 +167,7 @@ std::vector<torch::nn::Sequential> resnet_part(resnet_model model_option, int64_
         split_points.push_back(end);
     }
     usebottleneck = false;
-    auto parts = resnet_split(layers_, num_classes, usebottleneck, split_points);
+    auto parts = resnet_split(layers_, num_classes, usebottleneck, split_points, in_channels);
     
     int sum = 0;
     for (int i =0; i< parts.size(); i++) {

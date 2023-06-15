@@ -267,11 +267,34 @@ void resnet_split_cifar(resnet_model model_option, int type, int batch_size, con
     split_cifar(layers, type, batch_size, 1, r_learning_rate, r_num_epochs);
 }
 
+void resnet_split_mnist(resnet_model model_option, int batch_size, const std::vector<int>& split_points) { 
+    auto layers_ = getLayers(model_option);
+    bool usebottleneck = (model_option <=2) ? false : true;
+    usebottleneck = false;
+    int num_classes = 10;
+    auto layers =  resnet_split(layers_, num_classes, usebottleneck, split_points, 1);
+
+    for (int i = 0; i< layers.size(); i++) {
+
+        std::stringstream s;
+        torch::save(layers[i], s);
+        std::string s_str = s.str();
+
+        std::cout << "new layer: " << i+1 << "weight size " << s_str.size() << std::endl;
+    }
+
+    split_mnist(layers, batch_size, 1, r_learning_rate, r_num_epochs);
+}
+
 void train_resnet(dataset dataset_option, resnet_model model_option, bool split, int batch_size, const std::vector<int>& split_points, bool test) {
     if (split) {
         switch (dataset_option) {
             case MNIST:
-            //vgg_mnist(model_option, batch_size, test);
+                if (model_option <= 2)
+                    resnet_split_mnist/*<ResidualBlock>*/(model_option, batch_size, split_points);
+                else
+                    resnet_split_mnist/*<ResidualBottleneckBlock>*/(model_option, batch_size, split_points);
+                break;
             break;
             case CIFAR_10:
                 if (model_option <= 2)
