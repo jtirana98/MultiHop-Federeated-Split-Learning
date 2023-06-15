@@ -37,6 +37,13 @@ class systemAPI  {
 
     // apply for data owner 
     int batch_size=128, rounds=50;
+    
+    // Scheduler
+    int max_tasks_fwd = 3;
+    int max_tasks_back = 3;
+    std::map<int, std::pair<int, int>> fwd_parts; // part --> (START,END]
+    std::map<int, std::pair<int, int>> back_parts;
+
     std::vector<State> parts;
     std::vector<State> parts_;
     double learning_rate = 0.01;
@@ -49,7 +56,18 @@ class systemAPI  {
     myid(myid),
     my_network_layer(myid, log_dir, is_data_owner),
     rcv_thread(&network_layer::receiver, &my_network_layer),
-    snd_thread(&network_layer::sender, &my_network_layer) { };
+    snd_thread(&network_layer::sender, &my_network_layer) { 
+
+        if(!is_data_owner) {
+            fwd_parts.insert({1, std::pair<std::string, int>(-1, 9)});
+            fwd_parts.insert({2, std::pair<std::string, int>(9, 15)});
+            fwd_parts.insert({3, std::pair<std::string, int>(15, 30)});
+
+            back_parts.insert({1, std::pair<std::string, int>(-1, 9)});
+            back_parts.insert({2, std::pair<std::string, int>(9, 15)});
+            back_parts.insert({3, std::pair<std::string, int>(15, 30)});
+        }
+    };
 
     void refactor(refactoring_data refactor_message);
     Task exec(Task task, torch::Tensor& targer);

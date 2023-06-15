@@ -32,6 +32,7 @@ class Task {
     int client_id;
     int prev_node;
     int model_part;
+    int job_sequence=0;
     int size_;
     long t_start;
     int batch0=-1;

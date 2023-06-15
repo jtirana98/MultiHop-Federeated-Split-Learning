@@ -112,14 +112,28 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                 my_network_layer.put_internal_task(opt);
             }
         }
-        else { // compute node
-            values = task.values;
+        else { // compute node - forward
+            
             auto client_state = &(clients_state.find(client_id)->second);
-            client_state->received_activation = values;
-            client_state->activations.clear();
-            client_state->detached_activations.clear();
-            for (int i=0; i<client_state->layers.size(); i++) {
-                if (i >= 1) {
+            
+            if (task.job_sequence == 1) {
+                values = task.values;
+                client_state->received_activation = values; 
+                client_state->activations.clear();
+                client_state->detached_activations.clear();
+            }
+            else{
+                values = client_state->detached_activations[client_state->detached_activations.size()-1]
+            }
+
+            client_state->optimizers[task.job_sequence]->zero_grad();
+            output = client_state->layers[task.job_sequence]->forward(values);
+            client_state->activations.push_back(output);
+            values = output.clone().detach().requires_grad_(true);
+            client_state->detached_activations.push_back(values);            
+            
+            /*for (int i=start_l; i<end_l; i++) {
+                if (i >= 1) { TODDO: This needs to be fixed
                     values = values.view({task.size_, -1});
                 }
                 client_state->optimizers[i]->zero_grad();
@@ -127,11 +141,15 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
                 client_state->activations.push_back(output);
                 values = output.clone().detach().requires_grad_(true);
                 client_state->detached_activations.push_back(values);
-            }
+            }*/
         }
         nextTask = Task(client_id, nextOp, prev_node);
-        nextTask.values = values;
+        if (task.job_sequence < max_tasks_fwd)
+            nextTask.values.clear();
+        else
+            nextTask.values = values;
         nextTask.size_ = size_;
+        nextTask.job_sequence = task.job_sequence + 1;
         break;
     case backward_:
         nextOp = backward_;
@@ -146,10 +164,12 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
             nextOp = noOp; // end of batch
             
         }
-        else { // compute node
+        else { // compute node - backward
             values = task.values;
             auto client_state = &clients_state.find(client_id)->second;
-            for (int i=client_state->layers.size()-1; i>=0; i--) {
+
+
+            /*for (int i=client_state->layers.size()-1; i>=0; i--) {
                 client_state->activations[i].backward(values);
                 
                 if (i != 0)
@@ -160,12 +180,17 @@ Task systemAPI::exec(Task task, torch::Tensor& target) {
             }
             // add optimization task to list
             Task opt(client_id, optimize_, prev_node);
-            my_network_layer.put_internal_task(opt);
+            my_network_layer.put_internal_task(opt);*/
+
         }
 
         nextTask = Task(client_id, nextOp, prev_node);
-        nextTask.values = values;
+        if (task.job_sequence < max_tasks_back)
+            nextTask.values.clear();
+        else
+            nextTask.values = values;
         nextTask.size_ = size_;
+        nextTask.job_sequence = task.job_sequence + 1;
         break;
     case optimize_:
         nextOp = noOp;
@@ -213,11 +238,6 @@ void systemAPI::refactor(refactoring_data refactor_message) {
     if (refactor_message.rooting_table.size() > 0) {
         for (int i=0; i < refactor_message.rooting_table.size(); i++) {
             std::pair<int, std::string> addr = refactor_message.rooting_table[i];
-            
-            // In VM version we do not have node search
-            /*if(addr.first == 0) {
-                continue;
-            }*/
 
             if((addr.first > 3) && (addr.first < 18)) {
                 std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(0)->second;
@@ -225,24 +245,6 @@ void systemAPI::refactor(refactoring_data refactor_message) {
                 my_port = my_port + (addr.first + 3);
                 my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
             }
-            /*else if (addr.first > 18 && addr.first < 23) {
-                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(18)->second;
-                int my_port = my_addr.second;
-                my_port = my_port + (addr.first-18);
-                my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
-            }
-            else if (addr.first > 23 && addr.first < 33){
-                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(23)->second;
-                int my_port = my_addr.second;
-                my_port = my_port + (addr.first-23);
-                my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
-            }
-            else if (addr.first > 33 && addr.first < 43) {
-                std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(33)->second;
-                int my_port = my_addr.second;
-                my_port = my_port + (addr.first-33);
-                my_network_layer.rooting_table.insert({addr.first, std::pair<std::string, int>(addr.second, my_port)});
-            }*/
             else if (addr.first >= 18) {
                 std::pair<std::string, int> my_addr = my_network_layer.rooting_table.find(18)->second;
                 int my_port = my_addr.second;

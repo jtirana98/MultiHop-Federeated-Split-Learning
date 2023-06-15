@@ -13,33 +13,40 @@ class ComputeNode {
     void task_operator(/*operation op*/); // this will be the thread
 };
 
+class Job {
+    public:
+      int client;
+      int task;
+      Task::operation type; //
+
+      Job(int client, int task, Task::operatio type) : client(client), task(task), type(type) {}
+};
+
 void ComputeNode::task_operator(/*operation op*/) {
     Task next_task;
     int next_node;
     torch::Tensor tmp;
 
-    std::string my_operation;
-    /*switch (op) {
-    case forward_:
-        my_operation = "forward";
-        break;
-    case backward_:
-        my_operation = "backward";
-        break;
-    default:
-        break;  
-    }*/
+    std::map<int, Task> ready_tasks;
+    int scheduler_slot = 0;
 
-    //std::cout << "The " << my_operation << " thread started!" << std::endl;
-
-    int g_c = 0;
+    // add here a function that constructs the planner
+    std::vector<Job> planner{Job(0,1, forward_), Job(0,2,forward_), Job(1,1,forward_), 
+                            Job(0,3,forward_), Job(2,1,forward_), Job(2,2,forward_), 
+                            Job(2,3,forward_), Job(1,3,forward_), Job(0,1, backward_), 
+                            Job(0,2,backward_), Job(1,1,backward_), Job(0,3,backward_), 
+                            Job(2,1,backward_), Job(2,2,backward_), 
+                            Job(2,3,backward_), Job(1,3,backward_)};
+    
     while (true) {
-        auto timestamp1 = std::chrono::steady_clock::now();
-        next_task = sys_.my_network_layer.check_new_task(/*op==operation::backward_*/); // TODO: CHANGE THAT
-        auto timestamp2 = std::chrono::steady_clock::now();
-        auto _time = std::chrono::duration_cast<std::chrono::milliseconds>
-                        (timestamp2 - timestamp1).count();
-        std::cout << "Waiting... " << _time << std::endl;
+        auto planned_task = planner[scheduler_slot];
+
+        if (planned_task.task == 1) {
+            next_task = sys_.my_network_layer.check_new_task(); // wait until task arrives
+        }
+        else{
+            next_task = ready_tasks[planned_task.client];
+        }
 
         interval_type type_;
         std::string operation_;
@@ -66,19 +73,37 @@ void ComputeNode::task_operator(/*operation op*/) {
         auto timestamp2_ = std::chrono::steady_clock::now();
         auto __time = std::chrono::duration_cast<std::chrono::milliseconds>
                         (timestamp2_ - timestamp1_).count();
-        //if(g_c % 50 == 0)
-        std::cout << "Exec "  << operation_ << " " << __time  << " client " << next_task.client_id << std::endl;
 
-        if (task.type != noOp) {
-            bool keep_connection = true;
-            next_node = (next_task.type == forward_) ? sys_.inference_path[0] : sys_.inference_path[1];
-            if (next_node == -1) {
-                keep_connection = false;
-                next_node = task.client_id;
-            }
-            sys_.my_network_layer.new_message(task, next_node, keep_connection); // TODO: CHECK
+        std::cout << "Exec "  << operation_ << " " << __time  << 
+                    " client " << next_task.client_id  << "part" << planned_task.task << std::endl;
+
+        int end = 0;
+        switch (next_task.type) {
+            case forward_:
+                end = sys_.max_tasks_fwd;
+                break;
+            case backward_:
+                end = sys_.max_tasks_back;
+                break;
+            case optimize_:
+                end = sys_.max_tasks_back;
+                break;
+                break;
+            default:
+                break;
         }
-        g_c++;
+
+        if (planned_task.task == end+1) { // end of job
+            bool keep_connection = false;
+            next_node = task.client_id;
+
+            sys_.my_network_layer.new_message(task, next_node, keep_connection);
+        }
+        else{
+            ready_tasks[planned_task.client] = task;
+        }
+
+        scheduler_slot = (sched_get_priority_max+1)%planner.size()
     }
 
 } 
@@ -109,7 +134,8 @@ int main(int argc, char **argv) {
     auto myID = program.get<int>("-i");
     std::cout << "myid " << myID << std::endl;
     auto log_dir = program.get<std::string>("-l");
-    
+
+
     systemAPI sys_(false, myID, log_dir);
     sys_.my_network_layer.findInit();
     auto refactor_message = sys_.my_network_layer.check_new_refactor_task();
