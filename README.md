@@ -26,7 +26,7 @@ Repository structure:
 - *main.cpp* : Main code that is used to profile or train the models.
 - directory *utils/*: Contains the libraries for logging and split learning training.
 
-- directory *pipeline_simulation/*: Here we implement SplitPipe's compoments.
+- directory *pipeline_simulation/*: Here we implement SplitFL's compoments.
     - module: *Split Learning engine*:
         -   State.h
         -   Task.h
@@ -63,7 +63,7 @@ How to run program and connect Libtorch:
         $ cmake --build . --config Release
 
 
-Running SplitPipe in a distributed manner:
+Running SplitFL in a distributed manner:
 
 *Case 0: Model profiling*
 An example code is in main, you can either get the delay for each batch or get the per-layer delay.
