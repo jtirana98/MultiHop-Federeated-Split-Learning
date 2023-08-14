@@ -13,7 +13,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', '-m', type=str, default='resnet101', help='select model resnet101/vgg19')
     parser.add_argument('--parts', '-p', type=int, default=2, help='run fifo with load balancer')
-    parser.add_argument('--splitting_points', '-S', type=str, default='3,33', help='give an input in the form of s1,s2')
+    parser.add_argument('--splitting_points', '-S', type=str, default='10,30', help='give an input in the form of s1,s2')
     args = parser.parse_args()
     return args
 
@@ -75,35 +75,58 @@ def main():
     for i in range(N):
         m.addConstr(qsum(x[:,i]) == 1)
     
-    #cconstraint-2: only sequential layers
+    
+    for p in range(P):
+        m.addConstr(qsum(x[p,:]) >= 1)
+    
+    #constraint-2: only sequential layers
+    '''
+    for p in range(P):
+        for j in range(N):
+            for k in range(1,j):
+                m.addConstr((x[p,k-1]-x[p,j])*x[p,j] <= (x[p,k]-x[p,j])*x[p,j])
+    '''
     
     for p in range(P):
         for j in range(N):
             for k in range(1,j):
                 m.addConstr((x[p,k-1]-x[p,j])*x[p,j] <= (x[p,k]-x[p,j])*x[p,j])
-                             
-        
+
+
     m.addConstr(x @ d <= mem) #constraint-3: memory constraint on cn
-    m.addConstr(Lf == qsum(x@(proc_f.T+proc_b.T)))    #constraint-4a: forward delay for each cn
+    #m.addConstr(Lf == qsum(x@(proc_f.T)))    #constraint-4a: forward delay for each cn
     #m.addConstr(Lb == qsum(x@proc_b.T))    #constraint-4b: backward delay for each cn
+
+    for p in range(P):
+        m.addConstr(Lf[p] == qsum(x[p,j] *proc_f[p,j] for j in range(N)))
+        m.addConstr(Lb[p] == qsum(x[p,j] *proc_b[p,j] for j in range(N)))
 
     # objetive
     for p in range(P):
         m.addConstr(Lf_max >= Lf[p])
-        #m.addConstr(Lb_max == gp.max_(Lb[p]))
+        m.addConstr(Lb_max >= Lb[p])
 
-    m.setObjective(Lf_max, GRB.MINIMIZE)
+    m.setObjective(Lf_max+Lb_max, GRB.MINIMIZE)
     m.optimize()
     print(x.X)
     print(m.ObjVal)
     print('model parts:')
+    maxf = 0
+    maxb = 0
     for p in range(P):
         procf = 0
         procb = 0
         for i in range(N):
             procf += np.abs(x[p,i].X)*proc_f[p,i]
             procb += np.abs(x[p,i].X)*proc_b[p,i]
-        print(f'{p}: {procf}  {procb} \t\t TOTAL {procf+procb}')
+        if maxf < procf:
+            maxf = procf
 
+        if maxb < procb:
+            maxb = procb
+        print(f'{p}: {procf}  {procb} \t\t TOTAL {procf+procb}')
+    print(f'MAXX {maxf}  {maxb}  {maxf+maxb}')
+
+    print(np.abs(x.x)@d)
 if __name__ == '__main__':
     main()
