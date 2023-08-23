@@ -13,7 +13,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', '-m', type=str, default='resnet101', help='select model resnet101/vgg19')
     parser.add_argument('--parts', '-p', type=int, default=2, help='run fifo with load balancer')
-    parser.add_argument('--splitting_points', '-S', type=str, default='10,30', help='give an input in the form of s1,s2')
+    parser.add_argument('--splitting_points', '-S', type=str, default='3,33', help='give an input in the form of s1,s2')
     args = parser.parse_args()
     return args
 
@@ -63,6 +63,8 @@ def main():
     ones_P = np.ones((P,1))
     ones_N = np.ones((N,1))
 
+    print(f'There are {N} possible layers')
+    start_time = time.time()
     m = gp.Model("")
     x = m.addMVar(shape = (P,N), vtype=GRB.BINARY, name="x")
     Lf = m.addMVar(shape=(P), name="lforward")
@@ -108,6 +110,7 @@ def main():
 
     m.setObjective(Lf_max+Lb_max, GRB.MINIMIZE)
     m.optimize()
+    end_time = time.time()
     print(x.X)
     print(m.ObjVal)
     print('model parts:')
@@ -117,8 +120,8 @@ def main():
         procf = 0
         procb = 0
         for i in range(N):
-            procf += np.abs(x[p,i].X)*proc_f[p,i]
-            procb += np.abs(x[p,i].X)*proc_b[p,i]
+            procf += np.abs(np.rint(x[p,i].X))*proc_f[p,i]
+            procb += np.abs(np.rint(x[p,i].X))*proc_b[p,i]
         if maxf < procf:
             maxf = procf
 
@@ -126,7 +129,7 @@ def main():
             maxb = procb
         print(f'{p}: {procf}  {procb} \t\t TOTAL {procf+procb}')
     print(f'MAXX {maxf}  {maxb}  {maxf+maxb}')
-
-    print(np.abs(x.x)@d)
+    print(f'Total time {end_time-start_time}')
+    print(np.abs(np.rint(x.x))@d)
 if __name__ == '__main__':
     main()
