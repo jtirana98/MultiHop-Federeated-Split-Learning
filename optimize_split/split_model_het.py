@@ -4,10 +4,12 @@ import pandas as pd
 import math
 import random
 import time
+import random
 import gurobipy as gp
 from gurobipy import GRB
 from gurobipy import quicksum as qsum
 import argparse
+
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -19,7 +21,7 @@ def get_args():
 
 def main():
     args = get_args()
-    
+    random.seed(42)
     P = args.parts
     splitting_points = args.splitting_points
     points = list(splitting_points.split(','))
@@ -34,6 +36,7 @@ def main():
 
     df_memory = pd.read_excel(io=filename, sheet_name='memory', header=None)
     df_vm = pd.read_excel(io=filename, sheet_name='VM', header=None)
+    df_laptop = pd.read_excel(io=filename, sheet_name='laptop', header=None)
 
     memory_data = df_memory.values.tolist()
     N = point_b - point_a
@@ -53,11 +56,39 @@ def main():
     proc_b = np.zeros((P,N))
 
     vm_data = df_vm.values.tolist()
+    laptop_data = df_laptop.values.tolist()
+
+    rr = []
+    for j in range(P):
+        rr.append(random.randint(1,3))
     k = 0
     for i in range(point_a, point_b):
         for j in range(P):
-            proc_f[j,k] = vm_data[i][0]
-            proc_b[j,k] = vm_data[i][1] + vm_data[i][2]
+            ''''
+            min_f = min(vm_data[i][0], laptop_data[i][0])
+            max_f = max(vm_data[i][0], laptop_data[i][0])
+            
+            min_f = int(min_f)
+            max_f = int(max_f)
+            
+            if min_f == max_f:
+                max_f = max_f+1
+
+            
+            proc_f[j,k] = random.randrange(min_f, max_f)
+            min_b = min(vm_data[i][1]+vm_data[i][2], laptop_data[i][1]+laptop_data[i][2])
+            max_b = max(vm_data[i][1]+vm_data[i][2], laptop_data[i][1]+laptop_data[i][2])
+            
+            min_b = int(min_b)
+            max_b = int(max_b)
+            
+            if min_b == max_b:
+                max_b = max_b+1
+
+            proc_b[j,k] = random.randrange(min_b, max_b)
+            '''
+            proc_f[j,k] = rr[j]*vm_data[i][0]
+            proc_b[j,k] = rr[j]*(vm_data[i][1] + vm_data[i][2])
         k += 1
 
     ones_P = np.ones((P,1))
@@ -111,7 +142,7 @@ def main():
     m.setObjective(Lf_max+Lb_max, GRB.MINIMIZE)
     m.optimize()
     end_time = time.time()
-    print(x.X)
+    print(np.abs(np.rint(x.X)))
     print(m.ObjVal)
     print('model parts:')
     maxf = 0
@@ -131,6 +162,7 @@ def main():
     print(f'MAXX {maxf}  {maxb}  {maxf+maxb}')
     print(f'Total time {end_time-start_time}')
     print(np.abs(np.rint(x.x))@d)
+
 
     xx = np.abs(np.rint(x.x))
     splitting_points = []
