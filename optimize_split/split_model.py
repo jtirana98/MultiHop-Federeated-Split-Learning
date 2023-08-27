@@ -11,9 +11,9 @@ import argparse
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', '-m', type=str, default='resnet101', help='select model resnet101/vgg19')
+    parser.add_argument('--model', '-m', type=str, default='vgg19', help='select model resnet101/vgg19')
     parser.add_argument('--parts', '-p', type=int, default=2, help='run fifo with load balancer')
-    parser.add_argument('--splitting_points', '-S', type=str, default='3,33', help='give an input in the form of s1,s2')
+    parser.add_argument('--splitting_points', '-S', type=str, default='1,24', help='give an input in the form of s1,s2')
     args = parser.parse_args()
     return args
 
