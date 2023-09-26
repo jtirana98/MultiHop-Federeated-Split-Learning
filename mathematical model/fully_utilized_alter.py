@@ -2,22 +2,16 @@ import numpy as np
 import matplotlib.path as mpath
 import matplotlib.pyplot as plt
 
-num_of_compute_nodes = [2,3,4,5]
-#splits = [[4,9,23],[4,7,14,23],[4,12,18,22,23],[4,10,16,18,21,23]]
-#splits = [[12,19],[4,13,19],[4,9,15,19]]
-            #[10,19]
-#real_data = [[300,1300],[400, 1550], [298.15, 1100]]
-
-#splits = [[4,13,23],[4,11,15,23],[4,9,13,18,23],[4,8,12,14,19,23]]
-#splits = [[2,13,25],[2,11,17,25],[2,8,13,18,25],[2,8,12,14,19,25]]
-
+num_of_compute_nodes = [1,2,3]
+splits = [[10,35],[2,26,35],[2,16,26,35]]
+#25
 num_of_batches = 16
 local_epocs = 2
 
 layers = []
 bytes = []
 
-types_badwidth = [lambda a : ((a*0.000008)/8)*1000, lambda a : ((a*0.000000008)/7.13)*1000] # [ cn <-> rpi, cn <-> cn ]  
+types_badwidth = [lambda a : ((a*0.000008)/8)*1000, lambda a : ((a*0.000000008)/7.13)*1000, lambda a : ((a*0.000008)/2)*1000] # [ cn <-> rpi, cn <-> cn ]  
 
 class Layer:
     def __init__(self, proc_forw, proc_back, proc_opti, send_a, send_g):
@@ -71,12 +65,12 @@ def init_layers(filename):
         tok = 2
         if (len(attributes) > 3):
             tok = 3
-            layers_.append(Layer(float(attributes[0]), float(attributes[1]), float(attributes[2]), bytes[int(attributes[3])-1], -1))
+            layers_.append(Layer(float(attributes[0]), float(attributes[1]), float(attributes[2]), bytes[int(attributes[3])], -1))
         else:
-            layers_.append(Layer(float(attributes[0]), float(attributes[1]), 0, bytes[int(attributes[2])-1], -1))
+            layers_.append(Layer(float(attributes[0]), float(attributes[1]), 0, bytes[int(attributes[2])], -1))
         
         if(i>0):
-            layers_[-2].send_g=bytes[int(attributes[tok])-1]
+            layers_[-2].send_g=bytes[int(attributes[tok])]
         i += 1
 
     return layers_
@@ -105,25 +99,25 @@ def all_hops(thelist, op):
     return total
 
 def get_res(data_owners =300):
-    data_owners = [150]
     global bytes, layers
-    bytes = init_bytes("vgg_data.data")
-    layers = init_layers("vgg_cn.data")
-    layers_dataowner = init_layers("vgg_iot.data") #d1
-    layers_dataowner2 = init_layers("vgg_iot2.dat") #d1 1
-    layers_dataowner3 = init_layers("vgg_iot_2.data") #d2 1
-    layers_dataowner4 = init_layers("vgg_iot_2_2.data") #d2
+    bytes = init_bytes("dataload.data")
+    layers = init_layers("model.data")
+    layers_dataowner = init_layers("resnet_1_d1.dat") #d1
+    layers_dataowner2 = init_layers("resnet_2_d1.dat") #d1
+
+    layers_dataowner3 = init_layers("resnet_1_d2.dat") #d2
+    layers_dataowner4 = init_layers("resnet_2_d2.dat") #d2
 
     compute_nodes_computation = []
-    data_owners_computation = [Model_part(0, 1, 0, 0, layers_dataowner2), Model_part(1, 2, 0, 0, layers_dataowner2)]
+    data_owners_computation = [Model_part(0, 1, 0, 0, layers_dataowner), Model_part(1, 2, 0, 0, layers_dataowner)]
     data_owners_computation2 = [Model_part(0, 1, 0, 0, layers_dataowner3), Model_part(1, 2, 0, 0, layers_dataowner3)]
     total_cost = []
     exp = 0
     for num_c in num_of_compute_nodes:
-        print(f"------ nodes {num_c} ------")
+        print(f"nodes {num_c}")
         if (num_c > 1):
-             data_owners_computation = [Model_part(0, 1, 0, 0, layers_dataowner), Model_part(1, 2, 0, 0, layers_dataowner)]
-             data_owners_computation2 = [Model_part(0, 1, 0, 0, layers_dataowner4), Model_part(1, 2, 0, 0, layers_dataowner4)]   
+            data_owners_computation = [Model_part(0, 1, 0, 0, layers_dataowner2), Model_part(1, 2, 0, 0, layers_dataowner2)]
+            data_owners_computation2 = [Model_part(0, 1, 0, 0, layers_dataowner4), Model_part(1, 2, 0, 0, layers_dataowner4)]
         compute_nodes_computation = []
         total_cost_ = []
         
@@ -135,21 +129,22 @@ def get_res(data_owners =300):
             if (i == num_c-1):
                 bd2 = 0
             compute_nodes_computation.append(Model_part(splits[exp][i], splits[exp][i+1], bd1, bd2, layers))
-            #compute_nodes_computation[-1].proc_back = 1100
-            #compute_nodes_computation[-1].proc_forw = 130
 
             #print(f'HHH {i} {compute_nodes_computation[-1].proc_forw} {compute_nodes_computation[-1].proc_back} {compute_nodes_computation[-1].proc_opti}')
             #print(f'HH2: {i} {compute_nodes_computation[-1].send_a} {compute_nodes_computation[-1].send_g}')
-        
-        flag = 0
-        for d in data_owners: # ready to compute cost
-            Thr_f = mymax(compute_nodes_computation, 0) #+ 57#real_data[num_c-1][0]#  #
-            Thr_b = mymax(compute_nodes_computation, 1)#+ 57#real_data[num_c-1][1]# #
+        for d in range(0,data_owners+1,10): # ready to compute cost
+            # check if it will be fully utilized
+            #print(d)
+            d = 30
+            Thr_f = mymax(compute_nodes_computation, 0) 
+            Thr_b = mymax(compute_nodes_computation, 1)
 
-            if (flag == 0):
+            if num_c < 2:
+               Thr_b = 1000
+
+            if (d == 10):
                 print(f"f: {Thr_f}" )
                 print(f"b: {Thr_b}")
-                flag = 1
             
             if d <= 5:
                 continue
@@ -157,51 +152,33 @@ def get_res(data_owners =300):
             
             TAB = Thr_f
             TCE = Thr_b
-
+            
             d1 =  0
-            '''
-            for d1 in [300, 200, 150, 100, 0]:
-                d2 = d - d1          
+            for d1 in [30, 20, 15, 10, 0]:
+                d2 = d - d1
                 first_batch = (d1*all_hops([data_owners_computation[0]], 0) + d2*all_hops([data_owners_computation2[0]], 0))/d + data_owners_computation[0].send_a + all_hops(compute_nodes_computation, 0) + all_hops(compute_nodes_computation, 1)
                 last_batch =  (d1*all_hops([data_owners_computation[1]], 0)+ d1*all_hops([data_owners_computation[1]], 1) + d2*all_hops([data_owners_computation2[1]], 0)+ d2*all_hops([data_owners_computation2[1]], 1))/d +  + compute_nodes_computation[-1].send_g
                 Ttotal = (num_of_batches*d*local_epocs -1 )*(TAB + TCE)
                 Ttotal = Ttotal+first_batch+last_batch
-              
-
-                aggr = 160710+1006806+94439829
-                if (num_c < 2):
-                    aggr = 6957762+94439829+1006806
-                    
-                Ttotal = Ttotal + types_badwidth[1](aggr)*(d) + types_badwidth[0](aggr)
-                total_cost_.append(Ttotal)
-                print(f'{d1} : {Ttotal}')
-            break
-            '''
-            d2 = d - d1
-            #KEEP IT first_batch = (d1*all_hops([data_owners_computation[0]], 0) + d2*all_hops([data_owners_computation2[0]], 0))/d + data_owners_computation[0].send_a + all_hops(compute_nodes_computation, 0) + all_hops(compute_nodes_computation, 1)
-            #KEEP IT last_batch =  (d1*all_hops([data_owners_computation[1]], 0)+ d1*all_hops([data_owners_computation[1]], 1) + d2*all_hops([data_owners_computation2[1]], 0)+ d2*all_hops([data_owners_computation2[1]], 1))/d +  + compute_nodes_computation[-1].send_g
-            first_batch=0
-            last_batch=0
-            Ttotal = (num_of_batches*d*local_epocs -1 )*(TAB + TCE)
-            Ttotal = Ttotal+first_batch+last_batch
-            
-
-            aggr = 160710+1006806+94439829
-            if (num_c < 2):
-                #aggr = 6957762+94439829+1006806
-                aggr = 173
                 
-            #KEEP IT Ttotal = Ttotal + types_badwidth[1](aggr)*(d) + types_badwidth[0](aggr)
-            total_cost_.append(Ttotal)
+                aggr = 44602+25212
+                if (num_c <2):
+                    aggr = 171300000
+                
+                Ttotal = Ttotal + types_badwidth[1](aggr)*(d) + types_badwidth[0](aggr)
+                #print(d)
+                print(f'{d1} : {Ttotal}')
+                total_cost_.append(Ttotal)
+            break
 
         #for i in range(len(total_cost_)):
         #    print(total_cost_[i])
-            print(f'total cost when: {d}: {(Ttotal/1000)/60}')
         exp += 1
         total_cost.append(total_cost_)
-    '''
+
+
     print("SL")
-    data_owners_computation = [Model_part(0, 1, 0, 0, layers_dataowner2), Model_part(1, 2, 0, 0, layers_dataowner2)]
+    data_owners_computation = [Model_part(0, 1, 0, 0, layers_dataowner), Model_part(1, 2, 0, 0, layers_dataowner)]
     compute_nodes_computation = []
     compute_nodes_computation.append(Model_part(splits[0][0], splits[0][1], 0, 0, layers))
     
@@ -218,9 +195,11 @@ def get_res(data_owners =300):
     forw_data = all_hops([data_owners_computation[0]], 0) + all_hops([data_owners_computation[0]], 1) + data_owners_computation[0].send_a    
     back_data = all_hops([data_owners_computation[1]], 1) + all_hops([data_owners_computation[1]], 0) + data_owners_computation[0].send_g
 
+
     total2 = forw_data + forw_comp + back_data + back_comp
     total2 = total2*16
-    model_tran = types_badwidth[0]((160710+1006806+9443982))
+
+    model_tran = types_badwidth[0]((171300000))
     for d in range(0,data_owners+1,50):
         if d < 5:
             continue
@@ -234,8 +213,7 @@ def get_res(data_owners =300):
 
         break
     '''
-
-    '''
+    
     print("SL - d1")
     data_owners_computation = [Model_part(0, 1, 0, 0, layers_dataowner), Model_part(1, 2, 0, 0, layers_dataowner)]
     compute_nodes_computation = []
@@ -249,15 +227,16 @@ def get_res(data_owners =300):
 
     total = forw_data + forw_comp + back_data + back_comp
     total = total*16
-    model_tran = types_badwidth[0]((160710+1006806+94439829))
-    for d in range(0,data_owners+1,10):
+    model_tran = types_badwidth[0]((171300000))
+    for d in range(0,data_owners+1,50):
         if d < 5:
             continue
         
-        value = d*(total + model_tran)
+        value = d*(total + model_tran) - model_tran
         
-        print(value)
-    
+        
+        print(f'{d} {value}')
+
     print("SL - d2")
     data_owners_computation = [Model_part(0, 1, 0, 0, layers_dataowner3), Model_part(1, 2, 0, 0, layers_dataowner3)]
     compute_nodes_computation = []
@@ -271,17 +250,19 @@ def get_res(data_owners =300):
 
     total = forw_data + forw_comp + back_data + back_comp
     total = total*16
-    model_tran = types_badwidth[0]((160710+1006806+9443982))
-    for d in range(0,data_owners+1,10):
+    model_tran = types_badwidth[0]((171300000))
+    for d in range(0,data_owners+1,50):
         if d < 5:
             continue
         
-        value = d*(total + model_tran)
+        value = d*(total + model_tran) - model_tran
         
-        print(value)
-    '''
-    return total_cost
+        print(f'{d} {value}')
 
+    return total_cost
+'''
+#171300000
+#
 def main():
     get_res()
 

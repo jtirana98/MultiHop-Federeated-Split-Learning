@@ -1,9 +1,7 @@
 import numpy as np
 import matplotlib.path as mpath
 import matplotlib.pyplot as plt
-
-#num_of_compute_nodes = [1,2,3]
-#splits = [[25,35],[2,26,35],[2,16,26,35]]
+import random 
 
 num_of_compute_nodes = [2,3,4,5]
 #splits = [[5,21,33],[5,17,26,33],[5,14,21,28,33],[5,12,18,24,30,33]]
@@ -156,15 +154,6 @@ def get_res(data_owners =300):
             TAB = (d-1)*Thr_f + all_hops(compute_nodes_computation, 0)
             TCE = (d-1)*Thr_b + all_hops(compute_nodes_computation, 1)
 
-            TAB_free = TAB - (num_c-1)*Thr_f
-            TCE_free = TCE - (num_c-1)*Thr_b
-
-            caseA = (all_hops([data_owners_computation[0]], 0) + all_hops([data_owners_computation[0]], 1) + data_owners_computation[0].send_a > data_owners_computation[0].send_g +(d-1)*Thr_b + all_hops(compute_nodes_computation, 1))
-            diffA =(all_hops([data_owners_computation[0]], 0) + all_hops([data_owners_computation[0]], 1) + data_owners_computation[0].send_a - data_owners_computation[0].send_g +(d-1)*Thr_b + all_hops(compute_nodes_computation, 1))
-            caseB = (all_hops([data_owners_computation[-1]], 0) + all_hops([data_owners_computation[-1]], 1) + data_owners_computation[1].send_g > data_owners_computation[-1].send_a + (d-1)*Thr_f + all_hops(compute_nodes_computation, 0))
-            diffB = (all_hops([data_owners_computation[-1]], 0) + all_hops([data_owners_computation[-1]], 1) + data_owners_computation[1].send_g - data_owners_computation[-1].send_a + (d-1)*Thr_f + all_hops(compute_nodes_computation, 0))
-            
-            
             #KEEP IT first_batch = all_hops([data_owners_computation[0]], 0) + data_owners_computation[0].send_a + all_hops(compute_nodes_computation, 0) + all_hops(compute_nodes_computation, 1)
             #KEEP IT last_batch =  all_hops([data_owners_computation[1]], 0)+ all_hops([data_owners_computation[1]], 1) + compute_nodes_computation[-1].send_g
             first_batch = 0
@@ -185,52 +174,7 @@ def get_res(data_owners =300):
             print(f'total cost when: {d}: {(Ttotal/1000)/60}')
         exp += 1
         total_cost.append(total_cost_)
-    '''
-    print("SL - d1")
-    data_owners_computation = [Model_part(0, 1, 0, 0, layers_dataowner), Model_part(1, 2, 0, 0, layers_dataowner)]
-    compute_nodes_computation = []
-    compute_nodes_computation.append(Model_part(splits[0][0], splits[0][1], 0, 0, layers))
-    
-    forw_data = all_hops([data_owners_computation[0]], 0) + all_hops([data_owners_computation[0]], 1) + data_owners_computation[0].send_a
-    forw_comp = all_hops([compute_nodes_computation[0]],0) + compute_nodes_computation[0].send_a
-
-    back_data = all_hops([data_owners_computation[1]], 1) + all_hops([data_owners_computation[1]], 0) + data_owners_computation[0].send_g
-    back_comp = all_hops([compute_nodes_computation[0]],1) + compute_nodes_computation[0].send_g
-
-    total = forw_data + forw_comp + back_data + back_comp
-    total = total*16
-    model_tran = types_badwidth[0]((44602+25212))
-    for d in range(0,data_owners+1,10):
-        if d < 5:
-            continue
-        
-        value = d*(total + model_tran)
-        
-        print(value)
-
-    print("SL - d2")
-    data_owners_computation = [Model_part(0, 1, 0, 0, layers_dataowner3), Model_part(1, 2, 0, 0, layers_dataowner3)]
-    compute_nodes_computation = []
-    compute_nodes_computation.append(Model_part(splits[0][0], splits[0][1], 0, 0, layers))
-    
-    forw_data = all_hops([data_owners_computation[0]], 0) + all_hops([data_owners_computation[0]], 1) + data_owners_computation[0].send_a
-    forw_comp = all_hops([compute_nodes_computation[0]],0) + compute_nodes_computation[0].send_a
-
-    back_data = all_hops([data_owners_computation[1]], 1) + all_hops([data_owners_computation[1]], 0) + data_owners_computation[0].send_g
-    back_comp = all_hops([compute_nodes_computation[0]],1) + compute_nodes_computation[0].send_g
-
-    total = forw_data + forw_comp + back_data + back_comp
-    total = total*16
-    model_tran = types_badwidth[0]((44602+25212))
-    for d in range(0,data_owners+1,10):
-        if d < 5:
-            continue
-        
-        value = d*(total + model_tran)
-        
-        print(value)
-    '''
-    return total_cost
+        return total_cost
 
 def main():
     get_res()

@@ -16,13 +16,14 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', '-m', type=str, default='vgg19', help='select model resnet101/vgg19')
     parser.add_argument('--parts', '-p', type=int, default=2, help='run fifo with load balancer')
-    parser.add_argument('--splitting_points', '-S', type=str, default='4,23', help='give an input in the form of s1,s2')
+    parser.add_argument('--splitting_points', '-S', type=str, default='3,22', help='give an input in the form of s1,s2')
+    parser.add_argument('--seed', '-s', type=int, default=42, help='run fifo with load balancer')
     args = parser.parse_args()
     return args
 
 def main():
     args = get_args()
-    random.seed(42)
+    random.seed(args.seed)
     P = args.parts
     splitting_points = args.splitting_points
     points = list(splitting_points.split(','))
@@ -55,7 +56,7 @@ def main():
     df_vm = pd.read_excel(io=filename, sheet_name='VM', header=None)
     df_laptop = pd.read_excel(io=filename, sheet_name='laptop', header=None)
 
-        
+    memory_data = df_memory.values.tolist()    
     # find proc delay
     proc_f = np.zeros((P,N))
     proc_b = np.zeros((P,N))
@@ -63,83 +64,327 @@ def main():
     vm_data = df_vm.values.tolist()
     laptop_data = df_laptop.values.tolist()
 
-    rr = []
-    for j in range(P):
-        rr.append(random.randint(1,3))
-    k = 0
-    for i in range(point_a, point_b):
+    '''
+    mem_ = [17,17,9]
+    mem_ = np.array([
+        [32,32,32,32,32],
+        [32,32,32,32,16],
+        [32,32,32,16,16],
+        [32,32,16,16,16],
+        [32,16,16,16,16],
+        [16,16,16,16,16],
+        [32,32,32,32,8],
+        [32,32,32,8,8],
+        [32,32,8,8,8],
+        [32,8,8,8,8],
+        [8,8,8,8,8],
+        [8,8,8,8,16],
+        [8,8,8,16,16],
+        [8,8,16,16,16],
+        [8,16,16,16,16],
+        [8,16,16,16,32],
+        [8,16,16,32,32],
+        [8,16,32,32,32],
+        [16,8,8,8,32],
+        [16,8,8,32,32],
+    ])
+
+    samples = [
+        [1,1,1,1,1],
+        [1,1,1,1,2],
+        [1,1,1,2,2],
+        [1,1,2,2,2],
+        [1,2,2,2,2],
+        [2,2,2,2,2],
+        [1,1,1,1,4],
+        [1,1,1,4,4],
+        [1,1,4,4,4],
+        [1,4,4,4,4],
+        [4,4,4,4,4],
+        [4,4,4,4,2],
+        [4,4,4,2,2],
+        [4,4,2,2,2],
+        [4,2,2,2,2],
+        [4,2,2,2,1],
+        [4,2,2,1,1],
+        [4,2,1,1,1],
+        [2,4,4,4,1],
+        [2,4,4,1,1],
+    ]
+    '''
+    
+    
+    mem_ = np.array([
+        [16,16,16,16,16],
+        [16,16,16,16,8],
+        [16,16,16,8,8],
+        [16,16,8,8,8],
+        [16,8,8,8,8],
+        [8,8,8,8,8],
+        [16,16,16,16,4],
+        [16,16,16,4,4],
+        [16,16,4,4,4],
+        #[16,4,4,4,4],
+        #[4,4,4,4,4],
+        ##[4,4,4,4,8],
+        #[4,4,4,8,9],
+        [4,4,8,8,9],
+        [4,8,8,8,8],
+        [4,8,8,8,16],
+        [4,8,8,16,16],
+        [4,8,16,16,16],
+        [8,4,4,4,16],
+        [8,4,4,16,16],
+    ])
+
+    samples = [
+        [1,1,1,1,1],
+        [1,1,1,1,2],
+        [1,1,1,2,2],
+        [1,1,2,2,2],
+        [1,2,2,2,2],
+        [2,2,2,2,2],
+        [1,1,1,1,2],
+        [1,1,1,2,2],
+        [1,1,2,2,2],
+        #[1,2,2,2,2],
+        #[2,2,2,2,2],
+        ##[2,2,2,2,2],
+        #[2,2,2,2,2],
+        [2,2,2,2,2],
+        [2,2,2,2,2],
+        [2,2,2,2,1],
+        [2,2,2,1,1],
+        [2,2,1,1,1],
+        [2,2,2,2,1],
+        [2,2,2,1,1],
+    ]
+    
+    '''
+    mem_ = np.array([
+        [32,32,32],
+        [32,32,16],
+        [32,32,8],
+        [32,16,8],
+        #[16,16,16],
+        #[16,16,8],
+        #[16,8,8]
+    ])
+
+    samples = [
+        [1,1,1],
+        [1,1,2],
+        [1,1,4],
+        [1,2,4],
+        #[2,2,2],
+        #[2,2,4],
+        #[2,4,4]
+    ]
+    '''
+    '''
+    samples = [
+        [1,1,1],
+        [1,1,2],
+        [1,1,2],
+        [1,2,2],
+    ]
+
+    mem_ = np.array([
+        [16,16,16],
+        [16,16,8],
+        [16,16,4],
+        [16,8,4],
+        
+    ])
+    '''
+
+    '''
+    # mikra
+    samples = [
+        [1,1,1,1],
+        [1,1,1,2],
+        [1,1,2,2],
+        [1,2,2,2],
+        [2,2,2,2],
+        [1,1,1,2],
+        [1,1,2,2],
+        [1,2,2,2],
+        [2,2,2,2],
+        [1,2,2,2],
+        [1,1,2,2],
+        [1,2,2,2]
+    ]
+
+    mem_ = np.array([
+        [16,16,16,16],
+        [16,16,16,8],
+        [16,16,8,8],
+        [16,8,8,8],
+        [8,8,8,8],
+        [16,16,16,4],
+        [16,16,4,4],
+        [16,4,4,4],
+        [8,8,8,4],
+        [16,8,8,4],
+        [16,16,8,4],
+        [16,8,4,4]
+    ])
+    '''
+    # megala
+    '''
+    samples = [
+        [1,1,1,1],
+        [1,1,1,2],
+        [1,1,2,2],
+        [1,2,2,2],
+        [2,2,2,2],
+        [1,1,1,4],
+        [1,1,4,4],
+        [1,4,4,4],
+        [2,2,2,4],
+        [1,2,2,4],
+        [1,1,2,4],
+        [1,2,4,4]
+    ]
+
+    mem_ = np.array([
+        [32,32,32,32],
+        [32,32,32,16],
+        [32,32,16,16],
+        [32,16,16,16],
+        [16,16,16,16],
+        [32,32,32,8],
+        [32,32,8,8],
+        [32,8,8,8],
+        [16,16,16,8],
+        [32,16,16,8],
+        [32,32,16,8],
+        [32,16,8,8]
+    ])
+    '''
+    # end megala
+    
+    for ii in range(len(samples)):
+        rr = []
         for j in range(P):
-            proc_f[j,k] = rr[j]*vm_data[i][0]
-            proc_b[j,k] = rr[j]*(vm_data[i][1] + vm_data[i][2])
-        k += 1
-    
-    
-    print('----------------------------- HORIZONTAL SCALING ------------------------------------')
-    data_owners = [50,100,150]
-    num_of_batches = 16
-    local_epocs = 2
+            rr.append(random.randint(1,3))
+            #rr[-1] = 1
+            rr[j] = samples[ii][j]
 
-    tfwd = []
-    tbwd = []
-    tepoch = []
-    for p in range(P):
-        print(f'client {p+1}')
-        totf = 0
-        totbwd = 0
-        for j in range(N):
-            totf += proc_f[p,j]
-            totbwd += proc_b[p,j]
-        tfwd.append(totf)
-        tbwd.append(totbwd)
-        print(f' {totf+totbwd}')
-        tepoch.append(totf+totbwd)
-    
-    print(tepoch)
-
-    order = np.argsort(tepoch)
-    tepoch.sort()
-    print(tepoch)
-    print(order)
-
-    times = []
-    for p in range(P):
-        times.append(tepoch[0]/tepoch[p])        
-    
-    for d in data_owners:
-        print('-----------')
-        pp = np.rint(d/sum(times))
-        print(pp)
-
-        distribution = [pp]
-        for p in range(1,P):
-            distribution.append(np.rint(pp*times[p]))
+        k = 0
+        for i in range(point_a, point_b):
+            for j in range(P):
+                proc_f[j,k] = rr[j]*vm_data[i][0]
+                proc_b[j,k] = rr[j]*(vm_data[i][1] + vm_data[i][2])
+            k += 1
         
-        if sum(distribution) > d:
-            order = np.argsort(distribution)
-            k = 0
-            while sum(distribution) > d:
-                distribution[k] -= 1        
-                k += (k+1)%p
-        
-        if sum(distribution) < d:
-            order = np.argsort(distribution)
-            k = 0
-            while sum(distribution) < d:
-                distribution[-k] += 1        
-                k += (k+1)%p
+        demand = np.zeros(N)                 # memory demands for each layer
+        k = 0
+        for i in range(point_a, point_b):
+            demand[k] = ((memory_data[i][0] + memory_data[i][1])/1024)/1024 # prefer GB
+            k += 1
+        print(f'The memory demands {demand.sum()}')
+        print('----------------------------- HORIZONTAL SCALING ------------------------------------')
+        data_owners = [50,100,150]
+        num_of_batches = 16
+        local_epocs = 2
 
-        print(distribution)
-        print(sum(distribution))
-
-        # lets compute epoch's delay
-        first_batch = fully_utilized_resnet.all_hops([data_owners_computation[0]], 0) + data_owners_computation[0].send_a
-        last_batch =  fully_utilized_resnet.all_hops([data_owners_computation[1]], 0)+ fully_utilized_resnet.all_hops([data_owners_computation[1]], 1) + compute_node_computation.send_g
-        allepoch = []
+        tfwd = []
+        tbwd = []
+        tepoch = []
         for p in range(P):
-            epoch = first_batch + last_batch + distribution[p]*tepoch[p]*local_epocs*num_of_batches
-            print(epoch)
-            allepoch.append(epoch)
-        print(f'The delay of the epoch is: {(max(allepoch)/1000)/60}')
+            print(f'node {p+1}')
+            totf = 0
+            totbwd = 0
+            for j in range(N):
+                totf += proc_f[p,j]
+                totbwd += proc_b[p,j]
+            tfwd.append(totf)
+            tbwd.append(totbwd)
+            print(f' {totf+totbwd}')
+            tepoch.append(totf+totbwd)
+        
+        print(tepoch)
+
+        order = np.argsort(tepoch)
+        tepoch.sort()
+        print(tepoch)
+        print(order)
+
+        times = []
+        for p in range(P):
+            times.append(tepoch[0]/tepoch[p])        
+        print(times)
+
+        data_owners = [150]
+        random.seed(100)
+        for d in data_owners:
+            mem = [0 for i in range(P)]
+            
+            #while sum(mem) < d:
+            for p in range(P):
+                #mem[p] += random.randint(1,d/2)
+                #mem[p] = d
+                mem[p] = np.rint((mem_[ii][p]/demand.sum()))
+                #mem[p] = d
+            
+            print('-----------')
+            pp = np.rint(d/sum(times))
+            #print(pp)
+            if pp > mem[0]:
+                pp = mem[0]
+            
+            
+            print(f'memory {mem}')
+            
+            distribution = [pp]
+            for p in range(1,P):
+                if pp*times[p] < mem[p]:
+                    distribution.append(np.rint(pp*times[p]))
+                else:
+                    distribution.append(np.rint(mem[p]*times[p]))
+            
+            #print('prin')
+            #print(distribution)
+
+            if sum(distribution) > d:
+                #order = np.argsort(distribution)
+                k = 0
+                while sum(distribution) > d:
+                    distribution[k] -= 1        
+                    k = (k+1)%P
+            
+            if sum(distribution) < d:
+                #order = np.argsort(distribution)
+                k = 0
+                while sum(distribution) < d:
+                    #print(k)
+                    if distribution[-k] < mem[-k]:
+                        distribution[-k] += 1    
+                    k = (k+1)%P
+            
+            #for p in range(P):
+                
+            print('----------- memory demands -----------')
+            for p in range(P):
+                print(mem[p]*demand.sum())
+
+            print('----------- memory usage -----------')
+            for p in range(P):
+                print(distribution[p]*demand.sum())
+
+            print(distribution)
+            print(sum(distribution))
+
+            # lets compute epoch's delay
+            first_batch = fully_utilized_resnet.all_hops([data_owners_computation[0]], 0) + data_owners_computation[0].send_a
+            last_batch =  fully_utilized_resnet.all_hops([data_owners_computation[1]], 0)+ fully_utilized_resnet.all_hops([data_owners_computation[1]], 1) + compute_node_computation.send_g
+            allepoch = []
+            for p in range(P):
+                epoch = distribution[p]*tepoch[p]*local_epocs*num_of_batches
+                print(epoch)
+                allepoch.append(epoch)
+            print(f'The delay of the epoch is: {(max(allepoch)/1000)/60}')
 
 if __name__ == '__main__':
     main()
