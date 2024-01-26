@@ -1,8 +1,3 @@
-<p align="center">
-  <img src="./logo.png" alt="Sublime's custom image"/>
-</p>
-
---------------------------------------------------------------------------------
 
 For a more detailed discription of the documentation follow this [link](https://docs.google.com/document/d/1DaWOX27c4_4_VUT-l_UrgUV-zFa8UsIZ5zUv06pgc0s/edit?usp=sharing)  or check the wiki.
 
