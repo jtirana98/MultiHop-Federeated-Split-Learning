@@ -75,7 +75,7 @@ In this case, you will run the data owners as real devices. You can run all enti
         - in data_owner.cpp: Comment the findPeers() call and the findInit()
         - in compute_node.cpp: Comment the findInit()
         - in aggregator.cpp: Comment the findInit()
-        - in network_layer.cpp: comment the line 506 of versio 1.0.0
+        - in network_layer.cpp: comment line 506 of version 1.0.0
     - update the rooting table in pipeline_simulation/network_layer.h
 
 For each data owner device call: 
