@@ -80,7 +80,7 @@ In this case, you will run the data owners as real devices. You can run all enti
 
 For each data owner device call: 
 
-    $ ./data_owner -i id -d <number-of-data-owners> -c <number-of-compute-nodes> -s <split-rule>
+    $ ./data_owner -i id -d <list-of-data-owners> -c <list-of-compute-nodes> -s <split-rule>
 
 If not an init data owner you give the node's id
 
