@@ -1,8 +1,12 @@
-You can check the full paper:  **MP-SL: Multihop Parallel Split Learning** ([arXiv:2402.00208
+-> Part of this code refers to the paper with the title: **Estimating the Training Time in Single- and Multi-Hop Split Federated Learning** \
+A pre-print version of this paper can be found [here](https://github.com/jtirana98/MultiHop-Federeated-Split-Learning/blob/main/EdgeSys.pdf)
+This paper will appear in the ACM Library proceedings for the EdgeSys 2025 workshop taking place in Rotterdam and co-located with the ACM EuroSys'25 conference.
+
+-> Also, you can check the full paper (journal-extension version):  **MP-SL: Multihop Parallel Split Learning** ([arXiv:2402.00208
 ](https://arxiv.org/abs/2402.00208))
 
 
-For a more detailed description of the documentation follow this [link](https://docs.google.com/document/d/1DaWOX27c4_4_VUT-l_UrgUV-zFa8UsIZ5zUv06pgc0s/edit?usp=sharing)  or check the wiki.
+-> For a more detailed description of the documentation, follow this [link](https://docs.google.com/document/d/1DaWOX27c4_4_VUT-l_UrgUV-zFa8UsIZ5zUv06pgc0s/edit?usp=sharing)  or check the wiki.
 
 
 Repository structure:
