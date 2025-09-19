@@ -1,10 +1,6 @@
 import numpy as np
-from numpy import linalg as LA
 import pandas as pd
-import math
-import random
 import time
-import random
 import gurobipy as gp
 from gurobipy import GRB
 from gurobipy import quicksum as qsum
@@ -14,7 +10,7 @@ import argparse
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', '-m', type=str, default='vgg19', help='select model resnet101/vgg19')
-    parser.add_argument('--parts', '-p', type=int, default=2, help='run fifo with load balancer')
+    parser.add_argument('--parts', '-p', type=int, default=5, help='run fifo with load balancer')
     parser.add_argument('--splitting_points', '-S', type=str, default='3,22', help='give an input in the form of s1,s2')
     parser.add_argument('--seed', '-s', type=int, default=42, help='run fifo with load balancer')
     args = parser.parse_args()
@@ -22,7 +18,6 @@ def get_args():
 
 def main():
     args = get_args()
-    random.seed(args.seed)
     P = args.parts
     splitting_points = args.splitting_points
     points = list(splitting_points.split(','))
@@ -335,9 +330,8 @@ def main():
     ])
     '''
     for ii in range(len(samples)):
+        rr = [1 for _ in range(P)]
         for j in range(P):
-            rr.append(random.randint(1,3))
-            #rr[-1] = 1
             rr[j] = samples[ii][j]
         k = 0
         for i in range(point_a, point_b):

@@ -1,8 +1,5 @@
 import numpy as np
-from numpy import linalg as LA
 import pandas as pd
-import math
-import random
 import time
 import gurobipy as gp
 from gurobipy import GRB
