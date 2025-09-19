@@ -60,9 +60,6 @@ def main():
             proc_b[j,k] = vm_data[i][1] + vm_data[i][2]
         k += 1
 
-    ones_P = np.ones((P,1))
-    ones_N = np.ones((N,1))
-
     print(f'There are {N} possible layers')
     start_time = time.time()
     m = gp.Model("")
