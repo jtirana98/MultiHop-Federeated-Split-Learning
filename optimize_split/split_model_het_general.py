@@ -12,8 +12,8 @@ import argparse
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', '-m', type=str, default='vgg19', help='select model resnet101/vgg19')
-    parser.add_argument('--splitting_points', '-S', type=str, default='2,25', help='give an input in the form of s1,s2')
+    parser.add_argument('--model', '-m', type=str, default='resnet101', help='select model resnet101/vgg19')
+    parser.add_argument('--splitting_points', '-S', type=str, default='2,36', help='give an input in the form of s1,s2')
     parser.add_argument('--seed', '-s', type=int, default=42, help='run fifo with load balancer')
     args = parser.parse_args()
     return args
@@ -50,15 +50,15 @@ def main():
     
 
     mem_array = {
-        3: np.array([100, 100, 100]),
-        4: np.array([100, 100, 100, 100]),
-        5: np.array([100, 100, 100, 100, 100])
+        3: np.array([10000, 10000, 10000]),
+        4: np.array([10000, 10000, 10000, 10000]),
+        5: np.array([10000, 10000, 10000, 10000, 10000])
 
     }
     
     samples = {
         3: [1, 2, 2],
-        4: [1, 1, 2, 2],
+        4: [1, 2, 2, 2],
         5: [1, 1, 2, 2, 2]
 
     }
@@ -119,8 +119,8 @@ def main():
         end_time = time.time()
 
 
-        print(np.abs(np.rint(x.X)))
-        print(m.ObjVal)
+        # print(np.abs(np.rint(x.X)))
+        # print(m.ObjVal)
         print('model parts:')
         maxf = 0
         maxb = 0
@@ -135,15 +135,15 @@ def main():
 
             if maxb < procb:
                 maxb = procb
-            print(f'{p}: {procf}  {procb} \t\t TOTAL {procf+procb}')
-        print(f'MAXX {maxf}  {maxb}  {maxf+maxb}')
-        print(f'Total time {end_time-start_time}')
+            # print(f'{p}: {procf}  {procb} \t\t TOTAL {procf+procb}')
+        # print(f'MAXX {maxf}  {maxb}  {maxf+maxb}')
+        # print(f'Total time {end_time-start_time}')
         print('Memory usage:')
         for p in range(P):
             memm = 0
             for j in range(N):
                 memm += np.abs(np.rint(x.x[p,j]))*d[j]
-            print(memm)
+            # print(memm)
         #print(((np.abs(np.rint(x.x))@d)))
 
 
@@ -164,7 +164,7 @@ def main():
                     break
             if not end:
                 pair[1] = pair[1] + N
-            print(f'{pair[0]} {pair[1]}')
+            # print(f'{pair[0]} {pair[1]}')
 
         num_of_batches = 16
         local_epocchs = 2
