@@ -1,0 +1,1213 @@
+09-24 18:36 INFO     cuda
+09-24 18:36 INFO     {'dataset_type': 'cifar10', 'model_name': 'resnet18', 'num_clients': 5, 'batch_size': 64, 'training_lr': 0.05, 'decay_rate': 0.993, 'min_lr': 0.005, 'epoch': 100, 'local_epoch': 1, 'momentum': -1, 'weight_decay': 0.0, 'data_path': './data', 'device': 'cuda', 'partition_method': 'iid', 'partition_target': 'label', 'alpha': 4.0, 'num_shards_per_partition': 2, 'shard_size': 500, 'script': 'FL ONLY'}
+09-24 18:36 INFO     ####################################################################################################
+09-24 18:36 INFO     Partitioning Data
+09-24 18:36 INFO                   airplane  automobile  bird   cat  ...  frog  horse  ship  truck
+Partition ID                                    ...                          
+0                 1011         969  1007   958  ...  1010   1006   989   1015
+1                 1020         981   993   996  ...  1043    993   990    999
+2                  952        1033  1000  1052  ...   976    999   988   1029
+3                  989        1014   992  1032  ...   962   1000   991    986
+4                 1028        1003  1008   962  ...  1009   1002  1042    971
+
+[5 rows x 10 columns]
+09-24 18:36 INFO     >>>>> Epoch [0]: Global model loss: 0.035077994203567504 acc: 0.2019
+09-24 18:36 INFO     Scores per target value
+09-24 18:36 INFO     for label 0 >> 0.0
+09-24 18:36 INFO     for label 1 >> 0.0
+09-24 18:36 INFO     for label 2 >> 0.621
+09-24 18:36 INFO     for label 3 >> 0.0
+09-24 18:36 INFO     for label 4 >> 0.0
+09-24 18:36 INFO     for label 5 >> 0.374
+09-24 18:36 INFO     for label 6 >> 0.445
+09-24 18:36 INFO     for label 7 >> 0.484
+09-24 18:36 INFO     for label 8 >> 0.063
+09-24 18:36 INFO     for label 9 >> 0.032
+09-24 18:37 INFO     >>>>> Epoch [1]: Global model loss: 0.026286382377147675 acc: 0.3864
+09-24 18:37 INFO     Scores per target value
+09-24 18:37 INFO     for label 0 >> 0.186
+09-24 18:37 INFO     for label 1 >> 0.328
+09-24 18:37 INFO     for label 2 >> 0.484
+09-24 18:37 INFO     for label 3 >> 0.031
+09-24 18:37 INFO     for label 4 >> 0.011
+09-24 18:37 INFO     for label 5 >> 0.616
+09-24 18:37 INFO     for label 6 >> 0.559
+09-24 18:37 INFO     for label 7 >> 0.501
+09-24 18:37 INFO     for label 8 >> 0.728
+09-24 18:37 INFO     for label 9 >> 0.42
+09-24 18:37 INFO     >>>>> Epoch [2]: Global model loss: 0.023285046458244325 acc: 0.4532
+09-24 18:37 INFO     Scores per target value
+09-24 18:37 INFO     for label 0 >> 0.278
+09-24 18:37 INFO     for label 1 >> 0.476
+09-24 18:37 INFO     for label 2 >> 0.27
+09-24 18:37 INFO     for label 3 >> 0.135
+09-24 18:37 INFO     for label 4 >> 0.447
+09-24 18:37 INFO     for label 5 >> 0.587
+09-24 18:37 INFO     for label 6 >> 0.573
+09-24 18:37 INFO     for label 7 >> 0.508
+09-24 18:37 INFO     for label 8 >> 0.773
+09-24 18:37 INFO     for label 9 >> 0.485
+09-24 18:37 INFO     >>>>> Epoch [3]: Global model loss: 0.021620487844944 acc: 0.4969
+09-24 18:38 INFO     Scores per target value
+09-24 18:38 INFO     for label 0 >> 0.39
+09-24 18:38 INFO     for label 1 >> 0.563
+09-24 18:38 INFO     for label 2 >> 0.323
+09-24 18:38 INFO     for label 3 >> 0.162
+09-24 18:38 INFO     for label 4 >> 0.456
+09-24 18:38 INFO     for label 5 >> 0.626
+09-24 18:38 INFO     for label 6 >> 0.665
+09-24 18:38 INFO     for label 7 >> 0.583
+09-24 18:38 INFO     for label 8 >> 0.735
+09-24 18:38 INFO     for label 9 >> 0.466
+09-24 18:38 INFO     >>>>> Epoch [4]: Global model loss: 0.02018072183728218 acc: 0.5227
+09-24 18:38 INFO     Scores per target value
+09-24 18:38 INFO     for label 0 >> 0.434
+09-24 18:38 INFO     for label 1 >> 0.615
+09-24 18:38 INFO     for label 2 >> 0.289
+09-24 18:38 INFO     for label 3 >> 0.137
+09-24 18:38 INFO     for label 4 >> 0.495
+09-24 18:38 INFO     for label 5 >> 0.686
+09-24 18:38 INFO     for label 6 >> 0.654
+09-24 18:38 INFO     for label 7 >> 0.577
+09-24 18:38 INFO     for label 8 >> 0.861
+09-24 18:38 INFO     for label 9 >> 0.479
+09-24 18:38 INFO     >>>>> Epoch [5]: Global model loss: 0.01884024204015732 acc: 0.5702
+09-24 18:38 INFO     Scores per target value
+09-24 18:38 INFO     for label 0 >> 0.588
+09-24 18:38 INFO     for label 1 >> 0.703
+09-24 18:38 INFO     for label 2 >> 0.396
+09-24 18:38 INFO     for label 3 >> 0.225
+09-24 18:38 INFO     for label 4 >> 0.463
+09-24 18:38 INFO     for label 5 >> 0.653
+09-24 18:38 INFO     for label 6 >> 0.737
+09-24 18:38 INFO     for label 7 >> 0.631
+09-24 18:38 INFO     for label 8 >> 0.757
+09-24 18:38 INFO     for label 9 >> 0.549
+09-24 18:39 INFO     >>>>> Epoch [6]: Global model loss: 0.018677198255062102 acc: 0.5666
+09-24 18:39 INFO     Scores per target value
+09-24 18:39 INFO     for label 0 >> 0.485
+09-24 18:39 INFO     for label 1 >> 0.625
+09-24 18:39 INFO     for label 2 >> 0.437
+09-24 18:39 INFO     for label 3 >> 0.244
+09-24 18:39 INFO     for label 4 >> 0.464
+09-24 18:39 INFO     for label 5 >> 0.705
+09-24 18:39 INFO     for label 6 >> 0.658
+09-24 18:39 INFO     for label 7 >> 0.614
+09-24 18:39 INFO     for label 8 >> 0.871
+09-24 18:39 INFO     for label 9 >> 0.563
+09-24 18:39 INFO     >>>>> Epoch [7]: Global model loss: 0.01744898463487625 acc: 0.6014
+09-24 18:39 INFO     Scores per target value
+09-24 18:39 INFO     for label 0 >> 0.574
+09-24 18:39 INFO     for label 1 >> 0.741
+09-24 18:39 INFO     for label 2 >> 0.478
+09-24 18:39 INFO     for label 3 >> 0.272
+09-24 18:39 INFO     for label 4 >> 0.519
+09-24 18:39 INFO     for label 5 >> 0.661
+09-24 18:39 INFO     for label 6 >> 0.77
+09-24 18:39 INFO     for label 7 >> 0.611
+09-24 18:39 INFO     for label 8 >> 0.838
+09-24 18:39 INFO     for label 9 >> 0.55
+09-24 18:40 INFO     >>>>> Epoch [8]: Global model loss: 0.016699592739343645 acc: 0.6251
+09-24 18:40 INFO     Scores per target value
+09-24 18:40 INFO     for label 0 >> 0.649
+09-24 18:40 INFO     for label 1 >> 0.674
+09-24 18:40 INFO     for label 2 >> 0.457
+09-24 18:40 INFO     for label 3 >> 0.348
+09-24 18:40 INFO     for label 4 >> 0.514
+09-24 18:40 INFO     for label 5 >> 0.649
+09-24 18:40 INFO     for label 6 >> 0.836
+09-24 18:40 INFO     for label 7 >> 0.679
+09-24 18:40 INFO     for label 8 >> 0.787
+09-24 18:40 INFO     for label 9 >> 0.658
+09-24 18:40 INFO     >>>>> Epoch [9]: Global model loss: 0.016593050354719162 acc: 0.631
+09-24 18:40 INFO     Scores per target value
+09-24 18:40 INFO     for label 0 >> 0.543
+09-24 18:40 INFO     for label 1 >> 0.741
+09-24 18:40 INFO     for label 2 >> 0.532
+09-24 18:40 INFO     for label 3 >> 0.399
+09-24 18:40 INFO     for label 4 >> 0.479
+09-24 18:40 INFO     for label 5 >> 0.651
+09-24 18:40 INFO     for label 6 >> 0.785
+09-24 18:40 INFO     for label 7 >> 0.661
+09-24 18:40 INFO     for label 8 >> 0.859
+09-24 18:40 INFO     for label 9 >> 0.66
+09-24 18:40 INFO     >>>>> Epoch [10]: Global model loss: 0.01565704991221428 acc: 0.6478
+09-24 18:41 INFO     Scores per target value
+09-24 18:41 INFO     for label 0 >> 0.661
+09-24 18:41 INFO     for label 1 >> 0.727
+09-24 18:41 INFO     for label 2 >> 0.497
+09-24 18:41 INFO     for label 3 >> 0.36
+09-24 18:41 INFO     for label 4 >> 0.567
+09-24 18:41 INFO     for label 5 >> 0.698
+09-24 18:41 INFO     for label 6 >> 0.766
+09-24 18:41 INFO     for label 7 >> 0.664
+09-24 18:41 INFO     for label 8 >> 0.853
+09-24 18:41 INFO     for label 9 >> 0.685
+09-24 18:41 INFO     >>>>> Epoch [11]: Global model loss: 0.015311292910575867 acc: 0.655
+09-24 18:41 INFO     Scores per target value
+09-24 18:41 INFO     for label 0 >> 0.655
+09-24 18:41 INFO     for label 1 >> 0.717
+09-24 18:41 INFO     for label 2 >> 0.537
+09-24 18:41 INFO     for label 3 >> 0.356
+09-24 18:41 INFO     for label 4 >> 0.56
+09-24 18:41 INFO     for label 5 >> 0.661
+09-24 18:41 INFO     for label 6 >> 0.779
+09-24 18:41 INFO     for label 7 >> 0.706
+09-24 18:41 INFO     for label 8 >> 0.888
+09-24 18:41 INFO     for label 9 >> 0.691
+09-24 18:41 INFO     >>>>> Epoch [12]: Global model loss: 0.014714761233329774 acc: 0.6677
+09-24 18:41 INFO     Scores per target value
+09-24 18:41 INFO     for label 0 >> 0.649
+09-24 18:41 INFO     for label 1 >> 0.797
+09-24 18:41 INFO     for label 2 >> 0.524
+09-24 18:41 INFO     for label 3 >> 0.424
+09-24 18:41 INFO     for label 4 >> 0.57
+09-24 18:41 INFO     for label 5 >> 0.694
+09-24 18:41 INFO     for label 6 >> 0.778
+09-24 18:41 INFO     for label 7 >> 0.694
+09-24 18:41 INFO     for label 8 >> 0.87
+09-24 18:41 INFO     for label 9 >> 0.677
+09-24 18:42 INFO     >>>>> Epoch [13]: Global model loss: 0.014559297430515289 acc: 0.6754
+09-24 18:42 INFO     Scores per target value
+09-24 18:42 INFO     for label 0 >> 0.632
+09-24 18:42 INFO     for label 1 >> 0.809
+09-24 18:42 INFO     for label 2 >> 0.53
+09-24 18:42 INFO     for label 3 >> 0.365
+09-24 18:42 INFO     for label 4 >> 0.591
+09-24 18:42 INFO     for label 5 >> 0.705
+09-24 18:42 INFO     for label 6 >> 0.839
+09-24 18:42 INFO     for label 7 >> 0.695
+09-24 18:42 INFO     for label 8 >> 0.869
+09-24 18:42 INFO     for label 9 >> 0.719
+09-24 18:42 INFO     >>>>> Epoch [14]: Global model loss: 0.013834381681680679 acc: 0.6871
+09-24 18:42 INFO     Scores per target value
+09-24 18:42 INFO     for label 0 >> 0.728
+09-24 18:42 INFO     for label 1 >> 0.78
+09-24 18:42 INFO     for label 2 >> 0.56
+09-24 18:42 INFO     for label 3 >> 0.422
+09-24 18:42 INFO     for label 4 >> 0.6
+09-24 18:42 INFO     for label 5 >> 0.664
+09-24 18:42 INFO     for label 6 >> 0.847
+09-24 18:42 INFO     for label 7 >> 0.702
+09-24 18:42 INFO     for label 8 >> 0.847
+09-24 18:42 INFO     for label 9 >> 0.721
+09-24 18:43 INFO     >>>>> Epoch [15]: Global model loss: 0.013763228696584702 acc: 0.6966
+09-24 18:43 INFO     Scores per target value
+09-24 18:43 INFO     for label 0 >> 0.673
+09-24 18:43 INFO     for label 1 >> 0.824
+09-24 18:43 INFO     for label 2 >> 0.558
+09-24 18:43 INFO     for label 3 >> 0.444
+09-24 18:43 INFO     for label 4 >> 0.596
+09-24 18:43 INFO     for label 5 >> 0.642
+09-24 18:43 INFO     for label 6 >> 0.879
+09-24 18:43 INFO     for label 7 >> 0.736
+09-24 18:43 INFO     for label 8 >> 0.881
+09-24 18:43 INFO     for label 9 >> 0.733
+09-24 18:43 INFO     >>>>> Epoch [16]: Global model loss: 0.013359993416070939 acc: 0.7002
+09-24 18:43 INFO     Scores per target value
+09-24 18:43 INFO     for label 0 >> 0.727
+09-24 18:43 INFO     for label 1 >> 0.836
+09-24 18:43 INFO     for label 2 >> 0.553
+09-24 18:43 INFO     for label 3 >> 0.447
+09-24 18:43 INFO     for label 4 >> 0.623
+09-24 18:43 INFO     for label 5 >> 0.656
+09-24 18:43 INFO     for label 6 >> 0.868
+09-24 18:43 INFO     for label 7 >> 0.704
+09-24 18:43 INFO     for label 8 >> 0.886
+09-24 18:43 INFO     for label 9 >> 0.702
+09-24 18:44 INFO     >>>>> Epoch [17]: Global model loss: 0.012855010384321212 acc: 0.7142
+09-24 18:44 INFO     Scores per target value
+09-24 18:44 INFO     for label 0 >> 0.75
+09-24 18:44 INFO     for label 1 >> 0.841
+09-24 18:44 INFO     for label 2 >> 0.546
+09-24 18:44 INFO     for label 3 >> 0.488
+09-24 18:44 INFO     for label 4 >> 0.646
+09-24 18:44 INFO     for label 5 >> 0.644
+09-24 18:44 INFO     for label 6 >> 0.871
+09-24 18:44 INFO     for label 7 >> 0.752
+09-24 18:44 INFO     for label 8 >> 0.86
+09-24 18:44 INFO     for label 9 >> 0.744
+09-24 18:44 INFO     >>>>> Epoch [18]: Global model loss: 0.012979211056232452 acc: 0.7156
+09-24 18:44 INFO     Scores per target value
+09-24 18:44 INFO     for label 0 >> 0.819
+09-24 18:44 INFO     for label 1 >> 0.828
+09-24 18:44 INFO     for label 2 >> 0.553
+09-24 18:44 INFO     for label 3 >> 0.451
+09-24 18:44 INFO     for label 4 >> 0.607
+09-24 18:44 INFO     for label 5 >> 0.719
+09-24 18:44 INFO     for label 6 >> 0.853
+09-24 18:44 INFO     for label 7 >> 0.77
+09-24 18:44 INFO     for label 8 >> 0.821
+09-24 18:44 INFO     for label 9 >> 0.735
+09-24 18:44 INFO     >>>>> Epoch [19]: Global model loss: 0.012528894871473312 acc: 0.7198
+09-24 18:45 INFO     Scores per target value
+09-24 18:45 INFO     for label 0 >> 0.748
+09-24 18:45 INFO     for label 1 >> 0.844
+09-24 18:45 INFO     for label 2 >> 0.567
+09-24 18:45 INFO     for label 3 >> 0.459
+09-24 18:45 INFO     for label 4 >> 0.621
+09-24 18:45 INFO     for label 5 >> 0.658
+09-24 18:45 INFO     for label 6 >> 0.879
+09-24 18:45 INFO     for label 7 >> 0.77
+09-24 18:45 INFO     for label 8 >> 0.871
+09-24 18:45 INFO     for label 9 >> 0.781
+09-24 18:45 INFO     >>>>> Epoch [20]: Global model loss: 0.012244357651472092 acc: 0.7246
+09-24 18:45 INFO     Scores per target value
+09-24 18:45 INFO     for label 0 >> 0.79
+09-24 18:45 INFO     for label 1 >> 0.813
+09-24 18:45 INFO     for label 2 >> 0.542
+09-24 18:45 INFO     for label 3 >> 0.484
+09-24 18:45 INFO     for label 4 >> 0.67
+09-24 18:45 INFO     for label 5 >> 0.663
+09-24 18:45 INFO     for label 6 >> 0.86
+09-24 18:45 INFO     for label 7 >> 0.753
+09-24 18:45 INFO     for label 8 >> 0.884
+09-24 18:45 INFO     for label 9 >> 0.787
+09-24 18:45 INFO     >>>>> Epoch [21]: Global model loss: 0.012119133365154267 acc: 0.7309
+09-24 18:45 INFO     Scores per target value
+09-24 18:45 INFO     for label 0 >> 0.786
+09-24 18:45 INFO     for label 1 >> 0.853
+09-24 18:45 INFO     for label 2 >> 0.534
+09-24 18:45 INFO     for label 3 >> 0.495
+09-24 18:45 INFO     for label 4 >> 0.64
+09-24 18:45 INFO     for label 5 >> 0.688
+09-24 18:45 INFO     for label 6 >> 0.878
+09-24 18:45 INFO     for label 7 >> 0.755
+09-24 18:45 INFO     for label 8 >> 0.893
+09-24 18:45 INFO     for label 9 >> 0.787
+09-24 18:46 INFO     >>>>> Epoch [22]: Global model loss: 0.011797255897521973 acc: 0.7348
+09-24 18:46 INFO     Scores per target value
+09-24 18:46 INFO     for label 0 >> 0.798
+09-24 18:46 INFO     for label 1 >> 0.838
+09-24 18:46 INFO     for label 2 >> 0.571
+09-24 18:46 INFO     for label 3 >> 0.486
+09-24 18:46 INFO     for label 4 >> 0.671
+09-24 18:46 INFO     for label 5 >> 0.647
+09-24 18:46 INFO     for label 6 >> 0.878
+09-24 18:46 INFO     for label 7 >> 0.782
+09-24 18:46 INFO     for label 8 >> 0.893
+09-24 18:46 INFO     for label 9 >> 0.784
+09-24 18:46 INFO     >>>>> Epoch [23]: Global model loss: 0.011890552419424057 acc: 0.7342
+09-24 18:46 INFO     Scores per target value
+09-24 18:46 INFO     for label 0 >> 0.755
+09-24 18:46 INFO     for label 1 >> 0.847
+09-24 18:46 INFO     for label 2 >> 0.57
+09-24 18:46 INFO     for label 3 >> 0.521
+09-24 18:46 INFO     for label 4 >> 0.647
+09-24 18:46 INFO     for label 5 >> 0.632
+09-24 18:46 INFO     for label 6 >> 0.897
+09-24 18:46 INFO     for label 7 >> 0.775
+09-24 18:46 INFO     for label 8 >> 0.909
+09-24 18:46 INFO     for label 9 >> 0.789
+09-24 18:47 INFO     >>>>> Epoch [24]: Global model loss: 0.011588929694890976 acc: 0.7375
+09-24 18:47 INFO     Scores per target value
+09-24 18:47 INFO     for label 0 >> 0.794
+09-24 18:47 INFO     for label 1 >> 0.85
+09-24 18:47 INFO     for label 2 >> 0.587
+09-24 18:47 INFO     for label 3 >> 0.504
+09-24 18:47 INFO     for label 4 >> 0.636
+09-24 18:47 INFO     for label 5 >> 0.641
+09-24 18:47 INFO     for label 6 >> 0.903
+09-24 18:47 INFO     for label 7 >> 0.78
+09-24 18:47 INFO     for label 8 >> 0.879
+09-24 18:47 INFO     for label 9 >> 0.801
+09-24 18:47 INFO     >>>>> Epoch [25]: Global model loss: 0.011417010021209716 acc: 0.7446
+09-24 18:47 INFO     Scores per target value
+09-24 18:47 INFO     for label 0 >> 0.774
+09-24 18:47 INFO     for label 1 >> 0.857
+09-24 18:47 INFO     for label 2 >> 0.604
+09-24 18:47 INFO     for label 3 >> 0.532
+09-24 18:47 INFO     for label 4 >> 0.67
+09-24 18:47 INFO     for label 5 >> 0.669
+09-24 18:47 INFO     for label 6 >> 0.888
+09-24 18:47 INFO     for label 7 >> 0.808
+09-24 18:47 INFO     for label 8 >> 0.889
+09-24 18:47 INFO     for label 9 >> 0.755
+09-24 18:47 INFO     >>>>> Epoch [26]: Global model loss: 0.011426945409178733 acc: 0.7447
+09-24 18:48 INFO     Scores per target value
+09-24 18:48 INFO     for label 0 >> 0.734
+09-24 18:48 INFO     for label 1 >> 0.867
+09-24 18:48 INFO     for label 2 >> 0.587
+09-24 18:48 INFO     for label 3 >> 0.53
+09-24 18:48 INFO     for label 4 >> 0.679
+09-24 18:48 INFO     for label 5 >> 0.667
+09-24 18:48 INFO     for label 6 >> 0.888
+09-24 18:48 INFO     for label 7 >> 0.787
+09-24 18:48 INFO     for label 8 >> 0.916
+09-24 18:48 INFO     for label 9 >> 0.792
+09-24 18:48 INFO     >>>>> Epoch [27]: Global model loss: 0.011178228577971459 acc: 0.751
+09-24 18:48 INFO     Scores per target value
+09-24 18:48 INFO     for label 0 >> 0.781
+09-24 18:48 INFO     for label 1 >> 0.855
+09-24 18:48 INFO     for label 2 >> 0.6
+09-24 18:48 INFO     for label 3 >> 0.531
+09-24 18:48 INFO     for label 4 >> 0.684
+09-24 18:48 INFO     for label 5 >> 0.687
+09-24 18:48 INFO     for label 6 >> 0.871
+09-24 18:48 INFO     for label 7 >> 0.793
+09-24 18:48 INFO     for label 8 >> 0.896
+09-24 18:48 INFO     for label 9 >> 0.812
+09-24 18:48 INFO     >>>>> Epoch [28]: Global model loss: 0.01120146702826023 acc: 0.7501
+09-24 18:48 INFO     Scores per target value
+09-24 18:48 INFO     for label 0 >> 0.768
+09-24 18:48 INFO     for label 1 >> 0.867
+09-24 18:48 INFO     for label 2 >> 0.577
+09-24 18:48 INFO     for label 3 >> 0.557
+09-24 18:48 INFO     for label 4 >> 0.666
+09-24 18:48 INFO     for label 5 >> 0.654
+09-24 18:48 INFO     for label 6 >> 0.9
+09-24 18:48 INFO     for label 7 >> 0.798
+09-24 18:48 INFO     for label 8 >> 0.906
+09-24 18:48 INFO     for label 9 >> 0.808
+09-24 18:49 INFO     >>>>> Epoch [29]: Global model loss: 0.010987048307061195 acc: 0.7539
+09-24 18:49 INFO     Scores per target value
+09-24 18:49 INFO     for label 0 >> 0.739
+09-24 18:49 INFO     for label 1 >> 0.875
+09-24 18:49 INFO     for label 2 >> 0.649
+09-24 18:49 INFO     for label 3 >> 0.54
+09-24 18:49 INFO     for label 4 >> 0.667
+09-24 18:49 INFO     for label 5 >> 0.637
+09-24 18:49 INFO     for label 6 >> 0.888
+09-24 18:49 INFO     for label 7 >> 0.804
+09-24 18:49 INFO     for label 8 >> 0.915
+09-24 18:49 INFO     for label 9 >> 0.825
+09-24 18:49 INFO     >>>>> Epoch [30]: Global model loss: 0.011101704835891724 acc: 0.7501
+09-24 18:49 INFO     Scores per target value
+09-24 18:49 INFO     for label 0 >> 0.759
+09-24 18:49 INFO     for label 1 >> 0.831
+09-24 18:49 INFO     for label 2 >> 0.589
+09-24 18:49 INFO     for label 3 >> 0.465
+09-24 18:49 INFO     for label 4 >> 0.668
+09-24 18:49 INFO     for label 5 >> 0.703
+09-24 18:49 INFO     for label 6 >> 0.906
+09-24 18:49 INFO     for label 7 >> 0.82
+09-24 18:49 INFO     for label 8 >> 0.925
+09-24 18:49 INFO     for label 9 >> 0.835
+09-24 18:50 INFO     >>>>> Epoch [31]: Global model loss: 0.010603246665000916 acc: 0.7639
+09-24 18:50 INFO     Scores per target value
+09-24 18:50 INFO     for label 0 >> 0.797
+09-24 18:50 INFO     for label 1 >> 0.858
+09-24 18:50 INFO     for label 2 >> 0.629
+09-24 18:50 INFO     for label 3 >> 0.532
+09-24 18:50 INFO     for label 4 >> 0.703
+09-24 18:50 INFO     for label 5 >> 0.684
+09-24 18:50 INFO     for label 6 >> 0.889
+09-24 18:50 INFO     for label 7 >> 0.799
+09-24 18:50 INFO     for label 8 >> 0.896
+09-24 18:50 INFO     for label 9 >> 0.852
+09-24 18:50 INFO     >>>>> Epoch [32]: Global model loss: 0.010572478577494621 acc: 0.7661
+09-24 18:50 INFO     Scores per target value
+09-24 18:50 INFO     for label 0 >> 0.788
+09-24 18:50 INFO     for label 1 >> 0.873
+09-24 18:50 INFO     for label 2 >> 0.605
+09-24 18:50 INFO     for label 3 >> 0.551
+09-24 18:50 INFO     for label 4 >> 0.704
+09-24 18:50 INFO     for label 5 >> 0.692
+09-24 18:50 INFO     for label 6 >> 0.886
+09-24 18:50 INFO     for label 7 >> 0.813
+09-24 18:50 INFO     for label 8 >> 0.91
+09-24 18:50 INFO     for label 9 >> 0.839
+09-24 18:51 INFO     >>>>> Epoch [33]: Global model loss: 0.010650107768177985 acc: 0.7652
+09-24 18:51 INFO     Scores per target value
+09-24 18:51 INFO     for label 0 >> 0.787
+09-24 18:51 INFO     for label 1 >> 0.856
+09-24 18:51 INFO     for label 2 >> 0.629
+09-24 18:51 INFO     for label 3 >> 0.558
+09-24 18:51 INFO     for label 4 >> 0.668
+09-24 18:51 INFO     for label 5 >> 0.66
+09-24 18:51 INFO     for label 6 >> 0.915
+09-24 18:51 INFO     for label 7 >> 0.816
+09-24 18:51 INFO     for label 8 >> 0.902
+09-24 18:51 INFO     for label 9 >> 0.861
+09-24 18:51 INFO     >>>>> Epoch [34]: Global model loss: 0.010401974242925644 acc: 0.7674
+09-24 18:51 INFO     Scores per target value
+09-24 18:51 INFO     for label 0 >> 0.811
+09-24 18:51 INFO     for label 1 >> 0.855
+09-24 18:51 INFO     for label 2 >> 0.61
+09-24 18:51 INFO     for label 3 >> 0.578
+09-24 18:51 INFO     for label 4 >> 0.71
+09-24 18:51 INFO     for label 5 >> 0.695
+09-24 18:51 INFO     for label 6 >> 0.877
+09-24 18:51 INFO     for label 7 >> 0.811
+09-24 18:51 INFO     for label 8 >> 0.902
+09-24 18:51 INFO     for label 9 >> 0.825
+09-24 18:51 INFO     >>>>> Epoch [35]: Global model loss: 0.010280429425835609 acc: 0.7702
+09-24 18:52 INFO     Scores per target value
+09-24 18:52 INFO     for label 0 >> 0.766
+09-24 18:52 INFO     for label 1 >> 0.859
+09-24 18:52 INFO     for label 2 >> 0.637
+09-24 18:52 INFO     for label 3 >> 0.554
+09-24 18:52 INFO     for label 4 >> 0.718
+09-24 18:52 INFO     for label 5 >> 0.69
+09-24 18:52 INFO     for label 6 >> 0.895
+09-24 18:52 INFO     for label 7 >> 0.81
+09-24 18:52 INFO     for label 8 >> 0.92
+09-24 18:52 INFO     for label 9 >> 0.853
+09-24 18:52 INFO     >>>>> Epoch [36]: Global model loss: 0.010199355667829514 acc: 0.7732
+09-24 18:52 INFO     Scores per target value
+09-24 18:52 INFO     for label 0 >> 0.774
+09-24 18:52 INFO     for label 1 >> 0.862
+09-24 18:52 INFO     for label 2 >> 0.659
+09-24 18:52 INFO     for label 3 >> 0.534
+09-24 18:52 INFO     for label 4 >> 0.727
+09-24 18:52 INFO     for label 5 >> 0.693
+09-24 18:52 INFO     for label 6 >> 0.887
+09-24 18:52 INFO     for label 7 >> 0.831
+09-24 18:52 INFO     for label 8 >> 0.926
+09-24 18:52 INFO     for label 9 >> 0.839
+09-24 18:52 INFO     >>>>> Epoch [37]: Global model loss: 0.010237679278850555 acc: 0.7769
+09-24 18:52 INFO     Scores per target value
+09-24 18:52 INFO     for label 0 >> 0.817
+09-24 18:52 INFO     for label 1 >> 0.861
+09-24 18:52 INFO     for label 2 >> 0.648
+09-24 18:52 INFO     for label 3 >> 0.556
+09-24 18:52 INFO     for label 4 >> 0.706
+09-24 18:52 INFO     for label 5 >> 0.678
+09-24 18:52 INFO     for label 6 >> 0.91
+09-24 18:52 INFO     for label 7 >> 0.817
+09-24 18:52 INFO     for label 8 >> 0.9
+09-24 18:52 INFO     for label 9 >> 0.876
+09-24 18:53 INFO     >>>>> Epoch [38]: Global model loss: 0.010116848447918892 acc: 0.7781
+09-24 18:53 INFO     Scores per target value
+09-24 18:53 INFO     for label 0 >> 0.801
+09-24 18:53 INFO     for label 1 >> 0.87
+09-24 18:53 INFO     for label 2 >> 0.649
+09-24 18:53 INFO     for label 3 >> 0.587
+09-24 18:53 INFO     for label 4 >> 0.733
+09-24 18:53 INFO     for label 5 >> 0.689
+09-24 18:53 INFO     for label 6 >> 0.896
+09-24 18:53 INFO     for label 7 >> 0.818
+09-24 18:53 INFO     for label 8 >> 0.911
+09-24 18:53 INFO     for label 9 >> 0.827
+09-24 18:53 INFO     >>>>> Epoch [39]: Global model loss: 0.009923328042030334 acc: 0.7795
+09-24 18:53 INFO     Scores per target value
+09-24 18:53 INFO     for label 0 >> 0.824
+09-24 18:53 INFO     for label 1 >> 0.867
+09-24 18:53 INFO     for label 2 >> 0.649
+09-24 18:53 INFO     for label 3 >> 0.597
+09-24 18:53 INFO     for label 4 >> 0.733
+09-24 18:53 INFO     for label 5 >> 0.656
+09-24 18:53 INFO     for label 6 >> 0.903
+09-24 18:53 INFO     for label 7 >> 0.818
+09-24 18:53 INFO     for label 8 >> 0.896
+09-24 18:53 INFO     for label 9 >> 0.852
+09-24 18:54 INFO     >>>>> Epoch [40]: Global model loss: 0.009824877241253853 acc: 0.7818
+09-24 18:54 INFO     Scores per target value
+09-24 18:54 INFO     for label 0 >> 0.821
+09-24 18:54 INFO     for label 1 >> 0.87
+09-24 18:54 INFO     for label 2 >> 0.676
+09-24 18:54 INFO     for label 3 >> 0.581
+09-24 18:54 INFO     for label 4 >> 0.779
+09-24 18:54 INFO     for label 5 >> 0.65
+09-24 18:54 INFO     for label 6 >> 0.885
+09-24 18:54 INFO     for label 7 >> 0.832
+09-24 18:54 INFO     for label 8 >> 0.901
+09-24 18:54 INFO     for label 9 >> 0.823
+09-24 18:54 INFO     >>>>> Epoch [41]: Global model loss: 0.009985753178596497 acc: 0.7781
+09-24 18:54 INFO     Scores per target value
+09-24 18:54 INFO     for label 0 >> 0.775
+09-24 18:54 INFO     for label 1 >> 0.887
+09-24 18:54 INFO     for label 2 >> 0.64
+09-24 18:54 INFO     for label 3 >> 0.544
+09-24 18:54 INFO     for label 4 >> 0.745
+09-24 18:54 INFO     for label 5 >> 0.725
+09-24 18:54 INFO     for label 6 >> 0.868
+09-24 18:54 INFO     for label 7 >> 0.838
+09-24 18:54 INFO     for label 8 >> 0.901
+09-24 18:54 INFO     for label 9 >> 0.858
+09-24 18:54 INFO     >>>>> Epoch [42]: Global model loss: 0.009993000656366349 acc: 0.7821
+09-24 18:55 INFO     Scores per target value
+09-24 18:55 INFO     for label 0 >> 0.795
+09-24 18:55 INFO     for label 1 >> 0.881
+09-24 18:55 INFO     for label 2 >> 0.651
+09-24 18:55 INFO     for label 3 >> 0.581
+09-24 18:55 INFO     for label 4 >> 0.753
+09-24 18:55 INFO     for label 5 >> 0.679
+09-24 18:55 INFO     for label 6 >> 0.892
+09-24 18:55 INFO     for label 7 >> 0.828
+09-24 18:55 INFO     for label 8 >> 0.909
+09-24 18:55 INFO     for label 9 >> 0.852
+09-24 18:55 INFO     >>>>> Epoch [43]: Global model loss: 0.00988828493654728 acc: 0.7822
+09-24 18:55 INFO     Scores per target value
+09-24 18:55 INFO     for label 0 >> 0.806
+09-24 18:55 INFO     for label 1 >> 0.878
+09-24 18:55 INFO     for label 2 >> 0.661
+09-24 18:55 INFO     for label 3 >> 0.588
+09-24 18:55 INFO     for label 4 >> 0.77
+09-24 18:55 INFO     for label 5 >> 0.622
+09-24 18:55 INFO     for label 6 >> 0.917
+09-24 18:55 INFO     for label 7 >> 0.812
+09-24 18:55 INFO     for label 8 >> 0.907
+09-24 18:55 INFO     for label 9 >> 0.861
+09-24 18:55 INFO     >>>>> Epoch [44]: Global model loss: 0.009675831884145737 acc: 0.7863
+09-24 18:55 INFO     Scores per target value
+09-24 18:55 INFO     for label 0 >> 0.788
+09-24 18:55 INFO     for label 1 >> 0.87
+09-24 18:55 INFO     for label 2 >> 0.675
+09-24 18:55 INFO     for label 3 >> 0.595
+09-24 18:55 INFO     for label 4 >> 0.777
+09-24 18:55 INFO     for label 5 >> 0.674
+09-24 18:55 INFO     for label 6 >> 0.884
+09-24 18:55 INFO     for label 7 >> 0.849
+09-24 18:55 INFO     for label 8 >> 0.906
+09-24 18:55 INFO     for label 9 >> 0.845
+09-24 18:56 INFO     >>>>> Epoch [45]: Global model loss: 0.009747121149301529 acc: 0.7879
+09-24 18:56 INFO     Scores per target value
+09-24 18:56 INFO     for label 0 >> 0.842
+09-24 18:56 INFO     for label 1 >> 0.883
+09-24 18:56 INFO     for label 2 >> 0.653
+09-24 18:56 INFO     for label 3 >> 0.586
+09-24 18:56 INFO     for label 4 >> 0.776
+09-24 18:56 INFO     for label 5 >> 0.666
+09-24 18:56 INFO     for label 6 >> 0.903
+09-24 18:56 INFO     for label 7 >> 0.834
+09-24 18:56 INFO     for label 8 >> 0.889
+09-24 18:56 INFO     for label 9 >> 0.847
+09-24 18:56 INFO     >>>>> Epoch [46]: Global model loss: 0.009589961099624634 acc: 0.7894
+09-24 18:56 INFO     Scores per target value
+09-24 18:56 INFO     for label 0 >> 0.834
+09-24 18:56 INFO     for label 1 >> 0.866
+09-24 18:56 INFO     for label 2 >> 0.659
+09-24 18:56 INFO     for label 3 >> 0.597
+09-24 18:56 INFO     for label 4 >> 0.782
+09-24 18:56 INFO     for label 5 >> 0.669
+09-24 18:56 INFO     for label 6 >> 0.898
+09-24 18:56 INFO     for label 7 >> 0.84
+09-24 18:56 INFO     for label 8 >> 0.898
+09-24 18:56 INFO     for label 9 >> 0.851
+09-24 18:57 INFO     >>>>> Epoch [47]: Global model loss: 0.009691672551631928 acc: 0.7897
+09-24 18:57 INFO     Scores per target value
+09-24 18:57 INFO     for label 0 >> 0.828
+09-24 18:57 INFO     for label 1 >> 0.873
+09-24 18:57 INFO     for label 2 >> 0.677
+09-24 18:57 INFO     for label 3 >> 0.605
+09-24 18:57 INFO     for label 4 >> 0.725
+09-24 18:57 INFO     for label 5 >> 0.662
+09-24 18:57 INFO     for label 6 >> 0.914
+09-24 18:57 INFO     for label 7 >> 0.845
+09-24 18:57 INFO     for label 8 >> 0.909
+09-24 18:57 INFO     for label 9 >> 0.859
+09-24 18:57 INFO     >>>>> Epoch [48]: Global model loss: 0.00973700005710125 acc: 0.7895
+09-24 18:57 INFO     Scores per target value
+09-24 18:57 INFO     for label 0 >> 0.806
+09-24 18:57 INFO     for label 1 >> 0.869
+09-24 18:57 INFO     for label 2 >> 0.675
+09-24 18:57 INFO     for label 3 >> 0.552
+09-24 18:57 INFO     for label 4 >> 0.766
+09-24 18:57 INFO     for label 5 >> 0.684
+09-24 18:57 INFO     for label 6 >> 0.914
+09-24 18:57 INFO     for label 7 >> 0.86
+09-24 18:57 INFO     for label 8 >> 0.899
+09-24 18:57 INFO     for label 9 >> 0.87
+09-24 18:57 INFO     >>>>> Epoch [49]: Global model loss: 0.009610711777210236 acc: 0.7879
+09-24 18:58 INFO     Scores per target value
+09-24 18:58 INFO     for label 0 >> 0.783
+09-24 18:58 INFO     for label 1 >> 0.879
+09-24 18:58 INFO     for label 2 >> 0.715
+09-24 18:58 INFO     for label 3 >> 0.618
+09-24 18:58 INFO     for label 4 >> 0.731
+09-24 18:58 INFO     for label 5 >> 0.664
+09-24 18:58 INFO     for label 6 >> 0.903
+09-24 18:58 INFO     for label 7 >> 0.847
+09-24 18:58 INFO     for label 8 >> 0.899
+09-24 18:58 INFO     for label 9 >> 0.84
+09-24 18:58 INFO     >>>>> Epoch [50]: Global model loss: 0.00953598743379116 acc: 0.7949
+09-24 18:58 INFO     Scores per target value
+09-24 18:58 INFO     for label 0 >> 0.827
+09-24 18:58 INFO     for label 1 >> 0.889
+09-24 18:58 INFO     for label 2 >> 0.684
+09-24 18:58 INFO     for label 3 >> 0.579
+09-24 18:58 INFO     for label 4 >> 0.782
+09-24 18:58 INFO     for label 5 >> 0.683
+09-24 18:58 INFO     for label 6 >> 0.903
+09-24 18:58 INFO     for label 7 >> 0.836
+09-24 18:58 INFO     for label 8 >> 0.907
+09-24 18:58 INFO     for label 9 >> 0.859
+09-24 18:58 INFO     >>>>> Epoch [51]: Global model loss: 0.009701794403791427 acc: 0.7896
+09-24 18:58 INFO     Scores per target value
+09-24 18:58 INFO     for label 0 >> 0.807
+09-24 18:58 INFO     for label 1 >> 0.84
+09-24 18:58 INFO     for label 2 >> 0.669
+09-24 18:58 INFO     for label 3 >> 0.622
+09-24 18:58 INFO     for label 4 >> 0.782
+09-24 18:58 INFO     for label 5 >> 0.649
+09-24 18:58 INFO     for label 6 >> 0.9
+09-24 18:58 INFO     for label 7 >> 0.835
+09-24 18:58 INFO     for label 8 >> 0.915
+09-24 18:58 INFO     for label 9 >> 0.877
+09-24 18:59 INFO     >>>>> Epoch [52]: Global model loss: 0.009617530903220177 acc: 0.7924
+09-24 18:59 INFO     Scores per target value
+09-24 18:59 INFO     for label 0 >> 0.802
+09-24 18:59 INFO     for label 1 >> 0.873
+09-24 18:59 INFO     for label 2 >> 0.644
+09-24 18:59 INFO     for label 3 >> 0.609
+09-24 18:59 INFO     for label 4 >> 0.787
+09-24 18:59 INFO     for label 5 >> 0.691
+09-24 18:59 INFO     for label 6 >> 0.899
+09-24 18:59 INFO     for label 7 >> 0.859
+09-24 18:59 INFO     for label 8 >> 0.904
+09-24 18:59 INFO     for label 9 >> 0.856
+09-24 18:59 INFO     >>>>> Epoch [53]: Global model loss: 0.009579287245869636 acc: 0.7945
+09-24 18:59 INFO     Scores per target value
+09-24 18:59 INFO     for label 0 >> 0.836
+09-24 18:59 INFO     for label 1 >> 0.853
+09-24 18:59 INFO     for label 2 >> 0.666
+09-24 18:59 INFO     for label 3 >> 0.599
+09-24 18:59 INFO     for label 4 >> 0.779
+09-24 18:59 INFO     for label 5 >> 0.699
+09-24 18:59 INFO     for label 6 >> 0.899
+09-24 18:59 INFO     for label 7 >> 0.845
+09-24 18:59 INFO     for label 8 >> 0.91
+09-24 18:59 INFO     for label 9 >> 0.859
+09-24 19:00 INFO     >>>>> Epoch [54]: Global model loss: 0.009635518008470536 acc: 0.7932
+09-24 19:00 INFO     Scores per target value
+09-24 19:00 INFO     for label 0 >> 0.777
+09-24 19:00 INFO     for label 1 >> 0.878
+09-24 19:00 INFO     for label 2 >> 0.679
+09-24 19:00 INFO     for label 3 >> 0.572
+09-24 19:00 INFO     for label 4 >> 0.789
+09-24 19:00 INFO     for label 5 >> 0.698
+09-24 19:00 INFO     for label 6 >> 0.912
+09-24 19:00 INFO     for label 7 >> 0.841
+09-24 19:00 INFO     for label 8 >> 0.917
+09-24 19:00 INFO     for label 9 >> 0.869
+09-24 19:00 INFO     >>>>> Epoch [55]: Global model loss: 0.009600484374165535 acc: 0.7927
+09-24 19:00 INFO     Scores per target value
+09-24 19:00 INFO     for label 0 >> 0.777
+09-24 19:00 INFO     for label 1 >> 0.892
+09-24 19:00 INFO     for label 2 >> 0.687
+09-24 19:00 INFO     for label 3 >> 0.628
+09-24 19:00 INFO     for label 4 >> 0.766
+09-24 19:00 INFO     for label 5 >> 0.684
+09-24 19:00 INFO     for label 6 >> 0.894
+09-24 19:00 INFO     for label 7 >> 0.836
+09-24 19:00 INFO     for label 8 >> 0.908
+09-24 19:00 INFO     for label 9 >> 0.855
+09-24 19:01 INFO     >>>>> Epoch [56]: Global model loss: 0.009437350061535836 acc: 0.7943
+09-24 19:01 INFO     Scores per target value
+09-24 19:01 INFO     for label 0 >> 0.812
+09-24 19:01 INFO     for label 1 >> 0.89
+09-24 19:01 INFO     for label 2 >> 0.708
+09-24 19:01 INFO     for label 3 >> 0.586
+09-24 19:01 INFO     for label 4 >> 0.754
+09-24 19:01 INFO     for label 5 >> 0.668
+09-24 19:01 INFO     for label 6 >> 0.892
+09-24 19:01 INFO     for label 7 >> 0.858
+09-24 19:01 INFO     for label 8 >> 0.907
+09-24 19:01 INFO     for label 9 >> 0.868
+09-24 19:01 INFO     >>>>> Epoch [57]: Global model loss: 0.009539222401380538 acc: 0.7925
+09-24 19:01 INFO     Scores per target value
+09-24 19:01 INFO     for label 0 >> 0.849
+09-24 19:01 INFO     for label 1 >> 0.875
+09-24 19:01 INFO     for label 2 >> 0.661
+09-24 19:01 INFO     for label 3 >> 0.594
+09-24 19:01 INFO     for label 4 >> 0.752
+09-24 19:01 INFO     for label 5 >> 0.697
+09-24 19:01 INFO     for label 6 >> 0.889
+09-24 19:01 INFO     for label 7 >> 0.847
+09-24 19:01 INFO     for label 8 >> 0.894
+09-24 19:01 INFO     for label 9 >> 0.867
+09-24 19:01 INFO     >>>>> Epoch [58]: Global model loss: 0.009490560325980186 acc: 0.7979
+09-24 19:02 INFO     Scores per target value
+09-24 19:02 INFO     for label 0 >> 0.821
+09-24 19:02 INFO     for label 1 >> 0.879
+09-24 19:02 INFO     for label 2 >> 0.718
+09-24 19:02 INFO     for label 3 >> 0.58
+09-24 19:02 INFO     for label 4 >> 0.795
+09-24 19:02 INFO     for label 5 >> 0.678
+09-24 19:02 INFO     for label 6 >> 0.912
+09-24 19:02 INFO     for label 7 >> 0.846
+09-24 19:02 INFO     for label 8 >> 0.901
+09-24 19:02 INFO     for label 9 >> 0.849
+09-24 19:02 INFO     >>>>> Epoch [59]: Global model loss: 0.009334338310360908 acc: 0.8003
+09-24 19:02 INFO     Scores per target value
+09-24 19:02 INFO     for label 0 >> 0.824
+09-24 19:02 INFO     for label 1 >> 0.877
+09-24 19:02 INFO     for label 2 >> 0.683
+09-24 19:02 INFO     for label 3 >> 0.613
+09-24 19:02 INFO     for label 4 >> 0.793
+09-24 19:02 INFO     for label 5 >> 0.676
+09-24 19:02 INFO     for label 6 >> 0.905
+09-24 19:02 INFO     for label 7 >> 0.867
+09-24 19:02 INFO     for label 8 >> 0.911
+09-24 19:02 INFO     for label 9 >> 0.854
+09-24 19:02 INFO     >>>>> Epoch [60]: Global model loss: 0.009458039164543151 acc: 0.7995
+09-24 19:02 INFO     Scores per target value
+09-24 19:02 INFO     for label 0 >> 0.804
+09-24 19:02 INFO     for label 1 >> 0.888
+09-24 19:02 INFO     for label 2 >> 0.705
+09-24 19:02 INFO     for label 3 >> 0.604
+09-24 19:02 INFO     for label 4 >> 0.802
+09-24 19:02 INFO     for label 5 >> 0.666
+09-24 19:02 INFO     for label 6 >> 0.898
+09-24 19:02 INFO     for label 7 >> 0.85
+09-24 19:02 INFO     for label 8 >> 0.913
+09-24 19:02 INFO     for label 9 >> 0.865
+09-24 19:03 INFO     >>>>> Epoch [61]: Global model loss: 0.009529640224575996 acc: 0.7989
+09-24 19:03 INFO     Scores per target value
+09-24 19:03 INFO     for label 0 >> 0.816
+09-24 19:03 INFO     for label 1 >> 0.888
+09-24 19:03 INFO     for label 2 >> 0.713
+09-24 19:03 INFO     for label 3 >> 0.624
+09-24 19:03 INFO     for label 4 >> 0.778
+09-24 19:03 INFO     for label 5 >> 0.677
+09-24 19:03 INFO     for label 6 >> 0.914
+09-24 19:03 INFO     for label 7 >> 0.83
+09-24 19:03 INFO     for label 8 >> 0.92
+09-24 19:03 INFO     for label 9 >> 0.829
+09-24 19:03 INFO     >>>>> Epoch [62]: Global model loss: 0.009425968194007874 acc: 0.8012
+09-24 19:03 INFO     Scores per target value
+09-24 19:03 INFO     for label 0 >> 0.833
+09-24 19:03 INFO     for label 1 >> 0.881
+09-24 19:03 INFO     for label 2 >> 0.704
+09-24 19:03 INFO     for label 3 >> 0.593
+09-24 19:03 INFO     for label 4 >> 0.778
+09-24 19:03 INFO     for label 5 >> 0.722
+09-24 19:03 INFO     for label 6 >> 0.895
+09-24 19:03 INFO     for label 7 >> 0.847
+09-24 19:03 INFO     for label 8 >> 0.894
+09-24 19:03 INFO     for label 9 >> 0.865
+09-24 19:04 INFO     >>>>> Epoch [63]: Global model loss: 0.009291617128252983 acc: 0.8029
+09-24 19:04 INFO     Scores per target value
+09-24 19:04 INFO     for label 0 >> 0.819
+09-24 19:04 INFO     for label 1 >> 0.886
+09-24 19:04 INFO     for label 2 >> 0.71
+09-24 19:04 INFO     for label 3 >> 0.607
+09-24 19:04 INFO     for label 4 >> 0.804
+09-24 19:04 INFO     for label 5 >> 0.703
+09-24 19:04 INFO     for label 6 >> 0.888
+09-24 19:04 INFO     for label 7 >> 0.849
+09-24 19:04 INFO     for label 8 >> 0.903
+09-24 19:04 INFO     for label 9 >> 0.86
+09-24 19:04 INFO     >>>>> Epoch [64]: Global model loss: 0.009291364422440529 acc: 0.8035
+09-24 19:04 INFO     Scores per target value
+09-24 19:04 INFO     for label 0 >> 0.845
+09-24 19:04 INFO     for label 1 >> 0.884
+09-24 19:04 INFO     for label 2 >> 0.712
+09-24 19:04 INFO     for label 3 >> 0.651
+09-24 19:04 INFO     for label 4 >> 0.759
+09-24 19:04 INFO     for label 5 >> 0.671
+09-24 19:04 INFO     for label 6 >> 0.891
+09-24 19:04 INFO     for label 7 >> 0.854
+09-24 19:04 INFO     for label 8 >> 0.902
+09-24 19:04 INFO     for label 9 >> 0.866
+09-24 19:04 INFO     >>>>> Epoch [65]: Global model loss: 0.009347277048230171 acc: 0.8025
+09-24 19:05 INFO     Scores per target value
+09-24 19:05 INFO     for label 0 >> 0.825
+09-24 19:05 INFO     for label 1 >> 0.906
+09-24 19:05 INFO     for label 2 >> 0.743
+09-24 19:05 INFO     for label 3 >> 0.619
+09-24 19:05 INFO     for label 4 >> 0.755
+09-24 19:05 INFO     for label 5 >> 0.676
+09-24 19:05 INFO     for label 6 >> 0.896
+09-24 19:05 INFO     for label 7 >> 0.87
+09-24 19:05 INFO     for label 8 >> 0.895
+09-24 19:05 INFO     for label 9 >> 0.84
+09-24 19:05 INFO     >>>>> Epoch [66]: Global model loss: 0.009447937735915185 acc: 0.8025
+09-24 19:05 INFO     Scores per target value
+09-24 19:05 INFO     for label 0 >> 0.827
+09-24 19:05 INFO     for label 1 >> 0.884
+09-24 19:05 INFO     for label 2 >> 0.717
+09-24 19:05 INFO     for label 3 >> 0.634
+09-24 19:05 INFO     for label 4 >> 0.779
+09-24 19:05 INFO     for label 5 >> 0.648
+09-24 19:05 INFO     for label 6 >> 0.91
+09-24 19:05 INFO     for label 7 >> 0.857
+09-24 19:05 INFO     for label 8 >> 0.911
+09-24 19:05 INFO     for label 9 >> 0.858
+09-24 19:05 INFO     >>>>> Epoch [67]: Global model loss: 0.009284230822324753 acc: 0.8055
+09-24 19:05 INFO     Scores per target value
+09-24 19:05 INFO     for label 0 >> 0.829
+09-24 19:05 INFO     for label 1 >> 0.893
+09-24 19:05 INFO     for label 2 >> 0.744
+09-24 19:05 INFO     for label 3 >> 0.645
+09-24 19:05 INFO     for label 4 >> 0.766
+09-24 19:05 INFO     for label 5 >> 0.671
+09-24 19:05 INFO     for label 6 >> 0.9
+09-24 19:05 INFO     for label 7 >> 0.845
+09-24 19:05 INFO     for label 8 >> 0.906
+09-24 19:05 INFO     for label 9 >> 0.856
+09-24 19:06 INFO     >>>>> Epoch [68]: Global model loss: 0.0092685856372118 acc: 0.8069
+09-24 19:06 INFO     Scores per target value
+09-24 19:06 INFO     for label 0 >> 0.825
+09-24 19:06 INFO     for label 1 >> 0.893
+09-24 19:06 INFO     for label 2 >> 0.707
+09-24 19:06 INFO     for label 3 >> 0.62
+09-24 19:06 INFO     for label 4 >> 0.809
+09-24 19:06 INFO     for label 5 >> 0.7
+09-24 19:06 INFO     for label 6 >> 0.904
+09-24 19:06 INFO     for label 7 >> 0.835
+09-24 19:06 INFO     for label 8 >> 0.901
+09-24 19:06 INFO     for label 9 >> 0.875
+09-24 19:06 INFO     >>>>> Epoch [69]: Global model loss: 0.00931773760318756 acc: 0.8043
+09-24 19:06 INFO     Scores per target value
+09-24 19:06 INFO     for label 0 >> 0.813
+09-24 19:06 INFO     for label 1 >> 0.897
+09-24 19:06 INFO     for label 2 >> 0.721
+09-24 19:06 INFO     for label 3 >> 0.62
+09-24 19:06 INFO     for label 4 >> 0.771
+09-24 19:06 INFO     for label 5 >> 0.706
+09-24 19:06 INFO     for label 6 >> 0.912
+09-24 19:06 INFO     for label 7 >> 0.836
+09-24 19:06 INFO     for label 8 >> 0.914
+09-24 19:06 INFO     for label 9 >> 0.853
+09-24 19:07 INFO     >>>>> Epoch [70]: Global model loss: 0.00944282704293728 acc: 0.8026
+09-24 19:07 INFO     Scores per target value
+09-24 19:07 INFO     for label 0 >> 0.82
+09-24 19:07 INFO     for label 1 >> 0.895
+09-24 19:07 INFO     for label 2 >> 0.739
+09-24 19:07 INFO     for label 3 >> 0.602
+09-24 19:07 INFO     for label 4 >> 0.778
+09-24 19:07 INFO     for label 5 >> 0.684
+09-24 19:07 INFO     for label 6 >> 0.902
+09-24 19:07 INFO     for label 7 >> 0.846
+09-24 19:07 INFO     for label 8 >> 0.902
+09-24 19:07 INFO     for label 9 >> 0.858
+09-24 19:07 INFO     >>>>> Epoch [71]: Global model loss: 0.009389060008525848 acc: 0.8017
+09-24 19:07 INFO     Scores per target value
+09-24 19:07 INFO     for label 0 >> 0.82
+09-24 19:07 INFO     for label 1 >> 0.896
+09-24 19:07 INFO     for label 2 >> 0.714
+09-24 19:07 INFO     for label 3 >> 0.607
+09-24 19:07 INFO     for label 4 >> 0.79
+09-24 19:07 INFO     for label 5 >> 0.679
+09-24 19:07 INFO     for label 6 >> 0.91
+09-24 19:07 INFO     for label 7 >> 0.857
+09-24 19:07 INFO     for label 8 >> 0.881
+09-24 19:07 INFO     for label 9 >> 0.863
+09-24 19:07 INFO     >>>>> Epoch [72]: Global model loss: 0.009133906811475754 acc: 0.8067
+09-24 19:08 INFO     Scores per target value
+09-24 19:08 INFO     for label 0 >> 0.817
+09-24 19:08 INFO     for label 1 >> 0.89
+09-24 19:08 INFO     for label 2 >> 0.73
+09-24 19:08 INFO     for label 3 >> 0.648
+09-24 19:08 INFO     for label 4 >> 0.812
+09-24 19:08 INFO     for label 5 >> 0.696
+09-24 19:08 INFO     for label 6 >> 0.875
+09-24 19:08 INFO     for label 7 >> 0.837
+09-24 19:08 INFO     for label 8 >> 0.908
+09-24 19:08 INFO     for label 9 >> 0.854
+09-24 19:08 INFO     >>>>> Epoch [73]: Global model loss: 0.009411052998900413 acc: 0.8052
+09-24 19:08 INFO     Scores per target value
+09-24 19:08 INFO     for label 0 >> 0.821
+09-24 19:08 INFO     for label 1 >> 0.896
+09-24 19:08 INFO     for label 2 >> 0.72
+09-24 19:08 INFO     for label 3 >> 0.621
+09-24 19:08 INFO     for label 4 >> 0.782
+09-24 19:08 INFO     for label 5 >> 0.692
+09-24 19:08 INFO     for label 6 >> 0.901
+09-24 19:08 INFO     for label 7 >> 0.869
+09-24 19:08 INFO     for label 8 >> 0.912
+09-24 19:08 INFO     for label 9 >> 0.838
+09-24 19:08 INFO     >>>>> Epoch [74]: Global model loss: 0.009273691830039024 acc: 0.8075
+09-24 19:08 INFO     Scores per target value
+09-24 19:08 INFO     for label 0 >> 0.827
+09-24 19:08 INFO     for label 1 >> 0.899
+09-24 19:08 INFO     for label 2 >> 0.713
+09-24 19:08 INFO     for label 3 >> 0.659
+09-24 19:08 INFO     for label 4 >> 0.786
+09-24 19:08 INFO     for label 5 >> 0.666
+09-24 19:08 INFO     for label 6 >> 0.901
+09-24 19:08 INFO     for label 7 >> 0.871
+09-24 19:08 INFO     for label 8 >> 0.917
+09-24 19:08 INFO     for label 9 >> 0.836
+09-24 19:09 INFO     >>>>> Epoch [75]: Global model loss: 0.00936788367331028 acc: 0.8114
+09-24 19:09 INFO     Scores per target value
+09-24 19:09 INFO     for label 0 >> 0.822
+09-24 19:09 INFO     for label 1 >> 0.886
+09-24 19:09 INFO     for label 2 >> 0.726
+09-24 19:09 INFO     for label 3 >> 0.644
+09-24 19:09 INFO     for label 4 >> 0.819
+09-24 19:09 INFO     for label 5 >> 0.675
+09-24 19:09 INFO     for label 6 >> 0.904
+09-24 19:09 INFO     for label 7 >> 0.871
+09-24 19:09 INFO     for label 8 >> 0.893
+09-24 19:09 INFO     for label 9 >> 0.874
+09-24 19:09 INFO     >>>>> Epoch [76]: Global model loss: 0.009414110851287842 acc: 0.8059
+09-24 19:09 INFO     Scores per target value
+09-24 19:09 INFO     for label 0 >> 0.863
+09-24 19:09 INFO     for label 1 >> 0.9
+09-24 19:09 INFO     for label 2 >> 0.693
+09-24 19:09 INFO     for label 3 >> 0.613
+09-24 19:09 INFO     for label 4 >> 0.806
+09-24 19:09 INFO     for label 5 >> 0.704
+09-24 19:09 INFO     for label 6 >> 0.897
+09-24 19:09 INFO     for label 7 >> 0.853
+09-24 19:09 INFO     for label 8 >> 0.873
+09-24 19:09 INFO     for label 9 >> 0.857
+09-24 19:10 INFO     >>>>> Epoch [77]: Global model loss: 0.00931896490007639 acc: 0.808
+09-24 19:10 INFO     Scores per target value
+09-24 19:10 INFO     for label 0 >> 0.832
+09-24 19:10 INFO     for label 1 >> 0.883
+09-24 19:10 INFO     for label 2 >> 0.71
+09-24 19:10 INFO     for label 3 >> 0.643
+09-24 19:10 INFO     for label 4 >> 0.815
+09-24 19:10 INFO     for label 5 >> 0.686
+09-24 19:10 INFO     for label 6 >> 0.899
+09-24 19:10 INFO     for label 7 >> 0.839
+09-24 19:10 INFO     for label 8 >> 0.908
+09-24 19:10 INFO     for label 9 >> 0.865
+09-24 19:10 INFO     >>>>> Epoch [78]: Global model loss: 0.009362120938301086 acc: 0.8083
+09-24 19:10 INFO     Scores per target value
+09-24 19:10 INFO     for label 0 >> 0.853
+09-24 19:10 INFO     for label 1 >> 0.897
+09-24 19:10 INFO     for label 2 >> 0.694
+09-24 19:10 INFO     for label 3 >> 0.626
+09-24 19:10 INFO     for label 4 >> 0.795
+09-24 19:10 INFO     for label 5 >> 0.708
+09-24 19:10 INFO     for label 6 >> 0.894
+09-24 19:10 INFO     for label 7 >> 0.854
+09-24 19:10 INFO     for label 8 >> 0.901
+09-24 19:10 INFO     for label 9 >> 0.861
+09-24 19:11 INFO     >>>>> Epoch [79]: Global model loss: 0.009515892520546913 acc: 0.8058
+09-24 19:11 INFO     Scores per target value
+09-24 19:11 INFO     for label 0 >> 0.819
+09-24 19:11 INFO     for label 1 >> 0.903
+09-24 19:11 INFO     for label 2 >> 0.747
+09-24 19:11 INFO     for label 3 >> 0.592
+09-24 19:11 INFO     for label 4 >> 0.783
+09-24 19:11 INFO     for label 5 >> 0.692
+09-24 19:11 INFO     for label 6 >> 0.894
+09-24 19:11 INFO     for label 7 >> 0.864
+09-24 19:11 INFO     for label 8 >> 0.9
+09-24 19:11 INFO     for label 9 >> 0.864
+09-24 19:11 INFO     >>>>> Epoch [80]: Global model loss: 0.009474696180224418 acc: 0.8092
+09-24 19:11 INFO     Scores per target value
+09-24 19:11 INFO     for label 0 >> 0.845
+09-24 19:11 INFO     for label 1 >> 0.892
+09-24 19:11 INFO     for label 2 >> 0.728
+09-24 19:11 INFO     for label 3 >> 0.648
+09-24 19:11 INFO     for label 4 >> 0.791
+09-24 19:11 INFO     for label 5 >> 0.708
+09-24 19:11 INFO     for label 6 >> 0.898
+09-24 19:11 INFO     for label 7 >> 0.84
+09-24 19:11 INFO     for label 8 >> 0.875
+09-24 19:11 INFO     for label 9 >> 0.867
+09-24 19:11 INFO     >>>>> Epoch [81]: Global model loss: 0.009546630904078484 acc: 0.8089
+09-24 19:12 INFO     Scores per target value
+09-24 19:12 INFO     for label 0 >> 0.809
+09-24 19:12 INFO     for label 1 >> 0.895
+09-24 19:12 INFO     for label 2 >> 0.761
+09-24 19:12 INFO     for label 3 >> 0.659
+09-24 19:12 INFO     for label 4 >> 0.776
+09-24 19:12 INFO     for label 5 >> 0.667
+09-24 19:12 INFO     for label 6 >> 0.892
+09-24 19:12 INFO     for label 7 >> 0.869
+09-24 19:12 INFO     for label 8 >> 0.9
+09-24 19:12 INFO     for label 9 >> 0.861
+09-24 19:12 INFO     >>>>> Epoch [82]: Global model loss: 0.009458265048265456 acc: 0.8082
+09-24 19:12 INFO     Scores per target value
+09-24 19:12 INFO     for label 0 >> 0.856
+09-24 19:12 INFO     for label 1 >> 0.901
+09-24 19:12 INFO     for label 2 >> 0.678
+09-24 19:12 INFO     for label 3 >> 0.631
+09-24 19:12 INFO     for label 4 >> 0.816
+09-24 19:12 INFO     for label 5 >> 0.7
+09-24 19:12 INFO     for label 6 >> 0.902
+09-24 19:12 INFO     for label 7 >> 0.859
+09-24 19:12 INFO     for label 8 >> 0.893
+09-24 19:12 INFO     for label 9 >> 0.846
+09-24 19:12 INFO     >>>>> Epoch [83]: Global model loss: 0.009530150982737542 acc: 0.8098
+09-24 19:12 INFO     Scores per target value
+09-24 19:12 INFO     for label 0 >> 0.86
+09-24 19:12 INFO     for label 1 >> 0.888
+09-24 19:12 INFO     for label 2 >> 0.697
+09-24 19:12 INFO     for label 3 >> 0.67
+09-24 19:12 INFO     for label 4 >> 0.839
+09-24 19:12 INFO     for label 5 >> 0.659
+09-24 19:12 INFO     for label 6 >> 0.896
+09-24 19:12 INFO     for label 7 >> 0.84
+09-24 19:12 INFO     for label 8 >> 0.889
+09-24 19:12 INFO     for label 9 >> 0.86
+09-24 19:13 INFO     >>>>> Epoch [84]: Global model loss: 0.009568902671337127 acc: 0.8124
+09-24 19:13 INFO     Scores per target value
+09-24 19:13 INFO     for label 0 >> 0.826
+09-24 19:13 INFO     for label 1 >> 0.894
+09-24 19:13 INFO     for label 2 >> 0.749
+09-24 19:13 INFO     for label 3 >> 0.659
+09-24 19:13 INFO     for label 4 >> 0.823
+09-24 19:13 INFO     for label 5 >> 0.669
+09-24 19:13 INFO     for label 6 >> 0.901
+09-24 19:13 INFO     for label 7 >> 0.838
+09-24 19:13 INFO     for label 8 >> 0.899
+09-24 19:13 INFO     for label 9 >> 0.866
+09-24 19:13 INFO     >>>>> Epoch [85]: Global model loss: 0.009689736218750477 acc: 0.8076
+09-24 19:13 INFO     Scores per target value
+09-24 19:13 INFO     for label 0 >> 0.824
+09-24 19:13 INFO     for label 1 >> 0.92
+09-24 19:13 INFO     for label 2 >> 0.701
+09-24 19:13 INFO     for label 3 >> 0.648
+09-24 19:13 INFO     for label 4 >> 0.792
+09-24 19:13 INFO     for label 5 >> 0.689
+09-24 19:13 INFO     for label 6 >> 0.905
+09-24 19:13 INFO     for label 7 >> 0.835
+09-24 19:13 INFO     for label 8 >> 0.898
+09-24 19:13 INFO     for label 9 >> 0.864
+09-24 19:14 INFO     >>>>> Epoch [86]: Global model loss: 0.009484367656707763 acc: 0.8152
+09-24 19:14 INFO     Scores per target value
+09-24 19:14 INFO     for label 0 >> 0.829
+09-24 19:14 INFO     for label 1 >> 0.902
+09-24 19:14 INFO     for label 2 >> 0.707
+09-24 19:14 INFO     for label 3 >> 0.659
+09-24 19:14 INFO     for label 4 >> 0.827
+09-24 19:14 INFO     for label 5 >> 0.703
+09-24 19:14 INFO     for label 6 >> 0.899
+09-24 19:14 INFO     for label 7 >> 0.836
+09-24 19:14 INFO     for label 8 >> 0.91
+09-24 19:14 INFO     for label 9 >> 0.88
+09-24 19:14 INFO     >>>>> Epoch [87]: Global model loss: 0.009457215338945389 acc: 0.8146
+09-24 19:14 INFO     Scores per target value
+09-24 19:14 INFO     for label 0 >> 0.837
+09-24 19:14 INFO     for label 1 >> 0.905
+09-24 19:14 INFO     for label 2 >> 0.715
+09-24 19:14 INFO     for label 3 >> 0.663
+09-24 19:14 INFO     for label 4 >> 0.816
+09-24 19:14 INFO     for label 5 >> 0.699
+09-24 19:14 INFO     for label 6 >> 0.888
+09-24 19:14 INFO     for label 7 >> 0.85
+09-24 19:14 INFO     for label 8 >> 0.9
+09-24 19:14 INFO     for label 9 >> 0.873
+09-24 19:14 INFO     >>>>> Epoch [88]: Global model loss: 0.00944716619849205 acc: 0.8112
+09-24 19:15 INFO     Scores per target value
+09-24 19:15 INFO     for label 0 >> 0.827
+09-24 19:15 INFO     for label 1 >> 0.899
+09-24 19:15 INFO     for label 2 >> 0.725
+09-24 19:15 INFO     for label 3 >> 0.632
+09-24 19:15 INFO     for label 4 >> 0.825
+09-24 19:15 INFO     for label 5 >> 0.692
+09-24 19:15 INFO     for label 6 >> 0.893
+09-24 19:15 INFO     for label 7 >> 0.849
+09-24 19:15 INFO     for label 8 >> 0.894
+09-24 19:15 INFO     for label 9 >> 0.876
+09-24 19:15 INFO     >>>>> Epoch [89]: Global model loss: 0.009811582136154174 acc: 0.8092
+09-24 19:15 INFO     Scores per target value
+09-24 19:15 INFO     for label 0 >> 0.854
+09-24 19:15 INFO     for label 1 >> 0.913
+09-24 19:15 INFO     for label 2 >> 0.678
+09-24 19:15 INFO     for label 3 >> 0.683
+09-24 19:15 INFO     for label 4 >> 0.823
+09-24 19:15 INFO     for label 5 >> 0.661
+09-24 19:15 INFO     for label 6 >> 0.889
+09-24 19:15 INFO     for label 7 >> 0.856
+09-24 19:15 INFO     for label 8 >> 0.868
+09-24 19:15 INFO     for label 9 >> 0.867
+09-24 19:15 INFO     >>>>> Epoch [90]: Global model loss: 0.009659071323275566 acc: 0.8087
+09-24 19:15 INFO     Scores per target value
+09-24 19:15 INFO     for label 0 >> 0.831
+09-24 19:15 INFO     for label 1 >> 0.905
+09-24 19:15 INFO     for label 2 >> 0.757
+09-24 19:15 INFO     for label 3 >> 0.616
+09-24 19:15 INFO     for label 4 >> 0.767
+09-24 19:15 INFO     for label 5 >> 0.726
+09-24 19:15 INFO     for label 6 >> 0.878
+09-24 19:15 INFO     for label 7 >> 0.838
+09-24 19:15 INFO     for label 8 >> 0.894
+09-24 19:15 INFO     for label 9 >> 0.875
+09-24 19:16 INFO     >>>>> Epoch [91]: Global model loss: 0.009744526998698712 acc: 0.8114
+09-24 19:16 INFO     Scores per target value
+09-24 19:16 INFO     for label 0 >> 0.847
+09-24 19:16 INFO     for label 1 >> 0.904
+09-24 19:16 INFO     for label 2 >> 0.691
+09-24 19:16 INFO     for label 3 >> 0.665
+09-24 19:16 INFO     for label 4 >> 0.787
+09-24 19:16 INFO     for label 5 >> 0.694
+09-24 19:16 INFO     for label 6 >> 0.907
+09-24 19:16 INFO     for label 7 >> 0.863
+09-24 19:16 INFO     for label 8 >> 0.882
+09-24 19:16 INFO     for label 9 >> 0.874
+09-24 19:16 INFO     >>>>> Epoch [92]: Global model loss: 0.009517018347978592 acc: 0.8138
+09-24 19:16 INFO     Scores per target value
+09-24 19:16 INFO     for label 0 >> 0.849
+09-24 19:16 INFO     for label 1 >> 0.918
+09-24 19:16 INFO     for label 2 >> 0.703
+09-24 19:16 INFO     for label 3 >> 0.67
+09-24 19:16 INFO     for label 4 >> 0.784
+09-24 19:16 INFO     for label 5 >> 0.699
+09-24 19:16 INFO     for label 6 >> 0.897
+09-24 19:16 INFO     for label 7 >> 0.859
+09-24 19:16 INFO     for label 8 >> 0.892
+09-24 19:16 INFO     for label 9 >> 0.867
+09-24 19:17 INFO     >>>>> Epoch [93]: Global model loss: 0.0097225680783391 acc: 0.8125
+09-24 19:17 INFO     Scores per target value
+09-24 19:17 INFO     for label 0 >> 0.834
+09-24 19:17 INFO     for label 1 >> 0.897
+09-24 19:17 INFO     for label 2 >> 0.732
+09-24 19:17 INFO     for label 3 >> 0.638
+09-24 19:17 INFO     for label 4 >> 0.787
+09-24 19:17 INFO     for label 5 >> 0.706
+09-24 19:17 INFO     for label 6 >> 0.894
+09-24 19:17 INFO     for label 7 >> 0.871
+09-24 19:17 INFO     for label 8 >> 0.887
+09-24 19:17 INFO     for label 9 >> 0.879
+09-24 19:17 INFO     >>>>> Epoch [94]: Global model loss: 0.009768536610901355 acc: 0.8119
+09-24 19:17 INFO     Scores per target value
+09-24 19:17 INFO     for label 0 >> 0.843
+09-24 19:17 INFO     for label 1 >> 0.9
+09-24 19:17 INFO     for label 2 >> 0.726
+09-24 19:17 INFO     for label 3 >> 0.65
+09-24 19:17 INFO     for label 4 >> 0.796
+09-24 19:17 INFO     for label 5 >> 0.678
+09-24 19:17 INFO     for label 6 >> 0.91
+09-24 19:17 INFO     for label 7 >> 0.86
+09-24 19:17 INFO     for label 8 >> 0.902
+09-24 19:17 INFO     for label 9 >> 0.854
+09-24 19:17 INFO     >>>>> Epoch [95]: Global model loss: 0.009878765669465064 acc: 0.8106
+09-24 19:18 INFO     Scores per target value
+09-24 19:18 INFO     for label 0 >> 0.833
+09-24 19:18 INFO     for label 1 >> 0.908
+09-24 19:18 INFO     for label 2 >> 0.712
+09-24 19:18 INFO     for label 3 >> 0.667
+09-24 19:18 INFO     for label 4 >> 0.783
+09-24 19:18 INFO     for label 5 >> 0.675
+09-24 19:18 INFO     for label 6 >> 0.906
+09-24 19:18 INFO     for label 7 >> 0.871
+09-24 19:18 INFO     for label 8 >> 0.892
+09-24 19:18 INFO     for label 9 >> 0.859
+09-24 19:18 INFO     >>>>> Epoch [96]: Global model loss: 0.009850441299378872 acc: 0.8089
+09-24 19:18 INFO     Scores per target value
+09-24 19:18 INFO     for label 0 >> 0.814
+09-24 19:18 INFO     for label 1 >> 0.902
+09-24 19:18 INFO     for label 2 >> 0.735
+09-24 19:18 INFO     for label 3 >> 0.663
+09-24 19:18 INFO     for label 4 >> 0.79
+09-24 19:18 INFO     for label 5 >> 0.698
+09-24 19:18 INFO     for label 6 >> 0.899
+09-24 19:18 INFO     for label 7 >> 0.846
+09-24 19:18 INFO     for label 8 >> 0.874
+09-24 19:18 INFO     for label 9 >> 0.868
+09-24 19:18 INFO     >>>>> Epoch [97]: Global model loss: 0.009893050062656403 acc: 0.8102
+09-24 19:18 INFO     Scores per target value
+09-24 19:18 INFO     for label 0 >> 0.85
+09-24 19:18 INFO     for label 1 >> 0.907
+09-24 19:18 INFO     for label 2 >> 0.741
+09-24 19:18 INFO     for label 3 >> 0.63
+09-24 19:18 INFO     for label 4 >> 0.779
+09-24 19:18 INFO     for label 5 >> 0.686
+09-24 19:18 INFO     for label 6 >> 0.91
+09-24 19:18 INFO     for label 7 >> 0.857
+09-24 19:18 INFO     for label 8 >> 0.905
+09-24 19:18 INFO     for label 9 >> 0.837
+09-24 19:19 INFO     >>>>> Epoch [98]: Global model loss: 0.009722918456792832 acc: 0.815
+09-24 19:19 INFO     Scores per target value
+09-24 19:19 INFO     for label 0 >> 0.834
+09-24 19:19 INFO     for label 1 >> 0.894
+09-24 19:19 INFO     for label 2 >> 0.737
+09-24 19:19 INFO     for label 3 >> 0.68
+09-24 19:19 INFO     for label 4 >> 0.805
+09-24 19:19 INFO     for label 5 >> 0.676
+09-24 19:19 INFO     for label 6 >> 0.904
+09-24 19:19 INFO     for label 7 >> 0.85
+09-24 19:19 INFO     for label 8 >> 0.896
+09-24 19:19 INFO     for label 9 >> 0.874
+09-24 19:19 INFO     >>>>> Epoch [99]: Global model loss: 0.009975032851099968 acc: 0.8122
+09-24 19:19 INFO     Scores per target value
+09-24 19:19 INFO     for label 0 >> 0.829
+09-24 19:19 INFO     for label 1 >> 0.898
+09-24 19:19 INFO     for label 2 >> 0.716
+09-24 19:19 INFO     for label 3 >> 0.648
+09-24 19:19 INFO     for label 4 >> 0.792
+09-24 19:19 INFO     for label 5 >> 0.687
+09-24 19:19 INFO     for label 6 >> 0.894
+09-24 19:19 INFO     for label 7 >> 0.879
+09-24 19:19 INFO     for label 8 >> 0.894
+09-24 19:19 INFO     for label 9 >> 0.885
