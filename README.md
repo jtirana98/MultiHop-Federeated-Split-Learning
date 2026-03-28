@@ -1,3 +1,4 @@
+
 -> Part of this code refers to the paper with the title: **Estimating the Training Time in Single- and Multi-Hop Split Federated Learning** \
 A pre-print version of this paper can be found [here](https://github.com/jtirana98/MultiHop-Federeated-Split-Learning/blob/main/EdgeSys.pdf)
 This paper will appear in the ACM Library proceedings for the EdgeSys 2025 workshop taking place in Rotterdam and co-located with the ACM EuroSys'25 conference.
@@ -17,9 +18,9 @@ Repository structure:
 
     **NOTE1**: The Pytorch C++ Frontend at this point does not support an API for dataset download like the torchvision.dataset does. So, make sure you have downloaded the datasets locally and provide the corresponding directories before starting training.
 
-    **NOTE2**: Inside the file `datasets\mydataset.h` we define the file path that leads to the dataset's files. Please change this path according to where you aim to store the datasets on your machine.
+    **NOTE2**: Inside the file `datasets\mydataset.h`, we define the file path that leads to the dataset's files. Please change this path according to where you aim to store the datasets on your machine.
 
-    we declare the enum mydataset::dataset to use one of the options below:
+    We declare the enum mydataset::dataset to use one of the options below:
     - 'MNIST': you can use this script to [download MNIST dataset](https://gist.github.com/goldsborough/6dd52a5e01ed73a642c1e772084bcd03)
     - 'CIFAR-10' or 'CIFAR-100': [source files](http://www.cs.toronto.edu/~kriz/cifar.html)
 
@@ -100,7 +101,7 @@ For the aggregator:
 
 or use script run_aggr.sh in pipeline_simulation/profiling
 
-NOTE: There is support for logging and checkpointing but this feature is deactivated for this version. You can use the utils/pipeline_logging.sh to do so.
+NOTE: There is support for logging and checkpointing, but this feature is deactivated for this version. You can use the utils/pipeline_logging.sh to do so.
 
 *Case 3: Emulated environment*
 
