@@ -1,3 +1,22 @@
+<div align="center">
+  <img src="https://github.com/jtirana98/MultiHop-Federeated-Split-Learning/blob/main/logo.png" alt="SplitPipe logo" width="320"/>
+
+  <p>
+    <strong>An open-source, ready-to-use ML framework for one- and multi-hop Split Federated Learning</strong>
+  </p>
+
+  <p>
+    SplitPipe ...
+  </p>
+  <img alt="C++" src="https://img.shields.io/badge/C++-%2300599C.svg?logo=c%2B%2B&logoColor=white"/>
+  <img alt="Python" src="https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff"/>
+  <img alt="Status" src="https://img.shields.io/badge/status-under%20construction-orange"/>
+
+  <br/><br/>
+
+</div>
+
+
 
 -> Part of this code refers to the paper with the title: **Estimating the Training Time in Single- and Multi-Hop Split Federated Learning** \
 A pre-print version of this paper can be found [here](https://github.com/jtirana98/MultiHop-Federeated-Split-Learning/blob/main/EdgeSys.pdf)
@@ -16,7 +35,7 @@ Repository structure:
 - directory *datasets/* :
     Contains source code to load a dataset into a dataloader.
 
-    **NOTE1**: The Pytorch C++ Frontend at this point does not support an API for dataset download like the torchvision.dataset does. So, make sure you have downloaded the datasets locally and provide the corresponding directories before starting training.
+    **NOTE1**: The PyTorch C++ Frontend at this point does not support an API for dataset download like the torchvision.dataset does. So, make sure you have downloaded the datasets locally and provide the corresponding directories before starting training.
 
     **NOTE2**: Inside the file `datasets\mydataset.h`, we define the file path that leads to the dataset's files. Please change this path according to where you aim to store the datasets on your machine.
 
